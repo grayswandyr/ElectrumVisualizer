@@ -30,6 +30,11 @@ You can clean your project (removing all the .class) with :
 perl build clean
 ```
 
+Then you can run Alloy Analyzer with :
+```
+perl build run
+```
+
 ## Collaborators
 - Nuno Macedo, HASLab, Portugal
 - Julien Brunel, ONERA, France

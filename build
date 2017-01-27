@@ -1,18 +1,43 @@
 #!/usr/bin/perl
+=begin
+build -- A build script for building ElectrumVisualizer project
+
+by G. Dupont
+===============================================================
+
+Usage:
+    Building:
+        perl build build
+        perl build 
+
+    Cleaning:
+        perl build clean
+
+    Running:
+        perl build run
+=cut
 
 use 5.18.20;
 use Time::localtime;
 use Cwd;
 
 our $javac="javac";
+our $java="java";
 our @classpath = (
     '.',
     './pardinus-0.3.1.jar',
+    './org.sat4j.core.jar',
     './AppleJavaExtensions-1.4.jar',
+    './resources/',
 );
-my $cp = join(':', @classpath);
-our $javacflags="-classpath '$cp:' -Xlint:none";
-our $d = ".";
+my $cp = join(':', @classpath) . ':';
+our $javacflags="-classpath '$cp' -Xlint:none";
+our $javaflags="-cp '$cp'";
+our @dirs = (
+    'edu',
+    'java_cup',
+);
+our $main="edu.mit.csail.sdg.alloy4whole.SimpleGUI";
 
 sub make_tree {
     my $dir = shift;
@@ -63,6 +88,7 @@ sub indent {
 
 sub compile_tree {
     my $tree = shift;
+    my $force = shift // 0;
     my $indent = shift // 0;
     my $rpkg = shift;
     my @pkg;
@@ -73,19 +99,32 @@ sub compile_tree {
             #chdir $k or die "Cannot enter directory $k: $!";
             push @pkg, $k;
             say indent(" ",$indent), "[", $indent, "] Entering directory $k...";
-            $tree->{$k} = compile_tree($tree->{$k}, $indent+1, \@pkg);
+            $tree->{$k} = compile_tree($tree->{$k}, $force, $indent+1, \@pkg);
             say indent(" ",$indent), "[", $indent, "] Leaving directory $k...";
             #chdir "..";
             pop @pkg;
         } else { 
-            print indent(" ",$indent), " => Compiling $k...";
             my $p = join('/',@pkg);
-            my @res = qx($javac $javacflags $p/$k);
-
-            if ($? == 0) {
-                print "OK\n";
+            my $cfile = substr($k, 0, -4) . "class";
+            my $build;
+            
+            if (not -e "$p/$cfile") {
+                $build = 1;
             } else {
-                die "Error while compiling $k:\n@res";
+                my $ctime = (stat("$p/$cfile"))[9];
+                my $jtime = (stat("$p/$k"))[9];
+                $build = ($ctime < $jtime);
+            }
+
+            if ($build or $force) {
+                print indent(" ",$indent), " => Compiling $k...";
+                my @res = qx($javac $javacflags $p/$k);
+
+                if ($? == 0) {
+                    print "OK\n";
+                } else {
+                    die "Error while compiling $k:\n@res";
+                }
             }
         }
     }
@@ -96,12 +135,25 @@ sub compile_tree {
 my $opt = shift;
 
 if (not defined $opt or $opt eq "build") {
-    say "Reading directory '$d'...";
+    my $force = 0;
+    while ($opt = shift) {
+        if ($opt eq "-f") {
+            $force = 1;
+        } else {
+            warn "Unknown option '$opt'";
+        }
+    }
+
     my $tree;
-    $tree->{$d} = make_tree($d);
-    $tree = compile_tree($tree);
+    foreach my $d (@dirs) {
+        say "Reading directory '$d'...";
+        $tree->{$d} = make_tree($d);
+    }
+    $tree = compile_tree($tree, $force);
 } elsif ($opt eq "clean") {
     system('find . -type f -name "*.class" -exec rm {} \;');
+} elsif ($opt eq "run") {
+    system("$java $javaflags $main");
 } else {
     die "Unknown option '$opt'.";
 }
