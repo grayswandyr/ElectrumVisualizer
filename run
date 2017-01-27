@@ -1,0 +1,2 @@
+#!/bin/bash
+java -cp ".:./pardinus-0.3.1.jar:./AppleJavaExtensions-1.4.jar" edu.mit.csail.sdg.alloy4whole.SimpleGUI

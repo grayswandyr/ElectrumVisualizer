@@ -1,0 +1,109 @@
+#!/usr/bin/perl
+
+use 5.18.20;
+use Time::localtime;
+use Cwd;
+
+our $javac="javac";
+our @classpath = (
+    '.',
+    './pardinus-0.3.1.jar',
+    './AppleJavaExtensions-1.4.jar',
+);
+my $cp = join(':', @classpath);
+our $javacflags="-classpath '$cp:' -Xlint:none";
+our $d = ".";
+
+sub make_tree {
+    my $dir = shift;
+    my $obj;
+
+    opendir(my $d, $dir) or die "Cannot open $dir: $!";
+    while (my $o = readdir($d)) {
+        if (-d "$dir/$o") {
+            if ($o =~ m/^\..*/) { next; }
+            $obj->{$o} = make_tree("$dir/$o");
+        } elsif (-f "$dir/$o" and $o =~ m/^.*\.java$/) {
+            $obj->{$o} = 0;
+        }
+    }
+    close($d);
+
+    return $obj;
+}
+
+sub print_tree {
+    my $obj = shift;
+    my $indentchar = shift // "  ";
+    my $indent = shift // "";
+
+    my $content = "";
+
+    foreach my $o (sort keys %$obj) {
+        if (ref($obj->{$o}) eq "HASH") {
+            $content = $content .
+                "$indent+$o\n" .
+                print_tree($obj->{$o}, $indentchar, "$indent$indentchar") . "\n" .
+                "$indent-\n";
+        } else {
+            $content = $content . "$indent|$o(" . $obj->{$o} . ")\n";
+        }
+    }
+
+    return $content;
+}
+
+sub indent {
+    my $char = shift;
+    my $time = shift;
+
+    if ($time <= 0) { return ""; }
+    return $char . indent($char, $time-1);
+}
+
+sub compile_tree {
+    my $tree = shift;
+    my $indent = shift // 0;
+    my $rpkg = shift;
+    my @pkg;
+    if (defined $rpkg) { @pkg = @$rpkg; }
+
+    foreach my $k (sort keys %$tree) {
+        if (ref($tree->{$k}) eq "HASH") {
+            #chdir $k or die "Cannot enter directory $k: $!";
+            push @pkg, $k;
+            say indent(" ",$indent), "[", $indent, "] Entering directory $k...";
+            $tree->{$k} = compile_tree($tree->{$k}, $indent+1, \@pkg);
+            say indent(" ",$indent), "[", $indent, "] Leaving directory $k...";
+            #chdir "..";
+            pop @pkg;
+        } else { 
+            print indent(" ",$indent), " => Compiling $k...";
+            my $p = join('/',@pkg);
+            my @res = qx($javac $javacflags $p/$k);
+
+            if ($? == 0) {
+                print "OK\n";
+            } else {
+                die "Error while compiling $k:\n@res";
+            }
+        }
+    }
+
+    return $tree;
+}
+
+my $opt = shift;
+
+if (not defined $opt or $opt eq "build") {
+    say "Reading directory '$d'...";
+    my $tree;
+    $tree->{$d} = make_tree($d);
+    $tree = compile_tree($tree);
+} elsif ($opt eq "clean") {
+    system('find . -type f -name "*.class" -exec rm {} \;');
+} else {
+    die "Unknown option '$opt'.";
+}
+
+
