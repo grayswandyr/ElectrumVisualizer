@@ -172,9 +172,10 @@ public final class VizGUI implements ComponentListener {
 	 * Returns the JSplitPane containing the customization/evaluator panel in
 	 * the left and the graph on the right.
 	 */
-	public JSplitPane getPanel() {
-		return splitpane;
-	}
+	public JSplitPane getPanel() { return splitpane;	}
+
+   /** Returns the main frame of the visualizer */
+   public JFrame getFrame() { return frame; }
 
 	/**
 	 * The last known divider position between the customization panel and the
@@ -191,6 +192,7 @@ public final class VizGUI implements ComponentListener {
 	/** If nonnull, you can pass in an XML file to find the next solution. */
 	private final Computer enumerator;
 
+	//[HASLAB]
 	// pt.uminho.haslab: control struture to keep a map batween a file's and the state of
 	// that file
 	private final Map<String, Integer> cacheForXmlState = new HashMap<String, Integer>();
