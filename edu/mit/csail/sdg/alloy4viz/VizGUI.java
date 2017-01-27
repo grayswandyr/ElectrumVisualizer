@@ -1053,6 +1053,43 @@ public final class VizGUI implements ComponentListener {
 		return myGraphPanel.alloyGetViewer();
 	}
 
+   /** Load the XML instance. */
+   public void importXML(final String fileName, boolean forcefully) {
+      final String xmlFileName = Util.canon(fileName);
+      File f = new File(xmlFileName);
+      if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
+         AlloyInstance myInstance;
+         try {
+            if (!f.exists()) throw new IOException("File " + xmlFileName + " does not exist.");
+            myInstance = StaticInstanceReader.parseInstance(f);
+         } catch (Throwable e) {
+            xmlLoaded.remove(fileName);
+            xmlLoaded.remove(xmlFileName);
+            OurDialog.alert("Cannot read or parse Alloy instance: "+xmlFileName+"\n\nError: "+e.getMessage());
+            if (xmlLoaded.size()>0) { importXML(xmlLoaded.get(xmlLoaded.size()-1), false); return; }
+            doCloseAll();
+            return;
+         }
+         if (myState==null) myState=new VizState(myInstance); else myState.loadInstance(myInstance);
+         repopulateProjectionPopup();
+         xml2title.put(xmlFileName, makeVizTitle());
+         this.xmlFileName = xmlFileName;
+      }
+      if (!xmlLoaded.contains(xmlFileName)) xmlLoaded.add(xmlFileName);
+      if (myGraphPanel != null) myGraphPanel.resetProjectionAtomCombos();
+      toolbar.setEnabled(true);
+      settingsOpen=0;
+      thememenu.setEnabled(true);
+      windowmenu.setEnabled(true);
+      if (frame!=null) {
+         frame.setVisible(true);
+         frame.setTitle("Alloy Visualizer "+Version.version()+" loading... Please wait...");
+         OurUtil.show(frame);
+      }
+      updateDisplay();
+   }
+
+
 	public void loadXML(final String fileName, boolean forcefully) {
 		loadXML(fileName, forcefully, 0);
 	}
@@ -1177,14 +1214,14 @@ public final class VizGUI implements ComponentListener {
 		if (file == null)
 			return null;
 		Util.setCurrentDirectory(file.getParentFile());
-		loadXML(file.getPath(), false);
+		importXML(file.getPath(), false);
 		return null;
 	}
 
 	/** This method loads a new XML instance file if it's not the current file. */
 	private Runner doLoadInstance(String fileName) {
 		if (!wrap)
-			loadXML(fileName, false);
+			importXML(fileName, false);
 		return wrapMe(fileName);
 	}
 
