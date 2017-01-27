@@ -1,47 +1,40 @@
-/* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
- * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
- * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
-
 package edu.mit.csail.sdg.alloy4graph;
 
+import edu.mit.csail.sdg.alloy4.Pair;
 import static edu.mit.csail.sdg.alloy4graph.Artist.getBounds;
-import static edu.mit.csail.sdg.alloy4graph.Graph.esc;
 import static edu.mit.csail.sdg.alloy4graph.Graph.selfLoopA;
 import static edu.mit.csail.sdg.alloy4graph.Graph.selfLoopGL;
 import static edu.mit.csail.sdg.alloy4graph.Graph.selfLoopGR;
-import static java.lang.StrictMath.round;
-import static java.lang.StrictMath.sqrt;
-
+import static edu.mit.csail.sdg.alloy4graph.GraphNode.sqrt3;
 import java.awt.Color;
 import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
+import static java.lang.StrictMath.round;
+import static java.lang.StrictMath.sqrt;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
-/** Mutable; represents a graphical node.
+/**
  *
- * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
+ * @author mquentin
  */
+public strictfp class SubGraph extends GraphNode {
 
-public strictfp class GraphNode {
+    //================================ adjustable options ========================================================================//
 
-   // =============================== adjustable options ==================================================
-
+   /** The maximum ascent and descent. We deliberately do NOT make this field "static" because only AWT thread can call Artist. */
+   private final int ad = Artist.getMaxAscentAndDescent();
+   
    /** This determines the minimum width of a dummy node. */
    private static final int dummyWidth = 30;
 
@@ -54,30 +47,12 @@ public strictfp class GraphNode {
    /** Color to use to show a highlighted node. */
    private static final Color COLOR_CHOSENNODE = Color.LIGHT_GRAY;
 
-   // =============================== cached for performance ===================================
+   //=============================== fields ======================================================================================//
 
-   /** The maximum ascent and descent. We deliberately do NOT make this field "static" because only AWT thread can call Artist. */
-   private final int ad = Artist.getMaxAscentAndDescent();
-
-   /** Caches the value of sqrt(3.0). The extra digits in the definition will be truncated by the Java compiler. */
-   protected static final double sqrt3 = 1.7320508075688772935274463415058723669428052538103806280558D;
-
-   /** Caches the value of sin(36 degree). The extra digits in the definition will be truncated by the Java compiler. */
-   protected static final double sin36 = 0.5877852522924731291687059546390727685976524376431459910723D;
-
-   /** Caches the value of cos(36 degree). The extra digits in the definition will be truncated by the Java compiler. */
-   protected static final double cos36 = 0.8090169943749474241022934171828190588601545899028814310677D;
-
-   /** Caches the value of cos(18 degree). The extra digits in the definition will be truncated by the Java compiler. */
-   protected static final double cos18 = 0.9510565162951535721164393333793821434056986341257502224473D;
-
-   /** Caches the value of tan(18 degree). The extra digits in the definition will be truncated by the Java compiler. */
-   protected static final double tan18 = 0.3249196962329063261558714122151344649549034715214751003078D;
+   /** The node body */
+   final Graph body;
 
    // =============================== these fields do not affect the computed bounds ===============================================
-
-   /** a user-provided annotation that will be associated with this node (can be null) (need not be unique) */
-   public final Object uuid;
 
    /** The X coordinate of the center of the node;  modified by tweak(), layout_computeX(), layout(), and relayout_edges() */
    private int centerX = 0;
@@ -85,29 +60,12 @@ public strictfp class GraphNode {
    /** The Y coordinate of the center of the node;  modified by tweak(), layout_computeX(), layout(), and relayout_edges() */
    private int centerY = 0;
 
-   /** The graph that this node belongs to;  must stay in sync with Graph.nodelist and Graph.layerlist */
-   final Graph graph;
-
    /** The layer that this node is in;  must stay in sync with Graph.layerlist */
    private int layer = 0;
 
-   /** The current position of this node in the graph's node list;  must stay in sync with Graph.nodelist */
-   int pos;
-
-   /** The "in" edges not including "self" edges;  must stay in sync with GraphEdge.a and GraphEdge.b */
-   final LinkedList<GraphEdge> ins = new LinkedList<GraphEdge>();
-
-   /** The "out" edges not including "self" edges;  must stay in sync with GraphEdge.a and GraphEdge.b */
-   final LinkedList<GraphEdge> outs = new LinkedList<GraphEdge>();
-
-   // =============================== these fields affect the computed bounds ===================================================
-
-   /** The "self" edges;  must stay in sync with GraphEdge.a and GraphEdge.b
-    * <p> When this value changes, we should invalidate the previously computed bounds information.
-    */
-   final LinkedList<GraphEdge> selfs = new LinkedList<GraphEdge>();
-
-   /** The font boldness.
+   // =============================== these fields affect the computed bounds ======================================================
+   
+      /** The font boldness.
     * <p> When this value changes, we should invalidate the previously computed bounds information.
     */
    private boolean fontBold = false;
@@ -131,8 +89,8 @@ public strictfp class GraphNode {
     * <p> When this value changes, we should invalidate the previously computed bounds information.
     */
    private DotShape shape = DotShape.BOX;
-
-   // ============================ these fields are computed by calcBounds() =========================================
+   
+    // ============================ these fields are computed by calcBounds() =========================================
 
    /** If (updown>=0), this is the distance from the center to the top edge. */
    private int updown = (-1);
@@ -166,24 +124,15 @@ public strictfp class GraphNode {
     * Note: if not null, it must be either a GeneralPath or a Polygon.
     */
    private Shape poly3 = null;
-
-   //===================================================================================================
-
-   /** Create a new node with the given list of labels, then add it to the given graph. */
-   public GraphNode(Graph graph, Object uuid, String... labels) {
-      this.uuid = uuid;
-      this.graph = graph;
-      this.pos = graph.nodelist.size();
-      graph.nodelist.add(this);
-      if (graph.layerlist.size()==0) graph.layerlist.add(new ArrayList<GraphNode>());
-      graph.layerlist.get(0).add(this);
-      if (labels!=null && labels.length>0) {
-         this.labels = new ArrayList<String>(labels.length);
-         for(int i=0; i<labels.length; i++) this.labels.add(labels[i]);
-      }
-   }
-
-   /** Changes the layer that this node is in; the new layer must be 0 or greater.
+   
+   //============================================================================================================================//
+   
+    public SubGraph(Graph graph, Object uuid, double defaultScale, String... labels) {
+        super(graph, uuid, labels);
+        this.body = new Graph(defaultScale);   
+    }
+    
+    /** Changes the layer that this node is in; the new layer must be 0 or greater.
     * <p> If a node is removed from a layer, the order of the other nodes in that layer remain unchanged.
     * <p> If a node is added to a new layer, then it is added to the right of the original rightmost node in that layer.
     */
@@ -291,6 +240,9 @@ public strictfp class GraphNode {
       gr.translate(centerX-left, centerY-top);
       gr.setFont(fontBold);
       if (highlight) gr.setColor(COLOR_CHOSENNODE); else gr.setColor(color);
+      
+      /*
+      // DotShape
       if (shape==DotShape.CIRCLE || shape==DotShape.M_CIRCLE || shape==DotShape.DOUBLE_CIRCLE) {
          int hw=width/2, hh=height/2;
          int radius = ((int) (sqrt( hw*((double)hw) + ((double)hh)*hh ))) + 2;
@@ -320,6 +272,8 @@ public strictfp class GraphNode {
             gr.drawLine(-side, side-8, -side+8, side); gr.drawLine(side, side-8, side-8, side);
          }
       }
+      
+      // DotStyle
       gr.set(DotStyle.SOLID, scale);
       int clr = color.getRGB() & 0xFFFFFF;
       gr.setColor((clr==0x000000 || clr==0xff0000 || clr==0x0000ff) ? Color.WHITE : Color.BLACK);
@@ -334,11 +288,19 @@ public strictfp class GraphNode {
          }
       }
       gr.translate(left-centerX, top-centerY);
+      */
+      
+      // draw method of Graph
+      body.draw(gr, scale, this, false);
+      
    }
 
    /** Helper method that sets the Y coordinate of every node in a given layer. */
    private void setY(int layer, int y) {
-      for(GraphNode n: graph.layer(layer)) n.centerY = y;
+      for(GraphNode n: graph.layer(layer)) 
+          if (n instanceof SubGraph) {
+              ((SubGraph) n).centerY = y;
+          }
    }
 
    /** Helper method that shifts a node up. */
@@ -351,8 +313,10 @@ public strictfp class GraphNode {
       for(i++; i<graph.layers(); i++) {
          List<GraphNode> list=graph.layer(i);
          GraphNode first=list.get(0);
-         if (first.centerY+ph[i]/2+yJump > y) setY(i, y-ph[i]/2-yJump);
-         y=first.centerY-ph[i]/2;
+         if (first instanceof SubGraph) {
+            if (((SubGraph) first).centerY+ph[i]/2+yJump > y) setY(i, y-ph[i]/2-yJump);
+            y=((SubGraph) first).centerY-ph[i]/2;
+         }
       }
       graph.relayout_edges(false);
    }
@@ -367,8 +331,10 @@ public strictfp class GraphNode {
       for(i--; i>=0; i--) {
          List<GraphNode> list=graph.layer(i);
          GraphNode first=list.get(0);
-         if (first.centerY-ph[i]/2-yJump < y) setY(i, y+ph[i]/2+yJump);
-         y=first.centerY+ph[i]/2;
+         if (first instanceof SubGraph) {
+            if (((SubGraph) first).centerY-ph[i]/2-yJump < y) setY(i, y+ph[i]/2+yJump);
+            y=((SubGraph) first).centerY+ph[i]/2;
+         }
       }
       graph.relayout_edges(false);
    }
@@ -380,9 +346,12 @@ public strictfp class GraphNode {
       x=x-(shape==null?0:side); // x is now the left-most edge of this node
       for(i--;i>=0;i--) {
          GraphNode node=peers.get(i);
-         int side=(node.shape==null?0:node.side);
-         if (node.centerX+side+node.getReserved()+xJump>x) node.centerX=x-side-node.getReserved()-xJump;
-         x=node.centerX-side;
+         if (node instanceof SubGraph) {
+            SubGraph nodeGraph = (SubGraph) node;
+            int side=(nodeGraph.shape==null?0:nodeGraph.side);
+            if (nodeGraph.centerX+side+node.getReserved()+xJump>x) nodeGraph.centerX=x-side-node.getReserved()-xJump;
+            x=nodeGraph.centerX-side;
+         }
       }
    }
 
@@ -393,9 +362,12 @@ public strictfp class GraphNode {
       x=x+(shape==null?0:side)+getReserved(); // x is now the right most edge of this node
       for(i++;i<peers.size();i++) {
          GraphNode node=peers.get(i);
-         int side=(node.shape==null?0:node.side);
-         if (node.centerX-side-xJump<x) node.centerX=x+side+xJump;
-         x=node.centerX+side+node.getReserved();
+         if (node instanceof SubGraph) {
+            SubGraph nodeGraph = (SubGraph) node; 
+            int side=(nodeGraph.shape==null?0:nodeGraph.side);
+            if (nodeGraph.centerX-side-xJump<x) nodeGraph.centerX=x+side+xJump;
+            x=nodeGraph.centerX+side+node.getReserved();
+         }
       }
    }
 
@@ -406,12 +378,15 @@ public strictfp class GraphNode {
       while(true) {
          if (i==0) { centerX=x; return; } // no clash possible
          GraphNode other=peers.get(i-1);
-         int otherSide=(other.shape==null ? 0 : other.side);
-         int otherRight=other.centerX+otherSide+other.getReserved();
-         if (otherRight<left) { centerX=x; return; } // no clash
-         graph.swapNodes(layer(), i, i-1);
-         i--;
-         if (other.shape!=null) other.shiftRight(peers, i+1, x + side + getReserved() + otherSide);
+         if (other instanceof SubGraph) {
+            SubGraph otherGraph = (SubGraph) other;
+            int otherSide=(otherGraph.shape==null ? 0 : otherGraph.side);
+            int otherRight=otherGraph.centerX+otherSide+other.getReserved();
+            if (otherRight<left) { centerX=x; return; } // no clash
+            graph.swapNodes(layer(), i, i-1);
+            i--;
+            if (otherGraph.shape!=null) otherGraph.shiftRight(peers, i+1, x + side + getReserved() + otherSide); 
+         }
       }
    }
 
@@ -422,12 +397,15 @@ public strictfp class GraphNode {
       while(true) {
          if (i==peers.size()-1) { centerX=x; return; } // no clash possible
          GraphNode other=peers.get(i+1);
-         int otherSide=(other.shape==null ? 0 : other.side);
-         int otherLeft=other.centerX-otherSide;
-         if (otherLeft>right) { centerX=x; return; } // no clash
-         graph.swapNodes(layer(), i, i+1);
-         i++;
-         if (other.shape!=null) other.shiftLeft(peers, i-1, x - side - other.getReserved() - otherSide);
+         if (other instanceof SubGraph) {
+            SubGraph otherGraph = (SubGraph) other;
+            int otherSide=(otherGraph.shape==null ? 0 : otherGraph.side);
+            int otherLeft=otherGraph.centerX-otherSide;
+            if (otherLeft>right) { centerX=x; return; } // no clash
+            graph.swapNodes(layer(), i, i+1);
+            i++;
+            if (otherGraph.shape!=null) otherGraph.shiftLeft(peers, i-1, x - side - otherGraph.getReserved() - otherSide);
+         }
       }
    }
 
@@ -588,31 +566,18 @@ public strictfp class GraphNode {
          reserved=reserved+(int)(getBounds(false,label).getWidth())+selfLoopGL+selfLoopGR;
       }
    }
-
+   
    //===================================================================================================
-
-   /** Returns a DOT representation of this node (or "" if this is a dummy node) */
+   
+   /** Returns a DOT representation of this SubGraph (or "" if this is a dummy node) */
    @Override public String toString() {
-      if (shape == null) return ""; // This means it's a virtual node
-      int rgb = color.getRGB() & 0xFFFFFF;
-      String text = (rgb==0xFF0000 || rgb==0x0000FF || rgb==0) ? "FFFFFF" : "000000";
-      String main = Integer.toHexString(rgb);  while(main.length() < 6) { main = "0" + main; }
-      StringBuilder out = new StringBuilder();
-      out.append("\"N" + pos + "\"");
-      out.append(" [");
-      out.append("uuid=\"");
-      if (uuid!=null) out.append(esc(uuid.toString()));
-      out.append("\", label=\"");
-      boolean first = true;
-      if (labels != null) for(String label: labels) if (label.length() > 0) {
-         out.append((first ? "" : "\\n") + esc(label));
-         first = false;
-      }
-      out.append("\", color=\"#" + main + "\"");
-      out.append(", fontcolor = \"#" + text + "\"");
-      out.append(", shape = \"" + shape.getDotText() + "\"");
-      out.append(", style = \"filled, " + style.getDotText() + "\"");
-      out.append("]\n");
-      return out.toString();
+      StringBuilder sb = new StringBuilder();
+      sb.append("digraph \"graph\" {\n" + "graph [fontsize=12]\n" + "node [fontsize=12]\n" + "edge [fontsize=12]\n" + "rankdir=TB;\n");
+      for (GraphEdge e: body.edges) sb.append(e);
+      for (GraphNode n: body.nodes) sb.append(n);
+      sb.append("}\n");
+      return sb.toString();
    }
 }
+
+   
