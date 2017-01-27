@@ -37,6 +37,11 @@ perl build clean
 - Alcino Cunha, HASLab, Portugal
 - Denis Kuperberg TU Munich, Germany
 - Eduardo Pessoa, HASLab, Portugal
+- Rémi Bossut, ENSEEIHT, France
+- Guillaume Dupont, ENSEEIHT, France
+- Louis Fauvarque, ENSEEIHT, France
+- Maxime Quentin, ENSEEIHT, France
+- Rémi Bossut, ENSEEIHT, France
 
 ## History
 
