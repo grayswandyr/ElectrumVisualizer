@@ -38,7 +38,7 @@ import java.util.List;
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  */
 
-public final strictfp class GraphNode {
+public strictfp class GraphNode {
 
    // =============================== adjustable options ==================================================
 
@@ -60,19 +60,19 @@ public final strictfp class GraphNode {
    private final int ad = Artist.getMaxAscentAndDescent();
 
    /** Caches the value of sqrt(3.0). The extra digits in the definition will be truncated by the Java compiler. */
-   private static final double sqrt3 = 1.7320508075688772935274463415058723669428052538103806280558D;
+   protected static final double sqrt3 = 1.7320508075688772935274463415058723669428052538103806280558D;
 
    /** Caches the value of sin(36 degree). The extra digits in the definition will be truncated by the Java compiler. */
-   private static final double sin36 = 0.5877852522924731291687059546390727685976524376431459910723D;
+   protected static final double sin36 = 0.5877852522924731291687059546390727685976524376431459910723D;
 
    /** Caches the value of cos(36 degree). The extra digits in the definition will be truncated by the Java compiler. */
-   private static final double cos36 = 0.8090169943749474241022934171828190588601545899028814310677D;
+   protected static final double cos36 = 0.8090169943749474241022934171828190588601545899028814310677D;
 
    /** Caches the value of cos(18 degree). The extra digits in the definition will be truncated by the Java compiler. */
-   private static final double cos18 = 0.9510565162951535721164393333793821434056986341257502224473D;
+   protected static final double cos18 = 0.9510565162951535721164393333793821434056986341257502224473D;
 
    /** Caches the value of tan(18 degree). The extra digits in the definition will be truncated by the Java compiler. */
-   private static final double tan18 = 0.3249196962329063261558714122151344649549034715214751003078D;
+   protected static final double tan18 = 0.3249196962329063261558714122151344649549034715214751003078D;
 
    // =============================== these fields do not affect the computed bounds ===============================================
 
