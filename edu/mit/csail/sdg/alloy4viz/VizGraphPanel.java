@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
@@ -353,4 +354,12 @@ public final class VizGraphPanel extends JPanel {
 		split.setDividerLocation(split.getSize().height - split.getInsets().bottom - split.getDividerSize()
 				- split.getRightComponent().getPreferredSize().height);
 	}
+
+   public void resetProjectionAtomCombos() {
+       for (Entry<AlloyType, TypePanel> e : type2panel.entrySet()) {
+           if (e.getValue().atomCombo != null)
+               e.getValue().atomCombo.setSelectedIndex(0);
+       }
+   }
+
 }
