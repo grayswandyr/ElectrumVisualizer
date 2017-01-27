@@ -13,7 +13,8 @@ Usage:
     Cleaning:
         perl build clean
 
-
+    Running:
+        perl build run
 =cut
 
 use 5.18.20;
@@ -21,18 +22,22 @@ use Time::localtime;
 use Cwd;
 
 our $javac="javac";
+our $java="java";
 our @classpath = (
     '.',
     './pardinus-0.3.1.jar',
+    './org.sat4j.core.jar',
     './AppleJavaExtensions-1.4.jar',
     './resources/',
 );
-my $cp = join(':', @classpath);
-our $javacflags="-classpath '$cp:' -Xlint:none";
+my $cp = join(':', @classpath) . ':';
+our $javacflags="-classpath '$cp' -Xlint:none";
+our $javaflags="-cp '$cp'";
 our @dirs = (
     'edu',
     'java_cup',
 );
+our $main="edu.mit.csail.sdg.alloy4whole.SimpleGUI";
 
 sub make_tree {
     my $dir = shift;
@@ -147,6 +152,8 @@ if (not defined $opt or $opt eq "build") {
     $tree = compile_tree($tree, $force);
 } elsif ($opt eq "clean") {
     system('find . -type f -name "*.class" -exec rm {} \;');
+} elsif ($opt eq "run") {
+    system("$java $javaflags $main");
 } else {
     die "Unknown option '$opt'.";
 }
