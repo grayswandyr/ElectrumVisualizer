@@ -268,9 +268,25 @@ public class VizMain {
         }
 
         log.log("Creating VizGUI interface...");
-        this.viz = new VizGUI(true, args[0], null);
+        
+        String fileName;
+
+				if (args.length == 0){
+					File file = OurDialog.askFile(true, null, ".xml", ".xml instance files");
+					if (file == null){
+						log.log("You have to select an xml file.");
+						return; 
+					}
+					Util.setCurrentDirectory(file.getParentFile());
+				  fileName = file.getPath();
+				}else{
+					fileName = args[0];
+				}
+				 
+				this.viz = new VizGUI(true, fileName, null);
         this.viz.doSetFontSize(FontSize.get());
-        log.log("Showing VizGUI...");
+
+				log.log("Showing VizGUI...");
         this.viz.doShowViz();
 
         //////////////////// FINISH INIT ////////////////////////
@@ -360,10 +376,10 @@ public class VizMain {
 
 
     public static void main(final String[] args) throws Exception {
-        if (args.length == 0) {
+        /*if (args.length == 0) {
             System.err.println("Error: you must provide an input file to run ElectrumVisualizer");
             System.exit(-1);
-        }
+        }*/
         SwingUtilities.invokeLater(new Runnable() {
             public void run() { new VizMain(args); }
         });
