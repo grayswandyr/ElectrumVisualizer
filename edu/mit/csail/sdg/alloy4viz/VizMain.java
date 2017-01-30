@@ -36,10 +36,16 @@ import java.awt.event.ActionEvent;
 import javax.swing.UIManager;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 import java.awt.GraphicsEnvironment;
 
 public class VizMain {
+    /** The latest welcome screen; each time we update the welcome screen, we increment this number. */
+    private static final int welcomeLevel = 2;
+    
     // Verify that the graphics environment is set up
     static {
         try {
@@ -70,23 +76,35 @@ public class VizMain {
 
     /** Find a temporary directory to store Alloy files; it's guaranteed to be a canonical absolute path. */
     private static synchronized String alloyHome() {
-        if (alloyHome!=null) return alloyHome;
-        String temp=System.getProperty("java.io.tmpdir");
-        if (temp==null || temp.length()==0)
+        if (alloyHome!=null)
+            return alloyHome;
+
+        // Retrieve temp directory path
+        String temp = System.getProperty("java.io.tmpdir");
+        if (temp == null || temp.length() == 0)
             OurDialog.fatal("Error. JVM need to specify a temporary directory using java.io.tmpdir property.");
-        String username=System.getProperty("user.name");
-        File tempfile=new File(temp+File.separatorChar+"alloy4tmp40-"+(username==null?"":username));
+
+        // Retrieve user name
+        String username = System.getProperty("user.name");
+
+        // Create a temporary file with the retrieved tmp path and username
+        File tempfile = new File(temp + File.separatorChar + "alloy4tmp40-" + (username == null ? "" : username));
         tempfile.mkdirs();
-        String ans=Util.canon(tempfile.getPath());
-        if (!tempfile.isDirectory()) {
-            OurDialog.fatal("Error. Cannot create the temporary directory "+ans);
-        }
+
+        // Canonize file path
+        String ans = Util.canon(tempfile.getPath());
+        if (!tempfile.isDirectory()) // If the created file does not exists, it means that we did not create it => fail
+           OurDialog.fatal("Error. Cannot create the temporary directory " + ans);
+        
         if (!Util.onWindows()) {
-            String[] args={"chmod", "700", ans};
+            // In some case it can be because of bad acces right => give all accesses to current user (chmod 700)
+            String[] args = { "chmod", "700", ans };
             try {Runtime.getRuntime().exec(args).waitFor();}
             catch (Throwable ex) {} // We only intend to make a best effort.
         }
-        return alloyHome=ans;
+
+        alloyHome = ans;
+        return alloyHome;
     }
 
     /** True if Alloy Analyzer should let warning be nonfatal. */
@@ -221,63 +239,6 @@ public class VizMain {
         Util.copy(false, false, platformBinary,
            arch+"/minisat.dll", arch+"/minisatprover.dll", arch+"/zchaff.dll",
            arch+"/berkmin.exe", arch+"/spear.exe");
-        // Copy the model files
-        /*Util.copy(false, true, alloyHome(),
-           "models/book/appendixA/addressBook1.als", "models/book/appendixA/addressBook2.als", "models/book/appendixA/barbers.als",
-           "models/book/appendixA/closure.als", "models/book/appendixA/distribution.als", "models/book/appendixA/phones.als",
-           "models/book/appendixA/prison.als", "models/book/appendixA/properties.als", "models/book/appendixA/ring.als",
-           "models/book/appendixA/spanning.als", "models/book/appendixA/tree.als", "models/book/appendixA/tube.als", "models/book/appendixA/undirected.als",
-           "models/book/appendixE/hotel.thm", "models/book/appendixE/p300-hotel.als", "models/book/appendixE/p303-hotel.als", "models/book/appendixE/p306-hotel.als",
-           "models/book/chapter2/addressBook1a.als", "models/book/chapter2/addressBook1b.als", "models/book/chapter2/addressBook1c.als",
-           "models/book/chapter2/addressBook1d.als", "models/book/chapter2/addressBook1e.als", "models/book/chapter2/addressBook1f.als",
-           "models/book/chapter2/addressBook1g.als", "models/book/chapter2/addressBook1h.als", "models/book/chapter2/addressBook2a.als",
-           "models/book/chapter2/addressBook2b.als", "models/book/chapter2/addressBook2c.als", "models/book/chapter2/addressBook2d.als",
-           "models/book/chapter2/addressBook2e.als", "models/book/chapter2/addressBook3a.als", "models/book/chapter2/addressBook3b.als",
-           "models/book/chapter2/addressBook3c.als", "models/book/chapter2/addressBook3d.als", "models/book/chapter2/theme.thm",
-           "models/book/chapter4/filesystem.als", "models/book/chapter4/grandpa1.als",
-           "models/book/chapter4/grandpa2.als", "models/book/chapter4/grandpa3.als", "models/book/chapter4/lights.als",
-           "models/book/chapter5/addressBook.als", "models/book/chapter5/lists.als", "models/book/chapter5/sets1.als", "models/book/chapter5/sets2.als",
-           "models/book/chapter6/hotel.thm", "models/book/chapter6/hotel1.als", "models/book/chapter6/hotel2.als",
-           "models/book/chapter6/hotel3.als", "models/book/chapter6/hotel4.als", "models/book/chapter6/mediaAssets.als",
-           "models/book/chapter6/memory/abstractMemory.als", "models/book/chapter6/memory/cacheMemory.als",
-           "models/book/chapter6/memory/checkCache.als", "models/book/chapter6/memory/checkFixedSize.als",
-           "models/book/chapter6/memory/fixedSizeMemory.als", "models/book/chapter6/memory/fixedSizeMemory_H.als",
-           "models/book/chapter6/ringElection.thm", "models/book/chapter6/ringElection1.als", "models/book/chapter6/ringElection2.als",
-           "models/examples/algorithms/dijkstra.als", "models/examples/algorithms/dijkstra.thm",
-           "models/examples/algorithms/messaging.als", "models/examples/algorithms/messaging.thm",
-           "models/examples/algorithms/opt_spantree.als", "models/examples/algorithms/opt_spantree.thm",
-           "models/examples/algorithms/peterson.als",
-           "models/examples/algorithms/ringlead.als", "models/examples/algorithms/ringlead.thm",
-           "models/examples/algorithms/s_ringlead.als",
-           "models/examples/algorithms/stable_mutex_ring.als", "models/examples/algorithms/stable_mutex_ring.thm",
-           "models/examples/algorithms/stable_orient_ring.als", "models/examples/algorithms/stable_orient_ring.thm",
-           "models/examples/algorithms/stable_ringlead.als", "models/examples/algorithms/stable_ringlead.thm",
-           "models/examples/case_studies/INSLabel.als", "models/examples/case_studies/chord.als",
-           "models/examples/case_studies/chord2.als", "models/examples/case_studies/chordbugmodel.als",
-           "models/examples/case_studies/com.als", "models/examples/case_studies/firewire.als", "models/examples/case_studies/firewire.thm",
-           "models/examples/case_studies/ins.als", "models/examples/case_studies/iolus.als",
-           "models/examples/case_studies/sync.als", "models/examples/case_studies/syncimpl.als",
-           "models/examples/puzzles/farmer.als", "models/examples/puzzles/farmer.thm",
-           "models/examples/puzzles/handshake.als", "models/examples/puzzles/handshake.thm",
-           "models/examples/puzzles/hanoi.als", "models/examples/puzzles/hanoi.thm",
-           "models/examples/systems/file_system.als", "models/examples/systems/file_system.thm",
-           "models/examples/systems/javatypes_soundness.als",
-           "models/examples/systems/lists.als", "models/examples/systems/lists.thm",
-           "models/examples/systems/marksweepgc.als", "models/examples/systems/views.als",
-           "models/examples/toys/birthday.als", "models/examples/toys/birthday.thm",
-           "models/examples/toys/ceilingsAndFloors.als", "models/examples/toys/ceilingsAndFloors.thm",
-           "models/examples/toys/genealogy.als", "models/examples/toys/genealogy.thm",
-           "models/examples/toys/grandpa.als", "models/examples/toys/grandpa.thm",
-           "models/examples/toys/javatypes.als", "models/examples/toys/life.als", "models/examples/toys/life.thm",
-           "models/examples/toys/numbering.als", "models/examples/toys/railway.als", "models/examples/toys/railway.thm",
-           "models/examples/toys/trivial.als",
-           "models/examples/tutorial/farmer.als",
-           "models/util/boolean.als", "models/util/graph.als", "models/util/integer.als", "models/util/natural.als",
-           "models/util/ordering.als", "models/util/relation.als", "models/util/seqrel.als", "models/util/sequence.als",
-           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als", "models/Temporal_Examples/firewire.ele", // pt.uminho.haslab
-                "models/Temporal_Examples/hotel.ele","models/Temporal_Examples/lift_spl.ele","models/Temporal_Examples/ring.ele", // pt.uminho.haslab
-                "models/Temporal_Examples/span_tree.ele", "models/Temporal_Examples/ex1.ele" // pt.uminho.haslab
-           );*/
         // Record the locations
         System.setProperty("alloy.theme0", alloyHome() + fs + "models");
         System.setProperty("alloy.home", alloyHome());
@@ -306,91 +267,13 @@ public class VizMain {
 //            try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Throwable e) { }
         }
 
-        // Figure out the desired x, y, width, and height
-        /*int screenWidth=OurUtil.getScreenWidth(), screenHeight=OurUtil.getScreenHeight();
-        int width=AnalyzerWidth.get();
-        if (width<=0) width=screenWidth/10*8; else if (width<100) width=100;
-        if (width>screenWidth) width=screenWidth;
-        int height=AnalyzerHeight.get();
-        if (height<=0) height=screenHeight/10*8; else if (height<100) height=100;
-        if (height>screenHeight) height=screenHeight;
-        int x=AnalyzerX.get(); if (x<0) x=screenWidth/10; if (x>screenWidth-100) x=screenWidth-100;
-        int y=AnalyzerY.get(); if (y<0) y=screenHeight/10; if (y>screenHeight-100) y=screenHeight-100;*/
-
-        // Put up a slash screen
-        /*final JFrame frame = new JFrame("Alloy Analyzer");
-        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        //        frame.pack(); // [HASLab]
-        if (!Util.onMac() && !Util.onWindows()) {
-            String gravity = System.getenv("_JAVA_AWT_WM_STATIC_GRAVITY");
-            if (gravity==null || gravity.length()==0) {
-                // many Window managers do not respect ICCCM2; this should help avoid the Title Bar being shifted "off screen"
-                if (x<30) { if (x<0) x=0; width=width-(30-x);   x=30; }
-                if (y<30) { if (y<0) y=0; height=height-(30-y); y=30; }
-            }
-            if (width<100) width=100;
-            if (height<100) height=100;
-        }
-        frame.setSize(width,height);
-        frame.setLocation(x,y);
-        frame.setVisible(true);
-        frame.setTitle("Alloy Analyzer (Electrum) "+Version.version()+" loading... please wait...");
-        final int windowWidth = width;*/
-
         log.log("Creating VizGUI interface...");
         this.viz = new VizGUI(true, args[0], null);
+        this.viz.doSetFontSize(FontSize.get());
         log.log("Showing VizGUI...");
         this.viz.doShowViz();
-        // We intentionally call setVisible(true) first before settings the "please wait" title,
-        // since we want the minimized window title on Linux/FreeBSD to just say Alloy Analyzer
-
-        // Test the allowed memory sizes
-        /*final WorkerEngine.WorkerCallback c = new WorkerEngine.WorkerCallback() {
-            private final List<Integer> allowed = new ArrayList<Integer>();
-            private final List<Integer> toTry = new ArrayList<Integer>(Arrays.asList(256,512,768,1024,1536,2048,2560,3072,3584,4096));
-            private int mem;
-            public synchronized void callback(Object msg) {
-                if (toTry.size()==0) {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() { SimpleGUI.this.frame=frame; SimpleGUI.this.finishInit(args, allowed, windowWidth); }
-                    });
-                    return;
-                }
-                try { mem=toTry.remove(0); WorkerEngine.stop(); WorkerEngine.run(dummyTask, mem, 128, "", "", this); return; } catch(IOException ex) { fail(); }
-            }
-            public synchronized void done() {
-                //System.out.println("Alloy4 can use "+mem+"M"); System.out.flush();
-                allowed.add(mem);
-                callback(null);
-            }
-            public synchronized void fail() {
-                //System.out.println("Alloy4 cannot use "+mem+"M"); System.out.flush();
-                callback(null);
-            }
-        };
-        c.callback(null);*/
 
         //////////////////// FINISH INIT ////////////////////////
-        // Add the listeners
-        /*try {
-            wrap = true;
-            //frame.addWindowListener(doQuit());
-        } finally {
-            wrap = false;
-        }*/
-        //frame.addComponentListener(this);
-
-        // initialize the "allowed memory sizes" array
-        /*allowedMemorySizes = new ArrayList<Integer>(initialAllowedMemorySizes);
-        int newmem = SubMemory.get();
-        if (!allowedMemorySizes.contains(newmem)) {
-           int newmemlen = allowedMemorySizes.size();
-           if (allowedMemorySizes.contains(768) || newmemlen==0)
-              SubMemory.set(768); // a nice default value
-           else
-              SubMemory.set(allowedMemorySizes.get(newmemlen-1));
-        }*/
-
         // Choose the appropriate font
         int fontSize=FontSize.get();
         String fontName=FontName.get();
@@ -403,90 +286,8 @@ public class VizMain {
         }
         FontName.set(fontName);
 
-        // Copy required files from the JAR
-        //copyFromJAR();
-        //final String binary = alloyHome() + fs + "binary";
-
-        // Create the menu bar
-        /*JMenuBar bar = new JMenuBar();
-        try {
-            wrap = true;
-            filemenu    = menu(bar,  "&File",    doRefreshFile());
-            editmenu    = menu(bar,  "&Edit",    doRefreshEdit());
-            runmenu     = menu(bar,  "E&xecute", doRefreshRun());
-            optmenu     = menu(bar,  "&Options", doRefreshOption());
-            windowmenu  = menu(bar,  "&Window",  doRefreshWindow(false));
-            windowmenu2 = menu(null, "&Window",  doRefreshWindow(true));
-            helpmenu    = menu(bar,  "&Help",    null);
-            if (!Util.onMac()) menuItem(helpmenu, "About Alloy...", 'A', doAbout());
-            menuItem(helpmenu, "Quick Guide",                       'Q', doHelp());
-            menuItem(helpmenu, "See the Copyright Notices...",      'L', doLicense());
-        } finally {
-            wrap = false;
-        }*/
-
-        // Pre-load the visualizer
-        //viz = new VizGUI(false, "", windowmenu2, enumerator, evaluator);
-        viz.doSetFontSize(FontSize.get());
-
-        // Create the toolbar
-        /*try {
-            wrap = true;
-            toolbar = new JToolBar();
-            toolbar.setFloatable(false);
-            if (!Util.onMac()) toolbar.setBackground(background);
-            toolbar.add(OurUtil.button("New", "Starts a new blank model", "images/24_new.gif", doNew()));
-            toolbar.add(OurUtil.button("Open", "Opens an existing model", "images/24_open.gif", doOpen()));
-            toolbar.add(OurUtil.button("Reload", "Reload all the models from disk", "images/24_reload.gif", doReloadAll()));
-            toolbar.add(OurUtil.button("Save", "Saves the current model", "images/24_save.gif", doSave()));
-            toolbar.add(runbutton=OurUtil.button("Execute", "Executes the latest command", "images/24_execute.gif", doExecuteLatest()));
-            toolbar.add(stopbutton=OurUtil.button("Stop", "Stops the current analysis", "images/24_execute_abort2.gif", doStop(2)));
-            stopbutton.setVisible(false);
-            toolbar.add(showbutton=OurUtil.button("Show", "Shows the latest instance", "images/24_graph.gif", doShowLatest()));
-//            toolbar.add(untempbutton=OurUtil.button("Untemp", "Shows the latest instance", "images/24_graph.gif", doUntempLatest()));
-                toolbar.add(Box.createHorizontalGlue());
-            toolbar.setBorder(new OurBorder(false,false,false,false));
-        } finally {
-            wrap = false;
-        }*/
-
         // Choose the antiAlias setting
         OurAntiAlias.enableAntiAlias(AntiAlias.get());
-
-        // Create the message area
-        /*logpane = OurUtil.scrollpane(null);
-        log = new SwingLogPanel(logpane, fontName, fontSize, background, Color.BLACK, new Color(.7f,.2f,.2f), this);*/
-
-        // Create the text area
-        /*text = new OurTabbedSyntaxWidget(fontName, fontSize, TabSize.get());
-        text.listeners.add(this);
-        text.enableSyntax(! SyntaxDisabled.get());*/
-
-        // Add everything to the frame, then display the frame
-        /*Container all=frame.getContentPane();
-        all.setLayout(new BorderLayout());
-        all.removeAll();
-        JPanel lefthalf=new JPanel();
-        lefthalf.setLayout(new BorderLayout());
-        lefthalf.add(toolbar, BorderLayout.NORTH);
-        text.addTo(lefthalf, BorderLayout.CENTER);
-        splitpane = OurUtil.splitpane(JSplitPane.HORIZONTAL_SPLIT, lefthalf, logpane, width/2);
-        splitpane.setResizeWeight(0.5D);
-        status = OurUtil.make(OurAntiAlias.label(" "), new Font(fontName, Font.PLAIN, fontSize), Color.BLACK, background);
-        status.setBorder(new OurBorder(true,false,false,false));
-        all.add(splitpane, BorderLayout.CENTER);
-        all.add(status, BorderLayout.SOUTH);*/
-
-        // Generate some informative log messages
-        //log.logBold("Alloy Analyzer (Electrum) "+Version.version()+" (build date: "+Version.buildDate()+")\n\n");
-
-        // If on Mac, then register an application listener
-        /*try {
-            wrap = true;
-            if (Util.onMac()) MacUtil.registerApplicationListener(doShow(), doAbout(), doOpenFile(""), doQuit());
-        } finally {
-            wrap = false;
-        }*/
 
         // Add the new JNI location to the java.library.path
         copyFromJAR();
@@ -501,39 +302,6 @@ public class VizMain {
             old.set(null,newarray);
         } catch (Throwable ex) { }
 
-        // Testing the SAT solvers
-        /*if (1==1) {
-            satChoices = SatSolver.values().makeCopy();
-//            String test1 = Subprocess.exec(20000, new String[]{binary+fs+"berkmin", binary+fs+"tmp.cnf"});
-//            if (!isSat(test1)) satChoices.remove(SatSolver.BerkMinPIPE);
-            satChoices.remove(SatSolver.BerkMinPIPE);
-            String test2 = Subprocess.exec(20000, new String[]{binary+fs+"spear", "--model", "--dimacs", binary+fs+"tmp.cnf"});
-            if (!isSat(test2)) satChoices.remove(SatSolver.SpearPIPE);
-            if (!loadLibrary("minisat")) {
-                log.logBold("Warning: JNI-based SAT solver does not work on this platform.\n");
-                log.log("This is okay, since you can still use SAT4J as the solver.\n"+
-                "For more information, please visit http://alloy.mit.edu/alloy4/\n");
-                log.logDivider();
-                log.flush();
-                satChoices.remove(SatSolver.MiniSatJNI);
-            }
-            if (!loadLibrary("minisatprover")) satChoices.remove(SatSolver.MiniSatProverJNI);
-            if (!loadLibrary("zchaff"))        satChoices.remove(SatSolver.ZChaffJNI);
-            SatSolver now = SatSolver.get();
-            if (!satChoices.contains(now)) {
-                now=SatSolver.ZChaffJNI;
-                if (!satChoices.contains(now)) now=SatSolver.SAT4J;
-                now.set();
-            }
-            if (now==SatSolver.SAT4J && satChoices.size()>3 && satChoices.contains(SatSolver.CNF) && satChoices.contains(SatSolver.KK)) {
-                log.logBold("Warning: Alloy4 defaults to SAT4J since it is pure Java and very reliable.\n");
-                log.log("For faster performance, go to Options menu and try another solver like MiniSat.\n");
-                log.log("If these native solvers fail on your computer, remember to change back to SAT4J.\n");
-                log.logDivider();
-                log.flush();
-            }
-        }*/
-
         // If the temporary directory has become too big, then tell the user they can "clear temporary directory".
         /*long space = computeTemporarySpaceUsed();
         if (space<0 || space>=20*1024768) {
@@ -545,26 +313,8 @@ public class VizMain {
             log.flush();
         }*/
 
-        // Refreshes all the menu items
-        /*doRefreshFile(); OurUtil.enableAll(filemenu);
-        doRefreshEdit(); OurUtil.enableAll(editmenu);
-        doRefreshRun(); OurUtil.enableAll(runmenu);
-        doRefreshOption();
-        doRefreshWindow(false); OurUtil.enableAll(windowmenu);
-        frame.setJMenuBar(bar);*/
-
-        // Open the given file, if a filename is given in the command line
-        /*for(String f:args) if (f.toLowerCase(Locale.US).endsWith(".als")) {
-            File file = new File(f);
-            if (file.exists() && file.isFile()) doOpenFile(file.getPath());
-        }*/
-
-        // Update the title and status bar
-        //notifyChange();
-        //text.get().requestFocusInWindow();
-
         // Launch the welcome screen if needed
-        /*if (!"yes".equals(System.getProperty("debug")) && Welcome.get() < welcomeLevel) {
+        if (!"yes".equals(System.getProperty("debug")) && Welcome.get() < welcomeLevel) {
            JCheckBox again = new JCheckBox("Show this message every time you start the Alloy Analyzer");
            again.setSelected(true);
            OurDialog.showmsg("Welcome",
@@ -587,9 +337,8 @@ public class VizMain {
                  " ",
                  again
            );
-           doShow();
            if (!again.isSelected()) Welcome.set(welcomeLevel);
-        }*/
+        }
 
         // Periodically ask the MailBug thread to see if there is a newer version or not
         final long now = System.currentTimeMillis();
