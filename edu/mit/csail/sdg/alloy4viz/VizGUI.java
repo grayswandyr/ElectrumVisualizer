@@ -605,7 +605,7 @@ public final class VizGUI implements ComponentListener {
 					"Save the current theme customization as a new theme file", "images/24_save.gif", doSaveThemeAs()));
 			toolbar.add(resetSettingsButton = OurUtil.button("Reset", "Reset the theme customization",
 					"images/24_settings_close2.gif", doResetTheme()));
-            addTemporalJPanel();//pt.uminho.haslab: the jpanel with temporal states is created
+            //addTemporalJPanel();//pt.uminho.haslab: the jpanel with temporal states is created
 		} finally {
 			wrap = false;
 		}
@@ -658,7 +658,7 @@ public final class VizGUI implements ComponentListener {
 	}
 
 	// pt.uminho.haslab: control structures to make the JPanel with the times
-	private JComboBox atomComboTime;
+	/*private JComboBox atomComboTime;
 	private JButton leftTime, rightTime;
 	private int backindex = -1;
 	
@@ -717,10 +717,10 @@ public final class VizGUI implements ComponentListener {
 		toolbar.add(atomComboTime);
 		toolbar.add(rightTime);
 		toolbar.setBorder(new EmptyBorder(0, 0, 0, 10));
-	}
+	}*/
 	
 	// pessoa: function that make the JPanel with the times
-	public final void setTemporalJPanel(int last) {
+	/*public final void setTemporalJPanel(int last) {
 
 		final String[] atomnames = this.createTimeComboAtoms(last+1);
 		atomComboTime.removeAllItems();
@@ -732,33 +732,33 @@ public final class VizGUI implements ComponentListener {
 		leftTime.setEnabled(false);
 		rightTime.setEnabled(atomnames.length > 0 || backindex == 0);
 
-	}
+	}*/
 
 	// pessoa: create a list with n times with the purpose of adding it to the
 	// temporal Jpanel
-	private String[] createTimeComboAtoms(int numberOfStates) {
+	/*private String[] createTimeComboAtoms(int numberOfStates) {
 		String[] times = new String[numberOfStates];
 		for (int i = 0; i < numberOfStates; i++)
 			times[i] = "Time " + i;
 		return times;
-	}
+	}*/
 
 	// pessoa: boolean variable to control if the first xml file was loaded
-	private boolean loadXmlFile = true;
+	//private boolean loadXmlFile = true;
 
 	// pessoa: change the solution to see given a particular state
-	public void refreshComboAtomTime(int state) {
+	/*public void refreshComboAtomTime(int state) {
 		this.loadXmlFile = false;
 		atomComboTime.setSelectedIndex(state);
 		this.loadXmlFile = true;
-	}
+	}*/
 
 	// pessoa: aux function to get the path of the xml files given a particular
 	// state
-	private String splitTemporalFileName(int state, String path) {
+	/*private String splitTemporalFileName(int state, String path) {
 		String[] dots = path.split(Pattern.quote("."));
 		return dots[0] + "." + dots[1] + "Time" + state + "." + dots[2];
-	}
+	}*/
 
 	/** Invoked when the Visualizationwindow is resized. */
 	public void componentResized(ComponentEvent e) {
@@ -1096,7 +1096,8 @@ public final class VizGUI implements ComponentListener {
 	
 	/** Load the XML instance. */
 	public void loadXML(final String fileName, boolean forcefully, int state) {
-		String dfileName = splitTemporalFileName(state, fileName);  // [HASLab]
+		//String dfileName = splitTemporalFileName(state, fileName);  // [HASLab]
+        String dfileName = fileName; // [RUSTINE]
 		final String xmlFileName = Util.canon(dfileName);
 		File f = new File(xmlFileName);
 		if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
@@ -1237,11 +1238,11 @@ public final class VizGUI implements ComponentListener {
 		if (wrap)
 			return wrapMe();
 		xmlLoaded.remove(xmlFileName);
-		if (xmlLoaded.size() > 0) { // pt.uminho.haslab
+		/*if (xmlLoaded.size() > 0) { // pt.uminho.haslab
 			doLoadInstance(xmlLoaded.get(xmlLoaded.size() - 1));
 			refreshComboAtomTime((Integer) cacheForXmlState.get(xmlLoaded.get(xmlLoaded.size() - 1)));
 			return null;
-		}
+		}*/
 		if (standalone)
 			System.exit(0);
 		else if (frame != null)

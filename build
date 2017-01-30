@@ -37,7 +37,10 @@ our @dirs = (
     'edu',
     'java_cup',
 );
-our $main="edu.mit.csail.sdg.alloy4whole.SimpleGUI";
+our %omits = (
+    'alloy4whole' => 1,
+);
+our $main="edu.mit.csail.sdg.alloy4viz.VizMain";
 
 sub make_tree {
     my $dir = shift;
@@ -47,6 +50,7 @@ sub make_tree {
     while (my $o = readdir($d)) {
         if (-d "$dir/$o") {
             if ($o =~ m/^\..*/) { next; }
+            if (defined $omits{$o}) { say "Omitting $dir/$o."; next; }
             $obj->{$o} = make_tree("$dir/$o");
         } elsif (-f "$dir/$o" and $o =~ m/^.*\.java$/) {
             $obj->{$o} = 0;
@@ -153,7 +157,8 @@ if (not defined $opt or $opt eq "build") {
 } elsif ($opt eq "clean") {
     system('find . -type f -name "*.class" -exec rm {} \;');
 } elsif ($opt eq "run") {
-    system("$java $javaflags $main");
+    my $args = join(' ', @ARGV);
+    system("$java $javaflags $main $args");
 } else {
     die "Unknown option '$opt'.";
 }
