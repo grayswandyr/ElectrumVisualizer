@@ -37,9 +37,6 @@ our @dirs = (
     'edu',
     'java_cup',
 );
-our %omits = (
-    'alloy4whole' => 1,
-);
 our $main="edu.mit.csail.sdg.alloy4viz.VizMain";
 
 sub make_tree {
@@ -50,7 +47,6 @@ sub make_tree {
     while (my $o = readdir($d)) {
         if (-d "$dir/$o") {
             if ($o =~ m/^\..*/) { next; }
-            if (defined $omits{$o}) { say "Omitting $dir/$o."; next; }
             $obj->{$o} = make_tree("$dir/$o");
         } elsif (-f "$dir/$o" and $o =~ m/^.*\.java$/) {
             $obj->{$o} = 0;
