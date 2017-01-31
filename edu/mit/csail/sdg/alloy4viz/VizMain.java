@@ -271,6 +271,7 @@ public class VizMain {
         
         String fileName;
 
+				// If there was no arg precised, we ask the user which file to open.
 				if (args.length == 0){
 					File file = OurDialog.askFile(true, null, ".xml", ".xml instance files");
 					if (file == null){
@@ -279,6 +280,7 @@ public class VizMain {
 					}
 					Util.setCurrentDirectory(file.getParentFile());
 				  fileName = file.getPath();
+				// else the first arg should be the path to the xml model the user wants to visualize.
 				}else{
 					fileName = args[0];
 				}
