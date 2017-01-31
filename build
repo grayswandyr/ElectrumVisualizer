@@ -8,55 +8,110 @@ by G. Dupont
 Usage:
     Building:
         perl build build
-        perl build 
 
     Cleaning:
         perl build clean
 
     Running:
         perl build run
+
+    Creating a .jar:
+        perl build jar
 =cut
 
+## General uses
 use 5.18.20;
 use Time::localtime;
-use Cwd;
+use File::Copy;
+use Cwd 'abs_path';
 
-our $javac="javac";
-our $java="java";
+## General options
+# Class path list
 our @classpath = (
-    '.',
     './pardinus-0.3.1.jar',
     './org.sat4j.core.jar',
     './AppleJavaExtensions-1.4.jar',
     './resources/',
 );
-my $cp = join(':', @classpath) . ':';
-our $javacflags="-classpath '$cp' -Xlint:none";
-our $javaflags="-cp '$cp'";
+
+# Directories to build
 our @dirs = (
     'edu',
     'java_cup',
 );
+
+# Name of the main class (prefixed by its package)
 our $main="edu.mit.csail.sdg.alloy4viz.VizMain";
 
+# Name of the generated jarfile
+our $jarfile="electrum-0.2.0.jar";
+
+# Joined classpath to pass to Java(c)
+my $cp = join(':', @classpath) . ':';
+
+# Java executables
+our $javac="javac";
+our $java="java";
+our $jar="jar";
+
+# Java flags
+our $javacflags="-classpath '$cp' -Xlint:none";
+our $javaflags="-cp '$cp'";
+our $jarflags="cfm";
+
+## Quiet flag
+our $quiet = 0;
+
+## Sub routines
+
+# make_tree: create a tree object out of a file system designed by
+# $dir, containing only files with extension .$sep
+# The tree object is of the form :
+#    dir
+#       subdir1
+#           subsubdir1
+#           ...
+#       subdir2
+#       ...
+#
+# The before last level contains the file names, and each of this file
+# is associated with a value that is not a HASHREF (to detect it).
 sub make_tree {
     my $dir = shift;
+    my $sel = shift // "java";
     my $obj;
 
+    # Open the directory
     opendir(my $d, $dir) or die "Cannot open $dir: $!";
+
+    # For each object of this directory
     while (my $o = readdir($d)) {
         if (-d "$dir/$o") {
-            if ($o =~ m/^\..*/) { next; }
-            $obj->{$o} = make_tree("$dir/$o");
-        } elsif (-f "$dir/$o" and $o =~ m/^.*\.java$/) {
+            # If it is a directory...
+            if ($o =~ m/^\..*/) {
+                # We exclude any directory of the form .<sthing>
+                # This will exclude : . .. .git and so on
+                next;
+            }
+
+            # Recursively create the tree of the current sub directory
+            $obj->{$o} = make_tree("$dir/$o", $sel);
+        } elsif (-f "$dir/$o" and $o =~ m/^.*\.$sel$/) {
+            # Else, if it is a file with the correct extension
             $obj->{$o} = 0;
         }
     }
+
+    # Close the directory
     close($d);
 
+    # Return the computed object
     return $obj;
 }
 
+# print_tree: sub routine to print a tree (debug purpose)
+# It will create a string of the tree object $obj using $indentchar as indentation
+# element, starting with indentation $indent.
 sub print_tree {
     my $obj = shift;
     my $indentchar = shift // "  ";
@@ -64,13 +119,16 @@ sub print_tree {
 
     my $content = "";
 
+    # For each key of the tree object
     foreach my $o (sort keys %$obj) {
         if (ref($obj->{$o}) eq "HASH") {
+            # Either the sub field is a hash : recursively print the sub tree
             $content = $content .
                 "$indent+$o\n" .
                 print_tree($obj->{$o}, $indentchar, "$indent$indentchar") . "\n" .
                 "$indent-\n";
         } else {
+            # If not, it has to be a leaf (that is, a file)
             $content = $content . "$indent|$o(" . $obj->{$o} . ")\n";
         }
     }
@@ -78,6 +136,8 @@ sub print_tree {
     return $content;
 }
 
+# indent: utility function that basically join $time times the string $char
+# e.g.: indent("--",4) => "--------"
 sub indent {
     my $char = shift;
     my $time = shift;
@@ -86,6 +146,15 @@ sub indent {
     return $char . indent($char, $time-1);
 }
 
+# compile_tree: run the build command on the tree $tree.
+# By default, the script will only build files that have been modified
+# since the last compilation (that is, files with a modified timestamp
+# greater than the timestamp of the built artifact).
+# This behaviour can be overrided with the flag $force.
+#
+# The $indent parameter specify the indentation level (for pretty printing)
+# The $rpkg parameter represents the cumulative package list. This is used
+# to guess the complete path of each file.
 sub compile_tree {
     my $tree = shift;
     my $force = shift // 0;
@@ -94,67 +163,210 @@ sub compile_tree {
     my @pkg;
     if (defined $rpkg) { @pkg = @$rpkg; }
 
+    # Read each key of the tree
     foreach my $k (sort keys %$tree) {
         if (ref($tree->{$k}) eq "HASH") {
-            #chdir $k or die "Cannot enter directory $k: $!";
-            push @pkg, $k;
-            say indent(" ",$indent), "[", $indent, "] Entering directory $k...";
-            $tree->{$k} = compile_tree($tree->{$k}, $force, $indent+1, \@pkg);
-            say indent(" ",$indent), "[", $indent, "] Leaving directory $k...";
-            #chdir "..";
-            pop @pkg;
+            # If the value is a hash, recursively call the compiler on the subtree
+            push @pkg, $k; # We add the name of the subdir to the package list
+            say indent(" ",$indent), "[", $indent, "] Entering directory $k..." unless $quiet;
+            compile_tree($tree->{$k}, $force, $indent+1, \@pkg);
+            say indent(" ",$indent), "[", $indent, "] Leaving directory $k..." unless $quiet;
+            pop @pkg;      # We pop out the name of the subdir from the package list
         } else { 
-            my $p = join('/',@pkg);
-            my $cfile = substr($k, 0, -4) . "class";
+            # Else : it has to be a file
+            my $p = join('/',@pkg); # Compute full path
+            my $cfile = substr($k, 0, -4) . "class"; # Compute class file name from java file name
+            
+            # Determine if we must build
             my $build;
             
             if (not -e "$p/$cfile") {
+                # If the .class file does not exist, we must compile
                 $build = 1;
             } else {
+                # If the .class timestamp is lower than the corresponding .java file,
+                # we must compile
                 my $ctime = (stat("$p/$cfile"))[9];
                 my $jtime = (stat("$p/$k"))[9];
                 $build = ($ctime < $jtime);
             }
 
             if ($build or $force) {
-                print indent(" ",$indent), " => Compiling $k...";
+                # If we determined that we had to compile (or that we are forced to)
+                print indent(" ",$indent), " => Compiling $k..." unless $quiet;
+
+                # Call to javac
                 my @res = qx($javac $javacflags $p/$k);
 
-                if ($? == 0) {
-                    print "OK\n";
-                } else {
-                    die "Error while compiling $k:\n@res";
-                }
+                # We die if last call was unsuccessful
+                die "\nError while compiling $k !" unless $? == 0;
+                print "OK\n" unless $quiet;
             }
         }
     }
-
-    return $tree;
 }
 
+# move_tree: move every file of a tree from a source to a destination
+sub move_tree {
+    my $tree = shift;
+    my $presrc = abs_path(shift);
+    my $predest = abs_path(shift);
+    my $rpkg = shift;
+    my @pkg;
+    if (defined $rpkg) { @pkg = @$rpkg; }
+
+    foreach my $k (sort keys %$tree) {
+        if (ref($tree->{$k}) eq "HASH") {
+            # If the value is a HASH, then it is a subdir : recursively collapse
+            push @pkg, $k;
+            if (not -e $predest . '/' . join('/', @pkg)) {
+                say "Creating directory $predest/" . join('/', @pkg) . "..." unless $quiet;
+                mkdir($predest . '/' . join('/', @pkg)) or die "Cannot constitute directory " . join('/', @pkg) . ": $!";
+            }
+            move_tree($tree->{$k}, $presrc, $predest, \@pkg);
+            pop @pkg;
+        } else {
+            # Else, it is simply a file
+            say "Moving file $presrc/" . join('/', @pkg) . '/' . $k . "..." unless $quiet;
+            move($presrc . '/' . join('/', @pkg) . '/' . $k, 
+                 $predest . '/' . join('/', @pkg) . '/' 
+            ) or die "Cannot move " . $presrc . '/' . join('/', @pkg) . "/$k to " . $predest . '/' . join('/', @pkg) . '/' . ": $!";
+        }
+    }
+}
+
+# Read first argv (it should be 'build', 'run', 'clean' or 'jar')
 my $opt = shift;
 
-if (not defined $opt or $opt eq "build") {
-    my $force = 0;
-    while ($opt = shift) {
-        if ($opt eq "-f") {
-            $force = 1;
+if (not defined $opt or substr($opt, 0, 1) eq "-") {
+    $opt = "help";
+}
+
+my $force = 0;
+
+while (my $o = shift) {
+    if ($o eq "-f") {
+        $force = 1;
+    } elsif ($o eq "-q") {
+        $quiet = 1;
+    } else {
+        say "Unknown option '$opt'";
+    }
+}
+
+if ($opt eq "build") {
+    # Build has been requested !
+
+    # Create the tree of the requested @dirs
+    my $tree;
+    foreach my $d (@dirs) {
+        say "Reading directory '$d'..." unless $quiet;
+        $tree->{$d} = make_tree($d);
+    }
+
+    # Compile
+    compile_tree($tree, $force);
+} elsif ($opt eq "clean") {
+    # Clean has been requested => simple system call
+    system('find . -type f -name "*.class" -exec rm {} \;');
+} elsif ($opt eq "run") {
+    # Run has been requested => simple system call
+    system("$java $javaflags $main");
+} elsif ($opt eq "jar") {
+    # Jar has been requested
+    
+    # Read further option
+    my $v = ($quiet ? "" : "v");
+    
+    # First we clean the .class and the .jar
+    say "Cleaning directories..." unless $quiet;
+    system('find . -type f -name "*.class" -exec rm {} \;');
+    
+    if (-e $jarfile) {
+        unlink $jarfile or die "Cannot remove $jarfile: $!";
+    }
+
+    # Then we compile the architecture
+    say "Compiling..." unless $quiet;
+    my $tree;
+    foreach my $d (@dirs) {
+        say "Reading directory '$d'..." unless $quiet;
+        $tree->{$d} = make_tree($d);
+    }
+    compile_tree($tree);
+    
+    # We compute a new tree of .class files
+    say "Retrieving compiled files and libraries..." unless $quiet;
+    my $ctree;
+    foreach my $d (@dirs) {
+        $ctree->{$d} = make_tree($d, "class");
+    }
+
+    # We create the file list from it
+    say "Creating temporary directory..." unless $quiet;
+    mkdir "tmp";
+    move_tree($ctree, '.', './tmp');
+
+    # And append the classpath (ressources, libraries, etc.) to it
+    chdir "./tmp";
+    foreach my $pack (@classpath) {
+        if ($pack =~ m/\.jar$/) {
+            say "Inflating $pack..." unless $quiet;
+            system("$jar x${v}f .$pack");
+        } elsif ($pack =~ m/\/$/) {
+            say "Copying content of $pack..." unless $quiet;
+            system("cp -rp .$pack* ./");
         } else {
-            warn "Unknown option '$opt'";
+            say "Copying $pack..." unless $quiet;
+            system("cp -rp .$pack ./");
         }
     }
 
-    my $tree;
-    foreach my $d (@dirs) {
-        say "Reading directory '$d'...";
-        $tree->{$d} = make_tree($d);
-    }
-    $tree = compile_tree($tree, $force);
-} elsif ($opt eq "clean") {
-    system('find . -type f -name "*.class" -exec rm {} \;');
-} elsif ($opt eq "run") {
-    my $args = join(' ', @ARGV);
-    system("$java $javaflags $main $args");
+    # We create the manifest file (to make the JAR runnable)
+    say "Creating manifest file..." unless $quiet;
+    open(my $mf, '>', "MANIFEST.mf");
+    print $mf "Main-Class: $main\n";
+    close($mf);
+
+    # Finally we create the jar with a simple system call
+    say "Creating jar..." unless $quiet;
+    my $e = system("$jar $jarflags$v ../$jarfile MANIFEST.mf .");
+    chdir "..";
+    system("rm -rf ./tmp");
+    die "Could not create JAR $jarfile !" unless $? == 0; # We die if last call was unsuccessful
+
+    # Last words
+    say "Successfully create JAR $jarfile !" unless $quiet;
+    say "You may now run it with :" unless $quiet;
+    say "    java -jar $jarfile" unless $quiet;
+} elsif ($opt eq "help") {
+    say <<END_HELP;
+Build script to build the Electrum/ElectrumVisualizer project
+
+by: G. Dupont
+version: 1.1
+
+Usage: $0 <cmd> [-f] [-q]
+
+Commands:
+    build       Build every source of the project
+    
+    clean       Clean the project (removing any .class)
+    
+    run         Run the project (call the main class)
+
+    jar         Create a .jar from the project (WARNING: this will clean the project)
+
+    help        Display this help
+
+Options:
+    -f          Force compilation [build only].
+                By default, the script check if a file needs to be compiled and
+                ignores it if not. You can override this behaviour with this flag.
+
+    -q          Quiet mode
+
+END_HELP
 } else {
     die "Unknown option '$opt'.";
 }
