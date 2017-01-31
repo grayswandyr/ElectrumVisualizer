@@ -79,6 +79,7 @@ public final class VizState {
       edgeColor.putAll(old.edgeColor);
       edgeStyle.putAll(old.edgeStyle);
       edgeVisible.putAll(old.edgeVisible);
+      isPort.putAll(old.isPort); //MODIFIED BY JULIEN
       changedSinceLastSave = false;
    }
 
@@ -109,6 +110,7 @@ public final class VizState {
       edgeColor.clear();       edgeColor.put(null, DotColor.MAGIC);
       edgeStyle.clear();       edgeStyle.put(null, DotStyle.SOLID);
       edgeVisible.clear();     edgeVisible.put(null, true);
+      isPort.clear();          isPort.put(null, true);  // MODIFIED BY JULIEN
       // Provide some nice defaults for "Int" and "seq/Int" type
       AlloyType sigint=AlloyType.INT;
       label.put(sigint,"");
@@ -365,6 +367,7 @@ public final class VizState {
    public final MMap<Boolean> hideUnconnected = new MMap<Boolean>(true, false);
    public final MMap<Boolean> showAsAttr      = new MMap<Boolean>(true, false);
    public final MMap<Boolean> showAsLabel     = new MMap<Boolean>(true, false);
+   public final MMap<Boolean> isPort          = new MMap<Boolean>(true, false); // MODIFIED BY JULIEN
 
    public final class MInt {
       private final LinkedHashMap<AlloyElement,Integer> map = new LinkedHashMap<AlloyElement,Integer>();

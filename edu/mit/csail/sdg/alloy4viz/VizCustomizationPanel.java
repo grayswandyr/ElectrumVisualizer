@@ -342,8 +342,9 @@ public final class VizCustomizationPanel extends JPanel {
       JPanel back       = vizState.layoutBack .pick(rel, "Layout backwards",  "Layout graph as if arcs were reversed");
       JPanel merge      = vizState.mergeArrows.pick(rel, "Merge arrows",      "Merge opposing arrows between the same nodes as one bidirectional arrow");
       JPanel constraint = vizState.constraint .pick(rel, "Influence layout",  "Whether this edge influences the graph layout");
+      JPanel port       = vizState.isPort     .pick(rel, "Is a port relation","Define the relation as a port relation");  // MODIFIED BY JULIEN
       JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint);
-      JPanel panel2 = OurUtil.makeVR(wcolor, back, merge);
+      JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, port);  // MODIFIED BY JULIEN
       parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
       parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
       parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
@@ -448,9 +449,10 @@ public final class VizCustomizationPanel extends JPanel {
       JPanel constraintCBE = vizState.constraint .pick("Influence layout",   "Whether this edge influences the graph layout");
       JPanel attrCBE       = vizState.attribute  .pick("Show as attributes", "Show relations as attributes on nodes");
       JPanel laybackCBE    = vizState.layoutBack .pick("Layout backwards",   "Layout graph as if arcs were reversed");
+      JPanel portCBE       = vizState.isPort     .pick("Is a port relation", "Define the relation as a port relation");  // MODIFIED BY JULIEN
       parent.add(makelabel(" Default Relation Settings:"));
       parent.add(OurUtil.makeH(wcolor, 10, colorComboE, 8, outlineComboE, 2, null));
-      JPanel a=OurUtil.makeVL(wcolor, dispCBE, attrCBE, constraintCBE, 10), b=OurUtil.makeVL(wcolor, laybackCBE, mergeCBE);
+      JPanel a=OurUtil.makeVL(wcolor, dispCBE, attrCBE, constraintCBE, 10), b=OurUtil.makeVL(wcolor, laybackCBE, mergeCBE, portCBE); // MODIFIED BY JULIEN
       parent.add(OurUtil.makeHT(wcolor, 10, a, 10, b, 2, null));
    }
 
