@@ -20,10 +20,6 @@ To build ElectrumVisualizer :
 ```
 perl build build
 ```
-or, more simply :
-```
-perl build
-```
 
 You can clean your project (removing all the .class) with :
 ```
@@ -33,6 +29,16 @@ perl build clean
 Then you can run Alloy Analyzer with :
 ```
 perl build run
+```
+
+You can also build a runnable .jar with :
+```
+perl build jar
+```
+
+Some help on the script is available with :
+```
+perl build help
 ```
 
 ## Collaborators
