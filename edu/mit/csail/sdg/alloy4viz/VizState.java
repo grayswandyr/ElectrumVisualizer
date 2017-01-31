@@ -79,6 +79,7 @@ public final class VizState {
       edgeColor.putAll(old.edgeColor);
       edgeStyle.putAll(old.edgeStyle);
       edgeVisible.putAll(old.edgeVisible);
+      subVisible.putAll(old.subVisible); // Maxime
       changedSinceLastSave = false;
    }
 
@@ -109,6 +110,7 @@ public final class VizState {
       edgeColor.clear();       edgeColor.put(null, DotColor.MAGIC);
       edgeStyle.clear();       edgeStyle.put(null, DotStyle.SOLID);
       edgeVisible.clear();     edgeVisible.put(null, true);
+      subVisible.clear();      subVisible.put(null, true); // Maxime
       // Provide some nice defaults for "Int" and "seq/Int" type
       AlloyType sigint=AlloyType.INT;
       label.put(sigint,"");
@@ -360,6 +362,7 @@ public final class VizState {
    public final MMap<Boolean> constraint      = new MMap<Boolean>(true, false);
    public final MMap<Boolean> layoutBack      = new MMap<Boolean>(true, false);
    public final MMap<Boolean> edgeVisible     = new MMap<Boolean>(true, false);
+   public final MMap<Boolean> subVisible      = new MMap<Boolean>(true, false); //Maxime
    public final MMap<Boolean> nodeVisible     = new MMap<Boolean>(true, false);
    public final MMap<Boolean> number          = new MMap<Boolean>(true, false);
    public final MMap<Boolean> hideUnconnected = new MMap<Boolean>(true, false);
