@@ -13,7 +13,7 @@ Usage:
         perl build clean
 
     Running:
-        perl build run
+        perl build run [-x args]
 
     Creating a .jar:
         perl build jar
@@ -243,12 +243,18 @@ if (not defined $opt or substr($opt, 0, 1) eq "-") {
 }
 
 my $force = 0;
+my @args;
 
 while (my $o = shift) {
     if ($o eq "-f") {
         $force = 1;
     } elsif ($o eq "-q") {
         $quiet = 1;
+    } elsif ($o eq "-x") {
+        while ($o = shift and substr($o, 0, 1) ne "-") {
+            push @args, $o;
+        }
+        unshift(@ARGV, $o);
     } else {
         say "Unknown option '$opt'";
     }
@@ -271,7 +277,7 @@ if ($opt eq "build") {
     system('find . -type f -name "*.class" -exec rm {} \;');
 } elsif ($opt eq "run") {
     # Run has been requested => simple system call
-    system("$java $javaflags $main");
+    system("$java $javaflags $main " . join(' ', @args));
 } elsif ($opt eq "jar") {
     # Jar has been requested
     
@@ -346,7 +352,7 @@ Build script to build the Electrum/ElectrumVisualizer project
 by: G. Dupont
 version: 1.1
 
-Usage: $0 <cmd> [-f] [-q]
+Usage: $0 <cmd> [-f] [-q] [-x <arg1> <arg2> ...]
 
 Commands:
     build       Build every source of the project
@@ -363,6 +369,10 @@ Options:
     -f          Force compilation [build only].
                 By default, the script check if a file needs to be compiled and
                 ignores it if not. You can override this behaviour with this flag.
+
+    -x          Specify arguments to pass to the command line [run only].
+                The list of arguments ends either with the end of the command or
+                with a "-*" type flag.
 
     -q          Quiet mode
 
