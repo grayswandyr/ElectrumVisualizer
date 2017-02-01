@@ -42,8 +42,13 @@ public enum DotStyle {
     /**
      * Bold line.
      */
-    BOLD("Bold", "bold");
+    BOLD("Bold", "bold"),
 
+    /** Blank line
+     * Modified @Louis Fauvarque
+     */
+    BLANK("Blank","blank");
+    
     /**
      * The description of this line style.
      */

@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  */
 public final strictfp class GraphEdge {
 
-   // =============================== adjustable options ===========================================================================
+    // =============================== adjustable options ===========================================================================
     /**
      * The angle (in radian) to fan out the arrow head, if the line is not bold.
      */
@@ -49,14 +49,14 @@ public final strictfp class GraphEdge {
      */
     private final double bigFan = toRadians(32);
 
-   // =============================== cached for performance efficiency ============================================================
+    // =============================== cached for performance efficiency ============================================================
     /**
      * The maximum ascent and descent. We deliberately do NOT make this field
      * "static" because only AWT thread can call Artist.
      */
     private final int ad = Artist.getMaxAscentAndDescent();
 
-   // =============================== fields =======================================================================================
+    // =============================== fields =======================================================================================
     /**
      * a user-provided annotation that will be associated with this edge (can be
      * null) (need not be unique)
@@ -124,7 +124,7 @@ public final strictfp class GraphEdge {
      */
     private Curve path = null;
 
-   // =========================================================================s====================================================
+    // =========================================================================s====================================================
     /**
      * Construct an edge from "from" to "to" with the given arrow head settings,
      * then add the edge to the graph.
@@ -494,42 +494,44 @@ public final strictfp class GraphEdge {
      * the current zoom scale, draw the edge.
      */
     void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
-        final int top = a.graph.getTop(), left = a.graph.getLeft();
-        gr.translate(-left, -top);
-        if (highEdge == this) {
-            gr.setColor(color);
-            gr.set(DotStyle.BOLD, scale);
-        } else if ((highEdge == null && highGroup == null) || highGroup == group) {
-            gr.setColor(color);
-            gr.set(style, scale);
-        } else {
-            gr.setColor(Color.LIGHT_GRAY);
-            gr.set(style, scale);
-        }
-        if (a == b) {
-            gr.draw(path);
-        } else {
-            // Concatenate this path and its connected segments into a single VizPath object, then draw it
-            Curve p = null;
-            GraphEdge e = this;
-            while (e.a.shape() == null) {
-                e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
+        if (style != DotStyle.BLANK) {
+            final int top = a.graph.getTop(), left = a.graph.getLeft();
+            gr.translate(-left, -top);
+            if (highEdge == this) {
+                gr.setColor(color);
+                gr.set(DotStyle.BOLD, scale);
+            } else if ((highEdge == null && highGroup == null) || highGroup == group) {
+                gr.setColor(color);
+                gr.set(style, scale);
+            } else {
+                gr.setColor(Color.LIGHT_GRAY);
+                gr.set(style, scale);
             }
-            while (true) {
-                p = (p == null) ? e.path : p.join(e.path);
-                if (e.b.shape() != null) {
-                    break;
+            if (a == b) {
+                gr.draw(path);
+            } else {
+                // Concatenate this path and its connected segments into a single VizPath object, then draw it
+                Curve p = null;
+                GraphEdge e = this;
+                while (e.a.shape() == null) {
+                    e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
                 }
-                e = e.b.outs.get(0);
+                while (true) {
+                    p = (p == null) ? e.path : p.join(e.path);
+                    if (e.b.shape() != null) {
+                        break;
+                    }
+                    e = e.b.outs.get(0);
+                }
+                gr.drawSmoothly(p);
             }
-            gr.drawSmoothly(p);
+            gr.set(DotStyle.SOLID, scale);
+            gr.translate(left, top);
+            if (highEdge == null && highGroup == null && label.length() > 0) {
+                drawLabel(gr, color, null);
+            }
+            drawArrowhead(gr, scale, highEdge, highGroup);
         }
-        gr.set(DotStyle.SOLID, scale);
-        gr.translate(left, top);
-        if (highEdge == null && highGroup == null && label.length() > 0) {
-            drawLabel(gr, color, null);
-        }
-        drawArrowhead(gr, scale, highEdge, highGroup);
     }
 
     /**
@@ -537,18 +539,20 @@ public final strictfp class GraphEdge {
      * the desired color, draw the edge label.
      */
     void drawLabel(Artist gr, Color color, Color erase) {
-        if (label.length() > 0) {
-            final int top = a.graph.getTop(), left = a.graph.getLeft();
-            gr.translate(-left, -top);
-            if (erase != null && a != b) {
-                Rectangle2D.Double rect = new Rectangle2D.Double(labelbox.x, labelbox.y, labelbox.w, labelbox.h);
-                gr.setColor(erase);
-                gr.draw(rect, true);
+        if (style != DotStyle.BLANK) { // Modified @Louis Fauvarque
+            if (label.length() > 0) {
+                final int top = a.graph.getTop(), left = a.graph.getLeft();
+                gr.translate(-left, -top);
+                if (erase != null && a != b) {
+                    Rectangle2D.Double rect = new Rectangle2D.Double(labelbox.x, labelbox.y, labelbox.w, labelbox.h);
+                    gr.setColor(erase);
+                    gr.draw(rect, true);
+                }
+                gr.setColor(color);
+                gr.drawString(label, labelbox.x, labelbox.y + Artist.getMaxAscent());
+                gr.translate(left, top);
+                return;
             }
-            gr.setColor(color);
-            gr.drawString(label, labelbox.x, labelbox.y + Artist.getMaxAscent());
-            gr.translate(left, top);
-            return;
         }
     }
 
@@ -557,53 +561,55 @@ public final strictfp class GraphEdge {
      * current zoom scale, draw the arrow heads.
      */
     private void drawArrowhead(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
-        final double tipLength = ad * 0.6D;
-        final int top = a.graph.getTop(), left = a.graph.getLeft();
-        // Check to see if this edge is highlighted or not
-        double fan = (style == DotStyle.BOLD ? bigFan : smallFan);
-        if (highEdge == this) {
-            fan = bigFan;
-            gr.setColor(color);
-            gr.set(DotStyle.BOLD, scale);
-        } else if ((highEdge == null && highGroup == null) || highGroup == group) {
-            gr.setColor(color);
-            gr.set(style, scale);
-        } else {
-            gr.setColor(Color.LIGHT_GRAY);
-            gr.set(style, scale);
-        }
-        for (GraphEdge e = this;; e = e.b.outs.get(0)) {
-            if ((e.ahead && e.a.shape() != null) || (e.bhead && e.b.shape() != null)) {
-                Curve cv = e.path();
-                if (e.ahead && e.a.shape() != null) {
-                    CubicCurve2D.Double bez = cv.list.get(0);
-                    double ax = bez.x1, ay = bez.y1, bx = bez.ctrlx1, by = bez.ctrly1;
-                    double t = PI + atan2(ay - by, ax - bx);
-                    double gx1 = ax + tipLength * cos(t - fan), gy1 = ay + tipLength * sin(t - fan);
-                    double gx2 = ax + tipLength * cos(t + fan), gy2 = ay + tipLength * sin(t + fan);
-                    GeneralPath gp = new GeneralPath();
-                    gp.moveTo((float) (gx1 - left), (float) (gy1 - top));
-                    gp.lineTo((float) (ax - left), (float) (ay - top));
-                    gp.lineTo((float) (gx2 - left), (float) (gy2 - top));
-                    gp.closePath();
-                    gr.draw(gp, true);
-                }
-                if (e.bhead && e.b.shape() != null) {
-                    CubicCurve2D.Double bez = cv.list.get(cv.list.size() - 1);
-                    double bx = bez.x2, by = bez.y2, ax = bez.ctrlx2, ay = bez.ctrly2;
-                    double t = PI + atan2(by - ay, bx - ax);
-                    double gx1 = bx + tipLength * cos(t - fan), gy1 = by + tipLength * sin(t - fan);
-                    double gx2 = bx + tipLength * cos(t + fan), gy2 = by + tipLength * sin(t + fan);
-                    GeneralPath gp = new GeneralPath();
-                    gp.moveTo((float) (gx1 - left), (float) (gy1 - top));
-                    gp.lineTo((float) (bx - left), (float) (by - top));
-                    gp.lineTo((float) (gx2 - left), (float) (gy2 - top));
-                    gp.closePath();
-                    gr.draw(gp, true);
-                }
+        if (style != DotStyle.BLANK) { // Modified @Louis Fauvarque
+            final double tipLength = ad * 0.6D;
+            final int top = a.graph.getTop(), left = a.graph.getLeft();
+            // Check to see if this edge is highlighted or not
+            double fan = (style == DotStyle.BOLD ? bigFan : smallFan);
+            if (highEdge == this) {
+                fan = bigFan;
+                gr.setColor(color);
+                gr.set(DotStyle.BOLD, scale);
+            } else if ((highEdge == null && highGroup == null) || highGroup == group) {
+                gr.setColor(color);
+                gr.set(style, scale);
+            } else {
+                gr.setColor(Color.LIGHT_GRAY);
+                gr.set(style, scale);
             }
-            if (e.b.shape() != null) {
-                break;
+            for (GraphEdge e = this;; e = e.b.outs.get(0)) {
+                if ((e.ahead && e.a.shape() != null) || (e.bhead && e.b.shape() != null)) {
+                    Curve cv = e.path();
+                    if (e.ahead && e.a.shape() != null) {
+                        CubicCurve2D.Double bez = cv.list.get(0);
+                        double ax = bez.x1, ay = bez.y1, bx = bez.ctrlx1, by = bez.ctrly1;
+                        double t = PI + atan2(ay - by, ax - bx);
+                        double gx1 = ax + tipLength * cos(t - fan), gy1 = ay + tipLength * sin(t - fan);
+                        double gx2 = ax + tipLength * cos(t + fan), gy2 = ay + tipLength * sin(t + fan);
+                        GeneralPath gp = new GeneralPath();
+                        gp.moveTo((float) (gx1 - left), (float) (gy1 - top));
+                        gp.lineTo((float) (ax - left), (float) (ay - top));
+                        gp.lineTo((float) (gx2 - left), (float) (gy2 - top));
+                        gp.closePath();
+                        gr.draw(gp, true);
+                    }
+                    if (e.bhead && e.b.shape() != null) {
+                        CubicCurve2D.Double bez = cv.list.get(cv.list.size() - 1);
+                        double bx = bez.x2, by = bez.y2, ax = bez.ctrlx2, ay = bez.ctrly2;
+                        double t = PI + atan2(by - ay, bx - ax);
+                        double gx1 = bx + tipLength * cos(t - fan), gy1 = by + tipLength * sin(t - fan);
+                        double gx2 = bx + tipLength * cos(t + fan), gy2 = by + tipLength * sin(t + fan);
+                        GeneralPath gp = new GeneralPath();
+                        gp.moveTo((float) (gx1 - left), (float) (gy1 - top));
+                        gp.lineTo((float) (bx - left), (float) (by - top));
+                        gp.lineTo((float) (gx2 - left), (float) (gy2 - top));
+                        gp.closePath();
+                        gr.draw(gp, true);
+                    }
+                }
+                if (e.b.shape() != null) {
+                    break;
+                }
             }
         }
     }
