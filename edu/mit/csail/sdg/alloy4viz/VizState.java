@@ -79,7 +79,7 @@ public final class VizState {
       edgeColor.putAll(old.edgeColor);
       edgeStyle.putAll(old.edgeStyle);
       edgeVisible.putAll(old.edgeVisible);
-      subVisible.putAll(old.subVisible); // Maxime
+      subVisible.putAll(old.subVisible); // [N7-<Quentin>]
       changedSinceLastSave = false;
    }
 
@@ -110,7 +110,7 @@ public final class VizState {
       edgeColor.clear();       edgeColor.put(null, DotColor.MAGIC);
       edgeStyle.clear();       edgeStyle.put(null, DotStyle.SOLID);
       edgeVisible.clear();     edgeVisible.put(null, true);
-      subVisible.clear();      subVisible.put(null, null); // Maxime
+      subVisible.clear();      subVisible.put(null, null); // [N7-<Quentin>]
       // Provide some nice defaults for "Int" and "seq/Int" type
       AlloyType sigint=AlloyType.INT;
       label.put(sigint,"");
@@ -357,7 +357,7 @@ public final class VizState {
    public final MMap<DotStyle>  nodeStyle     = new MMap<DotStyle>();
    public final MMap<DotStyle>  edgeStyle     = new MMap<DotStyle>();
    public final MMap<DotShape>  shape         = new MMap<DotShape>();
-   public final MMap<AlloyType> subVisible    = new MMap<AlloyType>(); //Maxime
+   public final MMap<AlloyType> subVisible    = new MMap<AlloyType>(); //[N7-<Quentin>]
    public final MMap<Boolean> attribute       = new MMap<Boolean>(true, false);
    public final MMap<Boolean> mergeArrows     = new MMap<Boolean>(true, false);
    public final MMap<Boolean> constraint      = new MMap<Boolean>(true, false);
