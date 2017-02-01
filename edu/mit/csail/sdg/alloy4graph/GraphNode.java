@@ -146,6 +146,26 @@ public strictfp class GraphNode {
      * GraphEdge.a and GraphEdge.b
      */
     final LinkedList<GraphEdge> outs = new LinkedList<GraphEdge>();
+    
+    /**
+     * A list of ports on the node.
+     * [N7-G. Dupont]
+     */
+    /*package*/LinkedList<GraphPort> ports = new LinkedList<GraphPort>();
+    
+    /**
+     * Get the number of ports on target orientation.
+     * (Used to layout the ports)
+     * [N7-G. Dupont]
+     */
+    /*package*/int numPorts(GraphPort.Orientation or) {
+        int res = 0;
+        for (GraphPort g : ports) {
+            if (g.getOrientation().equals(or))
+                res++;
+        }
+        return res;
+    }
 
    // =============================== these fields affect the computed bounds ===================================================
     /**
@@ -249,7 +269,7 @@ public strictfp class GraphNode {
      */
     private Shape poly3 = null;
 
-   //===================================================================================================
+   //===================================================================================================  
     /**
      * Create a new node with the given list of labels, then add it to the given
      * graph.
@@ -570,6 +590,12 @@ public strictfp class GraphNode {
                 y = y + ad;
             }
         }
+        
+        // [N7-G. Dupont] Draw each ports
+        for (GraphPort p : this.ports) {
+            p.draw(gr, scale, false);
+        }
+        
         gr.translate(left - centerX, top - centerY);
     }
 
