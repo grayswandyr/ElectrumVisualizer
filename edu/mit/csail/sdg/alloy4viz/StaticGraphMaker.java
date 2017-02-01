@@ -137,6 +137,9 @@ public final class StaticGraphMaker {
       else if (view.getEdgePalette() == DotPalette.MARTHA) colors = colorsMartha;
       else colors = colorsNeon;
       int ci = 0;
+			//Iteration over relations of the model:
+			// Relations that have to be printed are added to the rels Map with the number of edges it represents.
+			// The corresponding color for each relation added is put in magicColor. 
       for (AlloyRelation rel: model.getRelations()) {
          DotColor c = view.edgeColor.resolve(rel);
          Color cc = (c==DotColor.MAGIC) ? colors.get(ci) : c.getColor(view.getEdgePalette());
@@ -145,8 +148,10 @@ public final class StaticGraphMaker {
          magicColor.put(rel, cc);
          if (count>0) ci = (ci+1)%(colors.size());
       }
+			//Iteration over the atoms of the instance:
+			// Creates every visible and not hidden-when-unconnected nodes.
       for (AlloyAtom atom: instance.getAllAtoms()) {
-         List<AlloySet> sets = instance.atom2sets(atom);
+         List<AlloySet> sets = instance.atom2sets(atom); //Gets a sorted list of AlloySets containing atom.
          if (sets.size()>0) {
             for (AlloySet s: sets)
                if (view.nodeVisible.resolve(s) && !view.hideUnconnected.resolve(s))
@@ -155,14 +160,17 @@ public final class StaticGraphMaker {
             createNode(hidePrivate, hideMeta, atom);
          }
       }
+			//Iteration over relations of the model to handle those that have to be shown as an attribute
       for (AlloyRelation rel: model.getRelations())
          if (!(hidePrivate && rel.isPrivate))
             if (view.attribute.resolve(rel))
                edgesAsAttribute(rel);
-      for(Map.Entry<GraphNode,Set<String>> e: attribs.entrySet()) {
+      //For each not-null entry of attribs, we add labels (each not null string of the value-set) to the GraphNode of the realation. 
+			for(Map.Entry<GraphNode,Set<String>> e: attribs.entrySet()) {
          Set<String> set = e.getValue();
          if (set!=null) for(String s: set) if (s.length() > 0) e.getKey().addLabel(s);
       }
+			//For each relation registered in rels, we add the legend to the relation in the graph.
       for(Map.Entry<AlloyRelation,Integer> e: rels.entrySet()) {
          Color c = magicColor.get(e.getKey());
          if (c==null) c = Color.BLACK;
@@ -171,7 +179,7 @@ public final class StaticGraphMaker {
       }
    }
 
-   /** Return the node for a specific AlloyAtom (create it if it doesn't exist yet).
+   /** Return the node for a specific AlloyAtom (create it if it doesn't exist yet, and adds it to nodes).
     * @return null if the atom is explicitly marked as "Don't Show".
     */
    private GraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom) {
