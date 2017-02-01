@@ -337,13 +337,13 @@ public final class VizCustomizationPanel extends JPanel {
          @Override public Icon   do_getIcon(Object value) { if (value==null) value=vizState.edgeStyle.get(null); return value==null ? null : ((DotStyle)value).getIcon(); }
          @Override public void   do_changed(Object value) { vizState.edgeStyle.put(rel, (DotStyle)value); }
       };
-      OurCombobox container = new OurCombobox(true, DotStyle.values(), 100, 35, vizState.subVisible.get(rel)) {   //Maxime
-         private static final long serialVersionUID = 0;                                                          //Maxime
-         @Override public String do_getText(Object value) { return value==null ? "Inherit" : "Text"; };           //Maxime
-         @Override public void   do_changed(Object value) { vizState.subVisible.put(rel, (String)value); };       //Maxime
-      };                                                                                                          //Maxime
-      JLabel containerLabel = OurUtil.label("Use as container:");                                                 //Maxime
-      JPanel containerPanel = OurUtil.makeH(containerLabel, 5, container);                                        //Maxime
+      OurCombobox container = new OurCombobox(true, rel.getTypes().toArray(), 100, 35, vizState.subVisible.get(rel)) {       //Maxime
+         private static final long serialVersionUID = 0;                                                                     //Maxime
+         @Override public String do_getText(Object value) { return value==null ? "None" : ((AlloyType)value).toString(); };  //Maxime
+         @Override public void   do_changed(Object value) { vizState.subVisible.put(rel, (AlloyType)value); };               //Maxime
+      };                                                                                                                     //Maxime
+      JLabel containerLabel = OurUtil.label("Use as container:");                                                            //Maxime
+      JPanel containerPanel = OurUtil.makeH(containerLabel, 5, container);                                                   //Maxime
       
       JPanel visible    = vizState.edgeVisible.pick(rel, "Show as arcs",      "Show relation as arcs");
       JPanel attr       = vizState.attribute  .pick(rel, "Show as attribute", "Additionally display this relation as an attribute on the nodes' labels");
