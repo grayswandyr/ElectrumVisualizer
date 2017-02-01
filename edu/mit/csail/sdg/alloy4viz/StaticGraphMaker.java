@@ -37,6 +37,7 @@ import edu.mit.csail.sdg.alloy4graph.Graph;
 import edu.mit.csail.sdg.alloy4graph.GraphEdge;
 import edu.mit.csail.sdg.alloy4graph.GraphNode;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
+import java.time.Clock;
 
 /** This utility class generates a graph for a particular index of the projection.
  *
