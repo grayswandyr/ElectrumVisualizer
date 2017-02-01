@@ -337,7 +337,7 @@ public final class VizCustomizationPanel extends JPanel {
          @Override public Icon   do_getIcon(Object value) { if (value==null) value=vizState.edgeStyle.get(null); return value==null ? null : ((DotStyle)value).getIcon(); }
          @Override public void   do_changed(Object value) { vizState.edgeStyle.put(rel, (DotStyle)value); }
       };
-      OurCombobox container = new OurCombobox(true, rel.getTypes().toArray(), 100, 35, vizState.subVisible.get(rel)) {       //Maxime
+      OurCombobox container = new OurCombobox(false, rel.getTypes().toArray(), 100, 35, vizState.subVisible.get(rel)) {      //Maxime
          private static final long serialVersionUID = 0;                                                                     //Maxime
          @Override public String do_getText(Object value) { return value==null ? "None" : ((AlloyType)value).toString(); };  //Maxime
          @Override public void   do_changed(Object value) { vizState.subVisible.put(rel, (AlloyType)value); };               //Maxime
