@@ -788,10 +788,9 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel constraintCBE = vizState.constraint.pick("Influence layout", "Whether this edge influences the graph layout");
         JPanel attrCBE = vizState.attribute.pick("Show as attributes", "Show relations as attributes on nodes");
         JPanel laybackCBE = vizState.layoutBack.pick("Layout backwards", "Layout graph as if arcs were reversed");
-        JPanel portCBE = vizState.isPort.pick("Is a port relation", "Define the relation as a port relation");  // MODIFIED BY JULIEN
         parent.add(makelabel(" Default Relation Settings:"));
         parent.add(OurUtil.makeH(wcolor, 10, colorComboE, 8, outlineComboE, 2, null));
-        JPanel a = OurUtil.makeVL(wcolor, dispCBE, attrCBE, constraintCBE, 10), b = OurUtil.makeVL(wcolor, laybackCBE, mergeCBE, portCBE); // MODIFIED BY JULIEN
+        JPanel a = OurUtil.makeVL(wcolor, dispCBE, attrCBE, constraintCBE, 10), b = OurUtil.makeVL(wcolor, laybackCBE, mergeCBE); // MODIFIED BY JULIEN
         parent.add(OurUtil.makeHT(wcolor, 10, a, 10, b, 2, null));
     }
 
