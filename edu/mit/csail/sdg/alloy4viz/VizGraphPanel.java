@@ -323,6 +323,13 @@ public final class VizGraphPanel extends JPanel {
     public void remakeAll() {
         Map<AlloyType, AlloyAtom> map = new LinkedHashMap<AlloyType, AlloyAtom>();
         navPanel.removeAll();
+        
+        /**
+         * [N7] @Louis Fauvarque
+         * Look for the port relation and add the port to the list of item to project on.
+         */
+        //for(AlloyRelation rel : vizState)
+        
         for (AlloyType type : vizState.getProjectedTypes()) {
             List<AlloyAtom> atoms = vizState.getOriginalInstance().type2atoms(type);
             TypePanel tp = type2panel.get(type);

@@ -135,7 +135,7 @@ public final class VizState {
         edgeVisible.clear();
         edgeVisible.put(null, true);
         isPort.clear();
-        isPort.put(null, true);  // MODIFIED BY JULIEN
+        isPort.put(null, true);  // [N7] @Julien Richer
         // Provide some nice defaults for "Int" and "seq/Int" type
         AlloyType sigint = AlloyType.INT;
         label.put(sigint, "");
@@ -333,6 +333,16 @@ public final class VizState {
      */
     public ConstSet<AlloyType> getProjectedTypes() {
         return ConstSet.make(projectedTypes);
+    }
+    
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Add a type to be considered as a port
+     * 
+     */
+    public void addPortType(final AlloyType type){
+        projectedTypes.add(type);
     }
 
     /**
