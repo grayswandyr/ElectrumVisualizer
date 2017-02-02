@@ -97,6 +97,15 @@ public final class StaticGraphMaker {
      */
     public static JPanel produceGraph(AlloyInstance instance, VizState view, AlloyProjection proj) throws ErrorFatal {
         view = new VizState(view);
+        // [N7] Modified by @Louis Fauvarque
+        ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
+        for(AlloyAtom atom : instance.getAllAtoms()){
+            if(isPort(portRelations,atom)){
+                view.nodeVisible.put(atom.getType(), Boolean.FALSE);
+            }
+        }
+        
+        
         if (proj == null) {
             proj = new AlloyProjection();
         }
@@ -145,10 +154,6 @@ public final class StaticGraphMaker {
         final boolean hideMeta = view.hideMeta();
         final Map<AlloyRelation, Color> magicColor = new TreeMap<AlloyRelation, Color>();
         final Map<AlloyRelation, Integer> rels = new TreeMap<AlloyRelation, Integer>();
-
-        // [N7] Modified by @Louis Fauvarque
-        ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
-
         this.graph = graph;
         this.view = view;
         instance = StaticProjector.project(originalInstance, proj);
@@ -179,7 +184,6 @@ public final class StaticGraphMaker {
         }
         for (AlloyAtom atom : instance.getAllAtoms()) {
             List<AlloySet> sets = instance.atom2sets(atom);
-            if (!isPort(portRelations, atom)) {
                 if (sets.size() > 0) {
                     for (AlloySet s : sets) {
                         if (view.nodeVisible.resolve(s) && !view.hideUnconnected.resolve(s)) {
@@ -190,16 +194,13 @@ public final class StaticGraphMaker {
                 } else if (view.nodeVisible.resolve(atom.getType()) && !view.hideUnconnected.resolve(atom.getType())) {
                     createNode(hidePrivate, hideMeta, atom);
                 }
-            }
         }
         for (AlloyRelation rel : model.getRelations()) {
-            if (!isIn(portRelations, rel)) {
                 if (!(hidePrivate && rel.isPrivate)) {
                     if (view.attribute.resolve(rel)) {
                         edgesAsAttribute(rel);
                     }
                 }
-            }
         }
         for (Map.Entry<GraphNode, Set<String>> e : attribs.entrySet()) {
             Set<String> set = e.getValue();
@@ -512,12 +513,12 @@ public final class StaticGraphMaker {
      * @param atom
      * @return boolean res
      */
-    private boolean isPort(ArrayList<AlloyRelation> portRelations, AlloyAtom atom) {
+    private static boolean isPort(ArrayList<AlloyRelation> portRelations, AlloyAtom atom) {
         boolean res = false;
         for (AlloyRelation eltA : portRelations) {
             if (eltA != null) {
                 List<AlloyType> lst = eltA.getTypes();
-                res = res || lst.contains(atom.getType());
+                res = res || lst.contains(atom.getType()) && lst.indexOf(atom.getType()) == lst.lastIndexOf(atom.getType()); 
                 if (res) {
                     break;
                 }
