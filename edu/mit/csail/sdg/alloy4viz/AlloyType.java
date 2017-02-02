@@ -22,7 +22,7 @@ import edu.mit.csail.sdg.alloy4.Util;
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  */
 
-public final class AlloyType extends AlloyNodeElement {
+public class AlloyType extends AlloyNodeElement {
 
    /** This caches an instance of the "univ" AlloyType, so we don't have to keep re-constructing it. */
    public static final AlloyType UNIV=new AlloyType("univ", false, false, true, false, false, false);
@@ -68,6 +68,10 @@ public final class AlloyType extends AlloyNodeElement {
    /** Records whether this sig is known to be "enum"; NOTE: this value is NOT USED during equals() comparison. */
    public final boolean isEnum;
 
+   public IndexedAlloyType makeIndexedAlloyType(int index) {                                                       //[N7-<Bossut,Quentin>]
+       return new IndexedAlloyType(null, isOne, isAbstract, isBuiltin, isPrivate, isMeta, isEnum, index);          //[N7-<Bossut,Quentin>]
+   }                                                                                                               //[N7-<Bossut,Quentin>]
+   
    /** When comparing two AlloyType objects, we compare their names.
     * <br> We guarantee x.equals(y) iff x.compareTo(y)==0
     */
