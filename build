@@ -41,7 +41,7 @@ our @dirs = (
 );
 
 # Name of the main class (prefixed by its package)
-our $main="edu.mit.csail.sdg.alloy4viz.VizMain";
+our $main="edu.mit.csail.sdg.alloy4whole.SimpleGUI";
 
 # Name of the generated jarfile
 our $jarfile="electrum-0.2.0.jar";
