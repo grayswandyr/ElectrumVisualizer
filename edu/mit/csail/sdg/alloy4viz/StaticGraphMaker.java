@@ -36,6 +36,7 @@ import edu.mit.csail.sdg.alloy4graph.Graph;
 import edu.mit.csail.sdg.alloy4graph.GraphEdge;
 import edu.mit.csail.sdg.alloy4graph.GraphNode;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
+import java.util.ArrayList;
 
 /**
  * This utility class generates a graph for a particular index of the
@@ -144,6 +145,10 @@ public final class StaticGraphMaker {
         final boolean hideMeta = view.hideMeta();
         final Map<AlloyRelation, Color> magicColor = new TreeMap<AlloyRelation, Color>();
         final Map<AlloyRelation, Integer> rels = new TreeMap<AlloyRelation, Integer>();
+
+        // [N7] Modified by @Louis Fauvarque
+        ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
+
         this.graph = graph;
         this.view = view;
         instance = StaticProjector.project(originalInstance, proj);
@@ -174,21 +179,25 @@ public final class StaticGraphMaker {
         }
         for (AlloyAtom atom : instance.getAllAtoms()) {
             List<AlloySet> sets = instance.atom2sets(atom);
-            if (sets.size() > 0) {
-                for (AlloySet s : sets) {
-                    if (view.nodeVisible.resolve(s) && !view.hideUnconnected.resolve(s)) {
-                        createNode(hidePrivate, hideMeta, atom);
-                        break;
+            if (!isPort(portRelations, atom)) {
+                if (sets.size() > 0) {
+                    for (AlloySet s : sets) {
+                        if (view.nodeVisible.resolve(s) && !view.hideUnconnected.resolve(s)) {
+                            createNode(hidePrivate, hideMeta, atom);
+                            break;
+                        }
                     }
+                } else if (view.nodeVisible.resolve(atom.getType()) && !view.hideUnconnected.resolve(atom.getType())) {
+                    createNode(hidePrivate, hideMeta, atom);
                 }
-            } else if (view.nodeVisible.resolve(atom.getType()) && !view.hideUnconnected.resolve(atom.getType())) {
-                createNode(hidePrivate, hideMeta, atom);
             }
         }
         for (AlloyRelation rel : model.getRelations()) {
-            if (!(hidePrivate && rel.isPrivate)) {
-                if (view.attribute.resolve(rel)) {
-                    edgesAsAttribute(rel);
+            if (!isIn(portRelations, rel)) {
+                if (!(hidePrivate && rel.isPrivate)) {
+                    if (view.attribute.resolve(rel)) {
+                        edgesAsAttribute(rel);
+                    }
                 }
             }
         }
@@ -268,7 +277,7 @@ public final class StaticGraphMaker {
      * end node is explicitly invisible)
      */
     private boolean createEdge(final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, AlloyTuple tuple, boolean bidirectional, Color magicColor) {
-      // This edge represents a given tuple from a given relation.
+        // This edge represents a given tuple from a given relation.
         //
         // If the tuple's arity==2, then the label is simply the label of the relation.
         //
@@ -362,7 +371,7 @@ public final class StaticGraphMaker {
      * Attach tuple values as attributes to existing nodes.
      */
     private void edgesAsAttribute(AlloyRelation rel) {
-      // If this relation wants to be shown as an attribute,
+        // If this relation wants to be shown as an attribute,
         // then generate the annotations and attach them to each tuple's starting node.
         // Eg.
         //   If (A,B) and (A,C) are both in the relation F,
@@ -473,4 +482,48 @@ public final class StaticGraphMaker {
         }
         return out.toString();
     }
+
+    /**
+     * [N7] Modified by @Louis Fauvarque Indicate if a relation is in an array
+     * of relations
+     *
+     * @param elementsArray
+     * @param elt
+     * @return boolean res
+     */
+    private boolean isIn(ArrayList<AlloyRelation> elementsArray, AlloyRelation elt) {
+        boolean res = false;
+        for (AlloyRelation eltA : elementsArray) {
+            if (eltA != null) {
+                res = res || (eltA.compareTo(elt) == 0);
+                if (res) {
+                    break;
+                }
+            }
+        }
+        return res;
+    }
+
+    /**
+     * [N7] Modified by @Louis Fauvarque Indicate if an atom is designed to be a
+     * port
+     *
+     * @param portRelations
+     * @param atom
+     * @return boolean res
+     */
+    private boolean isPort(ArrayList<AlloyRelation> portRelations, AlloyAtom atom) {
+        boolean res = false;
+        for (AlloyRelation eltA : portRelations) {
+            if (eltA != null) {
+                List<AlloyType> lst = eltA.getTypes();
+                res = res || lst.contains(atom.getType());
+                if (res) {
+                    break;
+                }
+            }
+        }
+        return res;
+    }
+
 }

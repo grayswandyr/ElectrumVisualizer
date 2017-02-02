@@ -95,7 +95,14 @@ sub make_tree {
             }
 
             # Recursively create the tree of the current sub directory
-            $obj->{$o} = make_tree("$dir/$o", $sel);
+            my $sub = make_tree("$dir/$o", $sel);
+
+            # In case the subdir is empty, we do not add it to the tree
+            if (defined $sub) {
+                $obj->{$o} = $sub;
+            } else {
+                warn "Warning: It appears you have an empty subdirectory ($dir/$o).\nThis might cause bugs when compiling so you should remove it.";
+            }
         } elsif (-f "$dir/$o" and $o =~ m/^.*\.$sel$/) {
             # Else, if it is a file with the correct extension
             $obj->{$o} = "file";
