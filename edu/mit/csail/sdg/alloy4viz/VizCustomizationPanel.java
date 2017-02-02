@@ -337,14 +337,14 @@ public final class VizCustomizationPanel extends JPanel {
          @Override public Icon   do_getIcon(Object value) { if (value==null) value=vizState.edgeStyle.get(null); return value==null ? null : ((DotStyle)value).getIcon(); }
          @Override public void   do_changed(Object value) { vizState.edgeStyle.put(rel, (DotStyle)value); }
       };
-      
-			OurCombobox container = new OurCombobox(true, rel.getTypes().toArray(), 100, 35, vizState.subVisible.get(rel), true) { //[N7-<Quentin>]
-         private static final long serialVersionUID = 0;                                                                     //[N7-<Quentin>]
-         @Override public String do_getText(Object value) { return value==null ? "None" : ((AlloyType)value).toString(); };  //[N7-<Quentin>]
-         @Override public void   do_changed(Object value) { vizState.subVisible.put(rel, (AlloyType)value); };               //[N7-<Quentin>]
-      };                                                                                                                     //[N7-<Quentin>]
-      JLabel containerLabel = OurUtil.label("Use as container:");                                                            //[N7-<Quentin>]
-      JPanel containerPanel = OurUtil.makeH(containerLabel, 5, container);                                                   //[N7-<Quentin>]
+     
+			OurCombobox container = new OurCombobox(true, rel.getIndexedTypes().toArray(), 100, 35, vizState.subVisible.get(rel), true) { //[N7-<Quentin>]
+         private static final long serialVersionUID = 0;                                                                            //[N7-<Quentin>]
+         @Override public String do_getText(Object value) { return value==null ? "None" : ((IndexedAlloyType)value).toString(); };  //[N7-<Quentin>]
+         @Override public void   do_changed(Object value) { vizState.subVisible.put(rel, (IndexedAlloyType)value); };               //[N7-<Quentin>]
+      };                                                                                                                     				//[N7-<Quentin>]
+      JLabel containerLabel = OurUtil.label("Use as container:");                                                            				//[N7-<Quentin>]
+      JPanel containerPanel = OurUtil.makeH(containerLabel, 5, container);                                                   				//[N7-<Quentin>]
       
       JPanel visible    = vizState.edgeVisible.pick(rel, "Show as arcs",      "Show relation as arcs");
       JPanel attr       = vizState.attribute  .pick(rel, "Show as attribute", "Additionally display this relation as an attribute on the nodes' labels");
