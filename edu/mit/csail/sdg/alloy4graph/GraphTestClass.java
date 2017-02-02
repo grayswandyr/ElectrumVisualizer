@@ -24,14 +24,22 @@ public class GraphTestClass extends JFrame {
         Graph graph = new Graph(1.0);
         
         GraphNode nodeA = new GraphNode(graph, new Integer(1), "Test");
-        GraphPort portA = new GraphPort(nodeA, new Integer(2), "Port", 0, GraphPort.Orientation.North);
+        
+        GraphPort portA = new GraphPort(nodeA, new Integer(2), "Port A", 0, GraphPort.Orientation.North);
         portA.setColor(Color.RED);
         portA.setShape(DotShape.CIRCLE);
-        GraphPort portB = new GraphPort(nodeA, new Integer(3), "Port", 0, GraphPort.Orientation.South);
+        
+        GraphPort portA2 = new GraphPort(nodeA, new Integer(6), "Port A2", 1, GraphPort.Orientation.North);
+        portA2.setColor(Color.PINK);
+        portA2.setShape(DotShape.CIRCLE);
+        
+        GraphPort portB = new GraphPort(nodeA, new Integer(3), "Port B", 0, GraphPort.Orientation.South);
         portB.setColor(Color.GREEN);
-        GraphPort portC = new GraphPort(nodeA, new Integer(3), "Port", 0, GraphPort.Orientation.East);
+        
+        GraphPort portC = new GraphPort(nodeA, new Integer(4), "Port C", 0, GraphPort.Orientation.East);
         portC.setColor(Color.BLUE);
-        GraphPort portD = new GraphPort(nodeA, new Integer(3), "Port", 0, GraphPort.Orientation.West);
+        
+        GraphPort portD = new GraphPort(nodeA, new Integer(5), "Port D", 0, GraphPort.Orientation.West);
         portD.setColor(Color.ORANGE);
         
         // Show graph on a graphviewer component

@@ -273,21 +273,31 @@ public final strictfp class Artist {
             this.fontBoldness = fontBoldness;
         }
     }
-
+    
     /**
-     * Draws the given string at (x,y)
+     * [N7-G.Dupont] Draws the given string at (x, y) with no rotation.
      */
     public void drawString(String text, int x, int y) {
+        this.drawString(text, x, y, 0.0);
+    }
+
+    /**
+     * [N7-G.Dupont] Draws the given string at (x,y) with given rotation angle in radians.
+     */
+    public void drawString(String text, int x, int y, double theta) {
         if (text.length() == 0) {
             return;
         }
         if (gr != null) {
+            if (theta != 0.0) gr.rotate(theta, x, y); // [N7-G.Dupont] Rotate coordinates
             gr.drawString(text, x, y);
+            if (theta != 0.0) gr.rotate(-theta, x, y); //[N7-G.Dupont] Restore coordinates
             return;
         }
         calc();
         Font font = (fontBoldness ? cachedBoldFont : cachedPlainFont);
         GlyphVector gv = font.createGlyphVector(new FontRenderContext(null, false, false), text);
+        //[N7-G.Dupont] Problem: rotate the text for PDF ?
         translate(x, y);
         draw(gv.getOutline(), true);
         translate(-x, -y);

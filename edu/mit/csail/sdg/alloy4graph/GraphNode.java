@@ -808,36 +808,7 @@ public strictfp class GraphNode {
         height = hh * 2;
         updown = hh;
         
-        //[N7-G. Dupont] Include the ports in the bounding box calculus
-        boolean northdone = false, southdone = false, eastdone = false, westdone = false;
-        for (GraphPort port : this.ports) {
-            switch(port.getOrientation()) {
-                case East:
-                    if (!eastdone) {
-                        width += port.getWidth() + GraphPort.PortPadding;
-                        eastdone = true;
-                    }
-                    break;
-                case West:
-                    if (!westdone) {
-                        width += port.getWidth() + GraphPort.PortPadding;
-                        westdone = true;
-                    }
-                    break;
-                case South:
-                    if (!southdone) {
-                        height += port.getHeight() + GraphPort.PortPadding;
-                        southdone = true;
-                    }
-                    break;
-                case North:
-                    if (!northdone) {
-                        height += port.getHeight() + GraphPort.PortPadding;
-                        northdone = true;
-                    }
-                    break;
-            }
-        }
+        portBounds(); // [N7-G.Dupont]
         
         switch (shape) {
             case HOUSE: {
@@ -1061,10 +1032,11 @@ public strictfp class GraphNode {
                     hh = hh + d;
                     updown = hh;
                 }
-                poly.addPoint(-hw, -hh);
-                poly.addPoint(hw, -hh);
-                poly.addPoint(hw, hh);
-                poly.addPoint(-hw, hh);
+                // [N7-G.Dupont] Using side and updown to get the job
+                poly.addPoint(-this.side, -this.updown);
+                poly.addPoint( this.side, -this.updown);
+                poly.addPoint( this.side,  this.updown);
+                poly.addPoint(-this.side,  this.updown);
             }
         }
         if (shape != DotShape.EGG && shape != DotShape.ELLIPSE) {
@@ -1082,6 +1054,65 @@ public strictfp class GraphNode {
             String label = selfs.get(selfs.size() - 1).label();
             reserved = reserved + (int) (getBounds(false, label).getWidth()) + selfLoopGL + selfLoopGR;
         }
+    }
+    
+    /**
+     * [N7-G Dupont] Recalculate the boundaries of the node given the current
+     * boundaries and the ports.
+     */
+    private void portBounds() {
+        // 1) Get the number of port for each side
+        // 2) Compute, for each side pair (N/S and E/W) the biggest port size
+        int northPorts = 0, southPorts = 0, eastPorts = 0, westPorts = 0;
+        int maxVPortSize = -1, maxHPortSize = -1;
+        for (GraphPort port : this.ports) {
+            int portSize = port.getSize();
+            switch (port.getOrientation()) {
+                case East:
+                    eastPorts++;
+                    if (portSize > maxHPortSize)
+                        maxHPortSize = portSize;
+                    break;
+                case West:
+                    westPorts++;
+                    if (portSize > maxHPortSize)
+                        maxHPortSize = portSize;
+                    break;
+                case South:
+                    southPorts++;
+                    if (portSize > maxVPortSize)
+                        maxVPortSize = portSize;
+                    break;
+                case North:
+                    northPorts++;
+                    if (portSize > maxVPortSize)
+                        maxVPortSize = portSize;
+                    break;
+            }
+        }
+        
+        if (northPorts == 0 && southPorts == 0 && eastPorts == 0 && westPorts == 0)
+            return;
+        
+        // Compute the minimal side and updown for a "correct" display of the
+        // ports (according to minimal ports distance)
+        int minside   = (Math.max(eastPorts, westPorts) +1)*GraphPort.PortDistance/2,
+            minupdown = (Math.max(northPorts,southPorts)+1)*GraphPort.PortDistance/2;
+        
+        // Compute the total padded size including ports (and eventually labels)
+        int paddedside = 0, paddedupdown = 0;
+        
+        if (maxVPortSize > -1) {
+            paddedupdown = maxVPortSize + GraphPort.PortPadding;
+        }
+        
+        if (maxHPortSize > -1) {
+            paddedside = maxHPortSize + GraphPort.PortPadding;
+        }
+        
+        // Decide between the two values (the bigger, the easier to read)
+        this.side += Math.max(minside, paddedside);
+        this.updown += Math.max(minupdown, paddedupdown);
     }
 
    //===================================================================================================
