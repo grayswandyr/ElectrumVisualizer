@@ -143,7 +143,8 @@ public final class StaticGraphMaker {
       for (AlloyRelation rel: model.getRelations()) {
          DotColor c = view.edgeColor.resolve(rel);
          Color cc = (c==DotColor.MAGIC) ? colors.get(ci) : c.getColor(view.getEdgePalette());
-         int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel)) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
+				 boolean isCon = !(view.subVisible.get(rel) == null); //[N7-<Bossut,Quentin>] If rel is a containing relation, we do not print the edge.
+         int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel) || isCon) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
          rels.put(rel, count);
          magicColor.put(rel, cc);
          if (count>0) ci = (ci+1)%(colors.size());
@@ -258,7 +259,7 @@ public final class StaticGraphMaker {
 
    /** Create edges for every visible tuple in the given relation. */
    private int edgesAsArcs(final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, Color magicColor) {
-      int count = 0;
+		 int count = 0;
       if (!view.mergeArrows.resolve(rel)) {
          // If we're not merging bidirectional arrows, simply create an edge for each tuple.
          for (AlloyTuple tuple: instance.relation2tuples(rel)) if (createEdge(hidePrivate, hideMeta, rel, tuple, false, magicColor)) count++;
