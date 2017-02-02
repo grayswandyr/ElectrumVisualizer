@@ -5,6 +5,8 @@
  */
 package edu.mit.csail.sdg.alloy4graph;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -22,10 +24,19 @@ public class GraphTestClass extends JFrame {
         Graph graph = new Graph(1.0);
         
         GraphNode nodeA = new GraphNode(graph, new Integer(1), "Test");
-        GraphPort portA = new GraphPort(nodeA, new Integer(2), "Port", 0, GraphPort.Orientation.South);
+        GraphPort portA = new GraphPort(nodeA, new Integer(2), "Port", 0, GraphPort.Orientation.North);
+        portA.setColor(Color.RED);
+        portA.setShape(DotShape.CIRCLE);
+        GraphPort portB = new GraphPort(nodeA, new Integer(3), "Port", 0, GraphPort.Orientation.South);
+        portB.setColor(Color.GREEN);
+        GraphPort portC = new GraphPort(nodeA, new Integer(3), "Port", 0, GraphPort.Orientation.East);
+        portC.setColor(Color.BLUE);
+        GraphPort portD = new GraphPort(nodeA, new Integer(3), "Port", 0, GraphPort.Orientation.West);
+        portD.setColor(Color.ORANGE);
         
         // Show graph on a graphviewer component
         JPanel graphpan = new GraphViewer(graph);
+        this.setLayout(new BorderLayout());
         this.add(graphpan);
         this.setSize(200, 200);
         this.setVisible(true);
