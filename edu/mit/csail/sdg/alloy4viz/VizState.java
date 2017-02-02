@@ -143,7 +143,7 @@ public final class VizState {
         // [N7] @Julien Richer
         // Ports relations
         isPort.clear();
-        isPort.put(null, true);
+        isPort.put(null, false);
         
         // Provide some nice defaults for "Int" and "seq/Int" type
         AlloyType sigint = AlloyType.INT;
