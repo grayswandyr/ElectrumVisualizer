@@ -136,22 +136,37 @@ public final class StaticGraphMaker {
       else if (view.getEdgePalette() == DotPalette.STANDARD) colors = colorsStandard;
       else if (view.getEdgePalette() == DotPalette.MARTHA) colors = colorsMartha;
       else colors = colorsNeon;
-      int ci = 0;
+		
+			
+			//Creation of the set containing all containment relations.
+			HashMap<AlloyAtom, Set<AlloyAtom>> containmentTuples = new HashMap<AlloyAtom, Set<AlloyAtom>>();
+			for (AlloyRelation rel: model.getRelations()) {
+				if (!(view.subVisible.get(rel) == null)) {
+					//The relation is a containment one.
+					containmentRelations.add(rel);
+				}
+			}
+			
+
 			//Iteration over relations of the model:
-			// Relations that have to be printed are added to the rels Map with the number of edges it represents.
-			// The corresponding color for each relation added is put in magicColor. 
-      for (AlloyRelation rel: model.getRelations()) {
+			// Creates edges and nodes that are linked by them.
+			int ci = 0;
+			for (AlloyRelation rel: model.getRelations()) {
          DotColor c = view.edgeColor.resolve(rel);
          Color cc = (c==DotColor.MAGIC) ? colors.get(ci) : c.getColor(view.getEdgePalette());
-				 boolean isCon = !(view.subVisible.get(rel) == null); //[N7-<Bossut,Quentin>] If rel is a containing relation, we do not print the edge.
+				 boolean isCon = !(view.subVisible.get(rel) == null); //[N7-<Bossut,Quentin>] If rel is a containing relation, we do not print the edge.*/
          int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel) || isCon) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
          rels.put(rel, count);
          magicColor.put(rel, cc);
          if (count>0) ci = (ci+1)%(colors.size());
       }
+      
+			
 			//Iteration over the atoms of the instance:
-			// Creates every visible and not hidden-when-unconnected nodes.
-      for (AlloyAtom atom: instance.getAllAtoms()) {
+			// Draws unconnected nodes that are visibles and not hidden-when-unconnected.
+			TreeSet<AlloyAtom> toBeDrawn = new TreeSet<AlloyAtom>(instance.getAllAtoms());
+			toBeDrawn.removeAll(atomsInContainingRelation);
+			for (AlloyAtom atom : toBeDrawn) {
          List<AlloySet> sets = instance.atom2sets(atom); //Gets a sorted list of AlloySets containing atom.
          if (sets.size()>0) {
             for (AlloySet s: sets)
@@ -190,7 +205,7 @@ public final class StaticGraphMaker {
             || (hideMeta    && atom.getType().isMeta)
             || !view.nodeVisible(atom, instance)) return null;
       // Make the node
-      DotColor color = view.nodeColor(atom, instance);
+			DotColor color = view.nodeColor(atom, instance);
       DotStyle style = view.nodeStyle(atom, instance);
       DotShape shape = view.shape(atom, instance);
       String label = atomname(atom, false);
