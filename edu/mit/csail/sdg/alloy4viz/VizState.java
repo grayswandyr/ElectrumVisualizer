@@ -79,7 +79,7 @@ public final class VizState {
       edgeColor.putAll(old.edgeColor);
       edgeStyle.putAll(old.edgeStyle);
       edgeVisible.putAll(old.edgeVisible);
-      subVisible.putAll(old.subVisible); // Maxime
+      subVisible.putAll(old.subVisible); // [N7-<Quentin>]
       changedSinceLastSave = false;
    }
 
@@ -110,7 +110,7 @@ public final class VizState {
       edgeColor.clear();       edgeColor.put(null, DotColor.MAGIC);
       edgeStyle.clear();       edgeStyle.put(null, DotStyle.SOLID);
       edgeVisible.clear();     edgeVisible.put(null, true);
-      subVisible.clear();      subVisible.put(null, "none"); // Maxime
+      subVisible.clear();      subVisible.put(null, null); // [N7-<Quentin>]
       // Provide some nice defaults for "Int" and "seq/Int" type
       AlloyType sigint=AlloyType.INT;
       label.put(sigint,"");
@@ -352,12 +352,12 @@ public final class VizState {
    // An important invariant to maintain: every map here must map null to a nonnull value.
    public final MInt weight = new MInt();
    public final MString label = new MString();
-   public final MMap<DotColor> nodeColor      = new MMap<DotColor>();
-   public final MMap<DotColor> edgeColor      = new MMap<DotColor>();
-   public final MMap<DotStyle> nodeStyle      = new MMap<DotStyle>();
-   public final MMap<DotStyle> edgeStyle      = new MMap<DotStyle>();
-   public final MMap<DotShape> shape          = new MMap<DotShape>();
-   public final MMap<String>   subVisible     = new MMap<String>(); //Maxime
+   public final MMap<DotColor>  nodeColor     = new MMap<DotColor>();
+   public final MMap<DotColor>  edgeColor     = new MMap<DotColor>();
+   public final MMap<DotStyle>  nodeStyle     = new MMap<DotStyle>();
+   public final MMap<DotStyle>  edgeStyle     = new MMap<DotStyle>();
+   public final MMap<DotShape>  shape         = new MMap<DotShape>();
+   public final MMap<AlloyType> subVisible    = new MMap<AlloyType>(); //[N7-<Quentin>]
    public final MMap<Boolean> attribute       = new MMap<Boolean>(true, false);
    public final MMap<Boolean> mergeArrows     = new MMap<Boolean>(true, false);
    public final MMap<Boolean> constraint      = new MMap<Boolean>(true, false);
