@@ -139,14 +139,14 @@ public final class StaticGraphMaker {
 		
 			
 			//Creation of the set containing all containment relations.
-			HashMap<AlloyAtom, Set<AlloyAtom>> containmentTuples = new HashMap<AlloyAtom, Set<AlloyAtom>>();
+/*			HashMap<AlloyAtom, Set<AlloyAtom>> containmentTuples = new HashMap<AlloyAtom, Set<AlloyAtom>>();
 			for (AlloyRelation rel: model.getRelations()) {
 				if (!(view.subVisible.get(rel) == null)) {
 					//The relation is a containment one.
 					containmentRelations.add(rel);
 				}
 			}
-			
+	*/		
 
 			//Iteration over relations of the model:
 			// Creates edges and nodes that are linked by them.
@@ -164,9 +164,9 @@ public final class StaticGraphMaker {
 			
 			//Iteration over the atoms of the instance:
 			// Draws unconnected nodes that are visibles and not hidden-when-unconnected.
-			TreeSet<AlloyAtom> toBeDrawn = new TreeSet<AlloyAtom>(instance.getAllAtoms());
-			toBeDrawn.removeAll(atomsInContainingRelation);
-			for (AlloyAtom atom : toBeDrawn) {
+/*			TreeSet<AlloyAtom> toBeDrawn = new TreeSet<AlloyAtom>(instance.getAllAtoms());
+			toBeDrawn.removeAll(atomsInContainingRelation); */
+			for (AlloyAtom atom : instance.getAllAtoms() /*toBeDrawn*/) {
          List<AlloySet> sets = instance.atom2sets(atom); //Gets a sorted list of AlloySets containing atom.
          if (sets.size()>0) {                          
             for (AlloySet s: sets)
