@@ -33,6 +33,7 @@ import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
+import java.util.*;
 
 /**
  * Mutable; this stores an unprojected model as well as the current theme
@@ -648,6 +649,22 @@ public final class VizState {
             change();
         }
 
+        /**
+         * [N7] Modified by @Louis Fauvarque
+         * Returns an ArrayList containing all the key whose elements match the value
+         * @param value
+         * @return 
+         */
+        public ArrayList<AlloyElement> getKeysFromValue(T value){
+            ArrayList<AlloyElement> match = new ArrayList<AlloyElement>(map.keySet());
+            for(AlloyElement elt : match){
+                if(resolve(elt) != value){
+                    match.remove(elt);
+                }
+            }
+            return match;
+        }
+        
         public T get(AlloyElement obj) {
             return map.get(obj);
         }
