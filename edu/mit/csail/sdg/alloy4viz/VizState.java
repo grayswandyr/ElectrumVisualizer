@@ -357,7 +357,7 @@ public final class VizState {
    public final MMap<DotStyle>  nodeStyle     = new MMap<DotStyle>();
    public final MMap<DotStyle>  edgeStyle     = new MMap<DotStyle>();
    public final MMap<DotShape>  shape         = new MMap<DotShape>();
-   public final MMap<AlloyType> subVisible    = new MMap<AlloyType>(); //[N7-<Quentin>]
+   public final MMap<IndexedAlloyType> subVisible    = new MMap<IndexedAlloyType>(); //[N7-<Quentin>]
    public final MMap<Boolean> attribute       = new MMap<Boolean>(true, false);
    public final MMap<Boolean> mergeArrows     = new MMap<Boolean>(true, false);
    public final MMap<Boolean> constraint      = new MMap<Boolean>(true, false);
