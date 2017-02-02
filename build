@@ -95,10 +95,17 @@ sub make_tree {
             }
 
             # Recursively create the tree of the current sub directory
-            $obj->{$o} = make_tree("$dir/$o", $sel);
+            my $sub = make_tree("$dir/$o", $sel);
+
+            # In case the subdir is empty, we do not add it to the tree
+            if (defined $sub) {
+                $obj->{$o} = $sub;
+            } else {
+                warn "Warning: It appears you have an empty subdirectory ($dir/$o).\nThis might cause bugs when compiling so you should remove it.";
+            }
         } elsif (-f "$dir/$o" and $o =~ m/^.*\.$sel$/) {
             # Else, if it is a file with the correct extension
-            $obj->{$o} = 0;
+            $obj->{$o} = "file";
         }
     }
 
@@ -127,7 +134,7 @@ sub print_tree {
                 "$indent+$o\n" .
                 print_tree($obj->{$o}, $indentchar, "$indent$indentchar") . "\n" .
                 "$indent-\n";
-        } else {
+        } elsif (defined $obj->{$o}) {
             # If not, it has to be a leaf (that is, a file)
             $content = $content . "$indent|$o(" . $obj->{$o} . ")\n";
         }
@@ -172,7 +179,7 @@ sub compile_tree {
             compile_tree($tree->{$k}, $force, $indent+1, \@pkg);
             say indent(" ",$indent), "[", $indent, "] Leaving directory $k..." unless $quiet;
             pop @pkg;      # We pop out the name of the subdir from the package list
-        } else { 
+        } elsif (defined $tree->{$k}) { 
             # Else : it has to be a file
             my $p = join('/',@pkg); # Compute full path
             my $cfile = substr($k, 0, -4) . "class"; # Compute class file name from java file name
@@ -225,7 +232,7 @@ sub move_tree {
             }
             move_tree($tree->{$k}, $presrc, $predest, \@pkg);
             pop @pkg;
-        } else {
+        } elsif (defined $tree->{$k}) {
             # Else, it is simply a file
             say "Moving file $presrc/" . join('/', @pkg) . '/' . $k . "..." unless $quiet;
             move($presrc . '/' . join('/', @pkg) . '/' . $k, 
