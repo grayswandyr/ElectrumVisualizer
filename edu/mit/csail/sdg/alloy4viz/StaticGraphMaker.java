@@ -152,7 +152,7 @@ public final class StaticGraphMaker {
 			// Creates every visible and not hidden-when-unconnected nodes.
       for (AlloyAtom atom: instance.getAllAtoms()) {
          List<AlloySet> sets = instance.atom2sets(atom); //Gets a sorted list of AlloySets containing atom.
-         if (sets.size()>0) {
+         if (sets.size()>0) {                          
             for (AlloySet s: sets)
                if (view.nodeVisible.resolve(s) && !view.hideUnconnected.resolve(s))
                {createNode(hidePrivate, hideMeta, atom); break;}
@@ -169,7 +169,7 @@ public final class StaticGraphMaker {
 			for(Map.Entry<GraphNode,Set<String>> e: attribs.entrySet()) {
          Set<String> set = e.getValue();
          if (set!=null) for(String s: set) if (s.length() > 0) e.getKey().addLabel(s);
-      }
+      }              
 			//For each relation registered in rels, we add the legend to the relation in the graph.
       for(Map.Entry<AlloyRelation,Integer> e: rels.entrySet()) {
          Color c = magicColor.get(e.getKey());
@@ -281,7 +281,7 @@ public final class StaticGraphMaker {
       }
       return count;
    }
-
+ 
    /** Attach tuple values as attributes to existing nodes. */
    private void edgesAsAttribute(AlloyRelation rel) {
       // If this relation wants to be shown as an attribute,
