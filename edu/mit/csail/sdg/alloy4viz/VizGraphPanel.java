@@ -282,7 +282,7 @@ public final class VizGraphPanel extends JPanel {
         graphPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent ev) {
-				// We let Ctrl+LeftClick bring up the popup menu, just like
+                // We let Ctrl+LeftClick bring up the popup menu, just like
                 // RightClick,
                 // since many Mac mouses do not have a right button.
                 if (viewer == null) {
@@ -323,13 +323,7 @@ public final class VizGraphPanel extends JPanel {
     public void remakeAll() {
         Map<AlloyType, AlloyAtom> map = new LinkedHashMap<AlloyType, AlloyAtom>();
         navPanel.removeAll();
-        
-        /**
-         * [N7] @Louis Fauvarque
-         * Look for the port relation and add the port to the list of item to project on.
-         */
-        //for(AlloyRelation rel : vizState)
-        
+
         for (AlloyType type : vizState.getProjectedTypes()) {
             List<AlloyAtom> atoms = vizState.getOriginalInstance().type2atoms(type);
             TypePanel tp = type2panel.get(type);

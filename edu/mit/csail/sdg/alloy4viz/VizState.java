@@ -667,11 +667,12 @@ public final class VizState {
          * @param value
          * @return 
          */
-        public ArrayList<AlloyElement> getKeysFromValue(T value){
-            ArrayList<AlloyElement> match = new ArrayList<AlloyElement>(map.keySet());
-            for(AlloyElement elt : match){
-                if(resolve(elt) != value){
-                    match.remove(elt);
+        public ArrayList<AlloyRelation> getKeysFromValue(T value){
+            ArrayList<AlloyElement> matchtemp = new ArrayList<AlloyElement>(map.keySet());
+            ArrayList<AlloyRelation> match = new ArrayList<AlloyRelation>();
+            for(AlloyElement elt : matchtemp){
+                if(resolve(elt) == value){
+                    match.add((AlloyRelation) elt);
                 }
             }
             return match;
