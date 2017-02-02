@@ -19,6 +19,7 @@ package edu.mit.csail.sdg.alloy4graph;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,12 +39,19 @@ public class GraphPort {
     /**
      * Defines the padding added arround the label.
      */
-    private static final int LabbelPadding = 5;
+    static final int LabelPadding = 5;
     
     /**
      * Defines the padding that separate a port from the center label of the node.
      */
     static final int PortPadding = 10;
+    
+    /**
+     * Defines the minimal distance between two adjacent ports or from a port and
+     * the side of the node.
+     * (From center)
+     */
+    static final int PortDistance = 10;
     
     /**
      * Defines the color for representing a selected port.
@@ -192,6 +200,12 @@ public class GraphPort {
     private int width, height;
     
     /**
+     * Coordinates of the label.
+     */
+    private int labelX, labelY;
+    private double labelTheta;
+    
+    /**
      * Cstr.
      * @param node
      * @param uuid 
@@ -251,6 +265,9 @@ public class GraphPort {
                 // nop
         }
         
+        // Draw label
+        gr.drawString(this.label, this.labelX, this.labelY, this.labelTheta);
+        
         gr.translate(this.node.getWidth() / 2, this.node.getHeight() / 2);
     }
     
@@ -286,22 +303,37 @@ public class GraphPort {
         this.width = 2*this.radius;
         this.height = 2*this.radius;
         
+        Rectangle2D labelRect = Artist.getBounds(this.fontBold, this.label);
+        int labelWidth = (int)labelRect.getWidth(), labelHeight = (int)labelRect.getHeight();
+        
         switch (this.orientation) {
             case East:
                 this.centerX = this.node.getWidth();
                 this.centerY = dist;
+                this.labelX = this.centerX - this.radius - LabelPadding - labelWidth;
+                this.labelY = this.centerY + this.radius;
+                this.labelTheta = 0.0;
                 break;
             case West:
                 this.centerX = 0;
                 this.centerY = dist;
+                this.labelX = this.centerX + this.radius + LabelPadding;
+                this.labelY = this.centerY + this.radius;
+                this.labelTheta = 0.0;
                 break;
             case South:
                 this.centerX = dist;
                 this.centerY = this.node.getHeight();
+                this.labelX = this.centerX + this.radius;
+                this.labelY = this.centerY - this.radius - LabelPadding;
+                this.labelTheta = -Math.PI/2.0;
                 break;
             case North:
                 this.centerX = dist;
                 this.centerY = 0;
+                this.labelX = this.centerX + this.radius;
+                this.labelY = this.centerY + this.radius + LabelPadding + labelWidth;
+                this.labelTheta = -Math.PI/2.0;
                 break;
             default:
                 // nop
@@ -319,6 +351,30 @@ public class GraphPort {
         int numports = this.node.numPorts(this.orientation);
         
         return length*(this.order+1)/(numports+1);
+    }
+    
+    int getLabelSize() {
+        if (this.label.length() == 0)
+            return 0;
+        
+        Rectangle2D rect = Artist.getBounds(this.fontBold, this.label);
+        
+        /*if (this.orientation.equals(Orientation.North) || this.orientation.equals(Orientation.South))
+            return (int)rect.getHeight();
+        else
+            return (int)rect.getWidth();*/
+        return (int)rect.getWidth();
+    }
+    
+    int getPortSize() {
+        if (this.orientation.equals(Orientation.North) || this.orientation.equals(Orientation.South))
+            return getHeight();
+        else
+            return getWidth();
+    }
+    
+    int getSize() {
+        return this.getLabelSize() + this.getPortSize() + LabelPadding;
     }
     
     /// Accessors/Mutators ///
