@@ -631,7 +631,7 @@ public final strictfp class Graph {
                     for (int j = i + 1; j < top.size(); j++) { // This edge goes from top-left to bottom-right
                         GraphNode c = top.get(j);
                         if (c.shape() == null) {
-                            continue; // You can intersect thru a dummy node
+                            continue; // You can intersect through a dummy node
                         }
                         double ctop = c.y() - c.getHeight() / 2, cleft = c.x() - c.getWidth() / 2, cbottom = c.y() + c.getHeight() / 2;
                         e.path().bendDown(cleft, ctop - room, cbottom + room, 3);
@@ -640,7 +640,7 @@ public final strictfp class Graph {
                     for (int j = i - 1; j >= 0; j--) { // This edge goes from top-right to bottom-left
                         GraphNode c = top.get(j);
                         if (c.shape() == null) {
-                            continue; // You can intersect thru a dummy node
+                            continue; // You can intersect through a dummy node
                         }
                         double ctop = c.y() - c.getHeight() / 2, cright = c.x() + c.getWidth() / 2, cbottom = c.y() + c.getHeight() / 2;
                         e.path().bendDown(cright, ctop - room, cbottom + room, 3);
@@ -666,7 +666,7 @@ public final strictfp class Graph {
                     for (int j = i - 1; j >= 0; j--) { // This edge goes from top-left to bottom-right
                         GraphNode c = bottom.get(j);
                         if (c.shape() == null) {
-                            continue; // You can intersect thru a dummy node
+                            continue; // You can intersect through a dummy node
                         }
                         double ctop = c.y() - c.getHeight() / 2, cright = c.x() + c.getWidth() / 2, cbottom = c.y() + c.getHeight() / 2;
                         e.path().bendUp(cright, ctop - room, cbottom + room, 3);
@@ -675,7 +675,7 @@ public final strictfp class Graph {
                     for (int j = i + 1; j < bottom.size(); j++) { // This edge goes from top-right to bottom-left
                         GraphNode c = bottom.get(j);
                         if (c.shape() == null) {
-                            continue; // You can intersect thru a dummy node
+                            continue; // You can intersect through a dummy node
                         }
                         double ctop = c.y() - c.getHeight() / 2, cleft = c.x() - c.getWidth() / 2, cbottom = c.y() + c.getHeight() / 2;
                         e.path().bendUp(cleft, ctop - room, cbottom + room, 3);

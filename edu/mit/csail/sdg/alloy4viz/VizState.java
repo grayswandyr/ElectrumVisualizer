@@ -33,6 +33,7 @@ import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
+import java.util.*;
 
 /**
  * Mutable; this stores an unprojected model as well as the current theme
@@ -84,7 +85,11 @@ public final class VizState {
         edgeColor.putAll(old.edgeColor);
         edgeStyle.putAll(old.edgeStyle);
         edgeVisible.putAll(old.edgeVisible);
-        isPort.putAll(old.isPort); //MODIFIED BY JULIEN
+        
+        // [N7] @Julien Richer
+        // Ports relations
+        isPort.putAll(old.isPort);
+        
         changedSinceLastSave = false;
     }
 
@@ -134,8 +139,12 @@ public final class VizState {
         edgeStyle.put(null, DotStyle.SOLID);
         edgeVisible.clear();
         edgeVisible.put(null, true);
+        
+        // [N7] @Julien Richer
+        // Ports relations
         isPort.clear();
-        isPort.put(null, true);  // MODIFIED BY JULIEN
+        isPort.put(null, false);
+        
         // Provide some nice defaults for "Int" and "seq/Int" type
         AlloyType sigint = AlloyType.INT;
         label.put(sigint, "");
@@ -333,6 +342,16 @@ public final class VizState {
      */
     public ConstSet<AlloyType> getProjectedTypes() {
         return ConstSet.make(projectedTypes);
+    }
+    
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Add a type to be considered as a port
+     * 
+     */
+    public void addPortType(final AlloyType type){
+        projectedTypes.add(type);
     }
 
     /**
@@ -540,7 +559,11 @@ public final class VizState {
     public final MMap<Boolean> hideUnconnected = new MMap<Boolean>(true, false);
     public final MMap<Boolean> showAsAttr = new MMap<Boolean>(true, false);
     public final MMap<Boolean> showAsLabel = new MMap<Boolean>(true, false);
-    public final MMap<Boolean> isPort = new MMap<Boolean>(true, false); // MODIFIED BY JULIEN
+    
+    // [N7] @Julien Richer
+    // Ports relations
+    public final MMap<Boolean> isPort = new MMap<Boolean>(true, false);
+    
 
     public final class MInt {
 
@@ -638,6 +661,23 @@ public final class VizState {
             change();
         }
 
+        /**
+         * [N7] Modified by @Louis Fauvarque
+         * Returns an ArrayList containing all the key whose elements match the value
+         * @param value
+         * @return 
+         */
+        public ArrayList<AlloyRelation> getKeysFromValue(T value){
+            ArrayList<AlloyElement> matchtemp = new ArrayList<AlloyElement>(map.keySet());
+            ArrayList<AlloyRelation> match = new ArrayList<AlloyRelation>();
+            for(AlloyElement elt : matchtemp){
+                if(resolve(elt) == value){
+                    match.add((AlloyRelation) elt);
+                }
+            }
+            return match;
+        }
+        
         public T get(AlloyElement obj) {
             return map.get(obj);
         }

@@ -188,7 +188,22 @@ public final strictfp class GraphViewer extends JPanel {
         setBorder(null);
         this.scale = graph.defaultScale;
         this.graph = graph;
+        
+        /**
+         * [N7]
+         * Modify the graph here @Louis Fauvarque
+         * First we remove the ports, and the ports relations
+         * Then we add BLANK edges between the nodes connected by ports
+         */
+        
         graph.layout();
+        
+        /**
+         * [N7] @Louis Fauvarque
+         * After the layout is applied, we put back the ports at the good locations
+         * Finally, we add the relations between the ports
+         */
+        
         final JMenuItem zoomIn = new JMenuItem("Zoom In");
         final JMenuItem zoomOut = new JMenuItem("Zoom Out");
         final JMenuItem zoomToFit = new JMenuItem("Zoom to Fit");

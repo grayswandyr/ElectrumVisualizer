@@ -146,6 +146,26 @@ public strictfp class GraphNode {
      * GraphEdge.a and GraphEdge.b
      */
     final LinkedList<GraphEdge> outs = new LinkedList<GraphEdge>();
+    
+    /**
+     * A list of ports on the node.
+     * [N7-G. Dupont]
+     */
+    /*package*/LinkedList<GraphPort> ports = new LinkedList<GraphPort>();
+    
+    /**
+     * Get the number of ports on target orientation.
+     * (Used to layout the ports)
+     * [N7-G. Dupont]
+     */
+    /*package*/int numPorts(GraphPort.Orientation or) {
+        int res = 0;
+        for (GraphPort g : ports) {
+            if (g.getOrientation().equals(or))
+                res++;
+        }
+        return res;
+    }
 
    // =============================== these fields affect the computed bounds ===================================================
     /**
@@ -249,7 +269,7 @@ public strictfp class GraphNode {
      */
     private Shape poly3 = null;
 
-   //===================================================================================================
+   //===================================================================================================  
     /**
      * Create a new node with the given list of labels, then add it to the given
      * graph.
@@ -570,6 +590,12 @@ public strictfp class GraphNode {
                 y = y + ad;
             }
         }
+        
+        // [N7-G. Dupont] Draw each ports
+        for (GraphPort p : this.ports) {
+            p.draw(gr, scale, false);
+        }
+        
         gr.translate(left - centerX, top - centerY);
     }
 
@@ -781,6 +807,38 @@ public strictfp class GraphNode {
         }
         height = hh * 2;
         updown = hh;
+        
+        //[N7-G. Dupont] Include the ports in the bounding box calculus
+        boolean northdone = false, southdone = false, eastdone = false, westdone = false;
+        for (GraphPort port : this.ports) {
+            switch(port.getOrientation()) {
+                case East:
+                    if (!eastdone) {
+                        width += port.getWidth() + GraphPort.PortPadding;
+                        eastdone = true;
+                    }
+                    break;
+                case West:
+                    if (!westdone) {
+                        width += port.getWidth() + GraphPort.PortPadding;
+                        westdone = true;
+                    }
+                    break;
+                case South:
+                    if (!southdone) {
+                        height += port.getHeight() + GraphPort.PortPadding;
+                        southdone = true;
+                    }
+                    break;
+                case North:
+                    if (!northdone) {
+                        height += port.getHeight() + GraphPort.PortPadding;
+                        northdone = true;
+                    }
+                    break;
+            }
+        }
+        
         switch (shape) {
             case HOUSE: {
                 yShift = ad / 2;
