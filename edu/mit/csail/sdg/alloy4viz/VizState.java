@@ -85,7 +85,11 @@ public final class VizState {
         edgeColor.putAll(old.edgeColor);
         edgeStyle.putAll(old.edgeStyle);
         edgeVisible.putAll(old.edgeVisible);
-        isPort.putAll(old.isPort); //MODIFIED BY JULIEN
+        
+        // [N7] @Julien Richer
+        // Ports relations
+        isPort.putAll(old.isPort);
+        
         changedSinceLastSave = false;
     }
 
@@ -135,8 +139,12 @@ public final class VizState {
         edgeStyle.put(null, DotStyle.SOLID);
         edgeVisible.clear();
         edgeVisible.put(null, true);
+        
+        // [N7] @Julien Richer
+        // Ports relations
         isPort.clear();
-        isPort.put(null, true);  // [N7] @Julien Richer
+        isPort.put(null, true);
+        
         // Provide some nice defaults for "Int" and "seq/Int" type
         AlloyType sigint = AlloyType.INT;
         label.put(sigint, "");
@@ -551,7 +559,11 @@ public final class VizState {
     public final MMap<Boolean> hideUnconnected = new MMap<Boolean>(true, false);
     public final MMap<Boolean> showAsAttr = new MMap<Boolean>(true, false);
     public final MMap<Boolean> showAsLabel = new MMap<Boolean>(true, false);
-    public final MMap<Boolean> isPort = new MMap<Boolean>(true, false); // MODIFIED BY JULIEN
+    
+    // [N7] @Julien Richer
+    // Ports relations
+    public final MMap<Boolean> isPort = new MMap<Boolean>(true, false);
+    
 
     public final class MInt {
 

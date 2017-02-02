@@ -577,7 +577,11 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel back = vizState.layoutBack.pick(rel, "Layout backwards", "Layout graph as if arcs were reversed");
         JPanel merge = vizState.mergeArrows.pick(rel, "Merge arrows", "Merge opposing arrows between the same nodes as one bidirectional arrow");
         JPanel constraint = vizState.constraint.pick(rel, "Influence layout", "Whether this edge influences the graph layout");
+        
+        // [N7] @Julien Richer
+        // Checkbox to define relations as ports relations
         JPanel port = vizState.isPort.pick(rel, "Is a port relation", "Define the relation as a port relation");  // MODIFIED BY JULIEN
+        
         JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint);
         JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, port);  // MODIFIED BY JULIEN
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
