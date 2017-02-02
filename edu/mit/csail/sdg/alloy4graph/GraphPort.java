@@ -19,6 +19,7 @@ package edu.mit.csail.sdg.alloy4graph;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,6 +41,11 @@ public class GraphPort {
     private static final int LabbelPadding = 5;
     
     /**
+     * Defines the padding that separate a port from the center label of the node.
+     */
+    static final int PortPadding = 10;
+    
+    /**
      * Defines the color for representing a selected port.
      */
     private static final Color COLOR_CHOSENNODE = Color.LIGHT_GRAY;
@@ -49,10 +55,19 @@ public class GraphPort {
      * This assume the node's shape is not too "funky"
      */
     enum Orientation {
-        North, // The node is on the top edge
-        South, // The node is on the bottom edge
-        East,  // The node is on the right edge
-        West;  // The node is on the left edge
+        North("North"), // The node is on the top edge
+        South("South"), // The node is on the bottom edge
+        East("East"),  // The node is on the right edge
+        West("West");  // The node is on the left edge
+        
+        private final String name;
+        private Orientation(String s) {
+            this.name = s;
+        }
+        
+        public String toString() {
+            return this.name;
+        }
     }
     
     /**
@@ -63,6 +78,18 @@ public class GraphPort {
         DotShape.BOX,
         DotShape.CIRCLE
     };
+    
+    /**
+     * Make a string list out of the available shapes (useful for debug and comboboxes).
+     * @return A list of human readable string that represents the available shapes
+     */
+    public static List<String> AvailableShapesString() {
+        List<String> result = new ArrayList<String>();
+        for (DotShape s : GraphPort.AvailableShapes) {
+            result.add(s.toString());
+        }
+        return result;
+    }
     
     /** Attributes **/
     
@@ -157,18 +184,24 @@ public class GraphPort {
     /**
      * "radius" of the port.
      */
-    private int radius;
+    private int radius = 5;
+    
+    /**
+     * Width and height (total) of the port.
+     */
+    private int width, height;
     
     /**
      * Cstr.
      * @param node
      * @param uuid 
      */
-    public GraphPort(GraphNode node, Object uuid, String label, int order) {
+    public GraphPort(GraphNode node, Object uuid, String label, int order, Orientation or) {
         this.node = node;
         this.uuid = uuid;
         this.label = label;
         this.order = order;
+        this.orientation = or;
         this.node.ports.add(this);
     }
     
@@ -179,9 +212,17 @@ public class GraphPort {
      * @param highlight whether or not the node is highlighted
      */
     void draw(Artist gr, double scale, boolean highlight) {
+        boolean available = false;
         for (DotShape s : GraphPort.AvailableShapes) {
-            if (!this.shape.equals(s))
-                return;
+            if (this.shape.equals(s))
+                available = true;
+        }
+        
+        if (!available) {
+            System.out.println(
+                "Shape " + this.shape + " is unavailable. \n" +
+                "Available shapes are : " + String.join(",", GraphPort.AvailableShapesString())
+            );
         }
         
         if (this.needRecalc)
@@ -196,6 +237,8 @@ public class GraphPort {
             gr.setColor(this.color);
         }
         
+        gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
+        
         // Draw port itself
         switch (this.shape) {
             case BOX:
@@ -207,20 +250,30 @@ public class GraphPort {
             default:
                 // nop
         }
+        
+        gr.translate(this.node.getWidth() / 2, this.node.getHeight() / 2);
     }
     
     private void drawCircle(Artist gr) {
+        gr.translate(centerX, centerY);
+        gr.fillCircle(this.radius);
+        gr.setColor(Color.BLACK);
         gr.drawCircle(this.radius);
+        gr.translate(-centerX, -centerY);
     }
     
     private void drawBox(Artist gr) {
         Shape s = new Rectangle(
-                this.centerX - this.radius,
-                this.centerY - this.radius,
+                0,
+                0,
                 2*this.radius,
                 2*this.radius
         );
+        gr.translate(centerX - this.radius, centerY - this.radius);
+        gr.draw(s, true);
+        gr.setColor(Color.BLACK);
         gr.draw(s, false);
+        gr.translate(this.radius - centerX, this.radius - centerY);
     }
     
     /**
@@ -228,6 +281,10 @@ public class GraphPort {
      */
     void recalc() {
         int dist = getDistance();
+        
+        // TODO: with label ?
+        this.width = 2*this.radius;
+        this.height = 2*this.radius;
         
         switch (this.orientation) {
             case East:
@@ -238,13 +295,13 @@ public class GraphPort {
                 this.centerX = 0;
                 this.centerY = dist;
                 break;
-            case North:
-                this.centerX = dist;
-                this.centerY = 0;
-                break;
             case South:
                 this.centerX = dist;
                 this.centerY = this.node.getHeight();
+                break;
+            case North:
+                this.centerX = dist;
+                this.centerY = 0;
                 break;
             default:
                 // nop
@@ -305,6 +362,14 @@ public class GraphPort {
     public void setShape(DotShape shape) {
         this.shape = shape;
         this.needRecalc = true;
+    }
+    
+    public int getWidth() {
+        return this.width;
+    }
+    
+    public int getHeight() {
+        return this.height;
     }
     
 }
