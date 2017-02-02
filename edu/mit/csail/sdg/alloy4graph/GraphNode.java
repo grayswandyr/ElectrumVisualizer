@@ -807,6 +807,38 @@ public strictfp class GraphNode {
         }
         height = hh * 2;
         updown = hh;
+        
+        //[N7-G. Dupont] Include the ports in the bounding box calculus
+        boolean northdone = false, southdone = false, eastdone = false, westdone = false;
+        for (GraphPort port : this.ports) {
+            switch(port.getOrientation()) {
+                case East:
+                    if (!eastdone) {
+                        width += port.getWidth() + GraphPort.PortPadding;
+                        eastdone = true;
+                    }
+                    break;
+                case West:
+                    if (!westdone) {
+                        width += port.getWidth() + GraphPort.PortPadding;
+                        westdone = true;
+                    }
+                    break;
+                case South:
+                    if (!southdone) {
+                        height += port.getHeight() + GraphPort.PortPadding;
+                        southdone = true;
+                    }
+                    break;
+                case North:
+                    if (!northdone) {
+                        height += port.getHeight() + GraphPort.PortPadding;
+                        northdone = true;
+                    }
+                    break;
+            }
+        }
+        
         switch (shape) {
             case HOUSE: {
                 yShift = ad / 2;

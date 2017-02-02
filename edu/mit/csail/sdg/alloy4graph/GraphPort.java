@@ -41,6 +41,11 @@ public class GraphPort {
     private static final int LabbelPadding = 5;
     
     /**
+     * Defines the padding that separate a port from the center label of the node.
+     */
+    static final int PortPadding = 10;
+    
+    /**
      * Defines the color for representing a selected port.
      */
     private static final Color COLOR_CHOSENNODE = Color.LIGHT_GRAY;
@@ -179,7 +184,12 @@ public class GraphPort {
     /**
      * "radius" of the port.
      */
-    private int radius;
+    private int radius = 5;
+    
+    /**
+     * Width and height (total) of the port.
+     */
+    private int width, height;
     
     /**
      * Cstr.
@@ -227,6 +237,8 @@ public class GraphPort {
             gr.setColor(this.color);
         }
         
+        gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
+        
         // Draw port itself
         switch (this.shape) {
             case BOX:
@@ -239,21 +251,29 @@ public class GraphPort {
                 // nop
         }
         
-        System.out.println("Port [" + this.orientation + "," + this.order + "] drawn");
+        gr.translate(this.node.getWidth() / 2, this.node.getHeight() / 2);
     }
     
     private void drawCircle(Artist gr) {
+        gr.translate(centerX, centerY);
+        gr.fillCircle(this.radius);
+        gr.setColor(Color.BLACK);
         gr.drawCircle(this.radius);
+        gr.translate(-centerX, -centerY);
     }
     
     private void drawBox(Artist gr) {
         Shape s = new Rectangle(
-                this.centerX - this.radius,
-                this.centerY - this.radius,
+                0,
+                0,
                 2*this.radius,
                 2*this.radius
         );
+        gr.translate(centerX - this.radius, centerY - this.radius);
+        gr.draw(s, true);
+        gr.setColor(Color.BLACK);
         gr.draw(s, false);
+        gr.translate(this.radius - centerX, this.radius - centerY);
     }
     
     /**
@@ -261,6 +281,10 @@ public class GraphPort {
      */
     void recalc() {
         int dist = getDistance();
+        
+        // TODO: with label ?
+        this.width = 2*this.radius;
+        this.height = 2*this.radius;
         
         switch (this.orientation) {
             case East:
@@ -271,13 +295,13 @@ public class GraphPort {
                 this.centerX = 0;
                 this.centerY = dist;
                 break;
-            case North:
-                this.centerX = dist;
-                this.centerY = 0;
-                break;
             case South:
                 this.centerX = dist;
                 this.centerY = this.node.getHeight();
+                break;
+            case North:
+                this.centerX = dist;
+                this.centerY = 0;
                 break;
             default:
                 // nop
@@ -338,6 +362,14 @@ public class GraphPort {
     public void setShape(DotShape shape) {
         this.shape = shape;
         this.needRecalc = true;
+    }
+    
+    public int getWidth() {
+        return this.width;
+    }
+    
+    public int getHeight() {
+        return this.height;
     }
     
 }
