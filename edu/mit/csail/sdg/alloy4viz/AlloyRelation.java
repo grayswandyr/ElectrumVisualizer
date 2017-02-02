@@ -66,6 +66,16 @@ public final class AlloyRelation extends AlloyElement {
    /** Returns an unmodifiable list of AlloyTypes representing the relation's type. */
    public List<AlloyType> getTypes() { return types; }
 
+   /** Returns an unmodifiable list of IndexedAlloyTypes representing the relation's type. */
+   public List<IndexedAlloyType> getIndexedTypes() { 
+       int i=0;
+       ConstList<IndexedAlloyType> indexedTypes = ConstList.make();
+       for(AlloyType a : types) {
+           indexedTypes.add(new IndexedAlloyType(a.getName(), a.isOne, a.isAbstract, a.isBuiltin, isPrivate, a.isMeta, a.isEnum, i++));
+       }
+       return indexedTypes; 
+   }
+   
    /** Returns the arity of the relation. */
    public int getArity() { return types.size(); }
 
