@@ -443,6 +443,10 @@ public final class A4SolutionReader {
 			A4SolutionReader x = new A4SolutionReader(sigs, xml);
 			return x.sol;
 		} catch (Throwable ex) {
+            // [N7-G. Dupont] (debug) Can be interesting to have a better understanding
+            // of the error
+            //System.err.println("Error occured in A4SolutionReader.read :");
+            //ex.printStackTrace();
 			if (ex instanceof Err)
 				throw ((Err) ex);
 			else
