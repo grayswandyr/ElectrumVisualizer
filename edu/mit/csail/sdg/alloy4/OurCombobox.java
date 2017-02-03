@@ -95,56 +95,7 @@ public class OurCombobox extends JComboBox<Object> {
 			public void actionPerformed(ActionEvent e) { do_changed(getSelectedItem()); }
 		});
 	}
-
-	// [N7-<Bossut>] Another Constr so we can precise the rank of the type i nthe relation.
-	/** Constructs a new OurCombobox object.
-	 * @param addNull - whether we should prepend null onto the beginning of the list of allowed values
-	 * @param list - the list of allowed values
-	 * @param width - the width to use (if width==0 and height==0, then we ignore this parameter)
-	 * @param height - the height to use (if width==0 and height==0, then we ignore this parameter)
-	 * @param initialValue - if nonnull it is the initial value to choose in this combo box
-	 * @param preciseRank - if true, the rank of each Object of list is precised in the label. 
-	 */
-	public OurCombobox (boolean addNull, Object[] list, int width, int height, Object initialValue, boolean preciseRank) {
-		super(do_copy(list, addNull));
-		setFont(OurUtil.getVizFont());
-		if (preciseRank){
-			setRenderer(new ListCellRenderer() {
-				public Component getListCellRendererComponent(JList list, Object value, int i, boolean selected, boolean focused) {
-					if (jlabel == null) jlabel = OurUtil.label("", Color.BLACK, Color.WHITE, new EmptyBorder(0, 2, 0, 0));
-					String s = i>0 ? " ("+i+")" : ""; //We only print the rank when > 0 (we don't give a rank to 'null', nor the rank (-1) to the selected type). 
-					jlabel.setText(do_getText(value)+s);
-					jlabel.setIcon(do_getIcon(value));
-					jlabel.setBackground(selected ? list.getSelectionBackground() : list.getBackground());
-					jlabel.setForeground(selected ? list.getSelectionForeground() : list.getForeground());
-					return jlabel;
-				}
-			});
-		}else{
-			setRenderer(new ListCellRenderer() {
-				public Component getListCellRendererComponent(JList list, Object value, int i, boolean selected, boolean focused) {
-					if (jlabel == null) jlabel = OurUtil.label("", Color.BLACK, Color.WHITE, new EmptyBorder(0, 2, 0, 0));
-					jlabel.setText(do_getText(value));
-					jlabel.setIcon(do_getIcon(value));
-					jlabel.setBackground(selected ? list.getSelectionBackground() : list.getBackground());
-					jlabel.setForeground(selected ? list.getSelectionForeground() : list.getForeground());
-					return jlabel;
-				}
-			});
-		}
-		if (width != 0 || height != 0) { // Make some platform-specific adjustments which should make the combobox look nicer
-			if (Util.onWindows() && height > 25) height = 25; // Otherwise, the height is too big on Windows
-			setPreferredSize(new Dimension(width, height));
-			setMaximumSize(new Dimension(width, height));
-			if (!Util.onWindows() && !Util.onMac()) setBorder(new EmptyBorder(4, 3, 4, 0));
-		}
-		if (initialValue != null) { setSelectedItem(initialValue); }
-		addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) { do_changed(getSelectedItem()); }
-		});
-	}
 }
-
 
 
 
