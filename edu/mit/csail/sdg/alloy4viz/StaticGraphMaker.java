@@ -273,22 +273,15 @@ public final class StaticGraphMaker {
 	/** Create the node for a specific AlloyAtom and each of his children, and their childrens, and so on.
 	 * @return the englobing AlloyNode created, null if thmarked as "Don't Show". */
 	private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds){
-		fatherNode = createNode(hidePrivate, hideMeta, father);
+		GraphNode fatherNode = createNode(hidePrivate, hideMeta, father);
 		if (!directChilds.isEmpty()) {
 			for (List<AlloyAtom> childs : directChilds){
 				for (AlloyAtom child : childs) {
-					AlloyNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child));
+					GraphNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child));
 					if (!(fatherNode == null || childNode == null)) 
 						fatherNode.addChild(childNode);
 				}
 			}
-		}
-		
-		
-		
-		if (!(fatherNode == null)){
-
-
 		}
 		return fatherNode;
 	}
