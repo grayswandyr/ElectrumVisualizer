@@ -55,6 +55,8 @@ import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
 
+import edu.mit.csail.sdg.alloy4graph.GraphPort;
+
 /**
  * GUI panel for making customization changes.
  *
@@ -582,6 +584,14 @@ public final class VizCustomizationPanel extends JPanel {
         // Checkbox to define relations as ports relations
         JPanel port = vizState.isPort.pick(rel, "Is a port relation", "Define the relation as a node/port relation");
         
+        // Combobox to define the orientation of a port
+        OurCombobox orientBox = new OurCombobox(true, GraphPort.Orientation.values(), 105, 35, null) {
+            @Override
+            public void do_changed(Object value) {
+                vizState.orientations.put(rel, (GraphPort.Orientation) value);
+            }
+        };
+        
         JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint);
         JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, port);
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
@@ -601,6 +611,7 @@ public final class VizCustomizationPanel extends JPanel {
         JLabel pLabel = OurUtil.label("Hide private sigs/relations:");
         JLabel mLabel = OurUtil.label("Hide meta sigs/relations:");
         JLabel fLabel = OurUtil.label("Font Size:");
+        
         JComboBox fontSize = new OurCombobox(false, fontSizes.toArray(), 60, 32, vizState.getFontSize()) {
             private static final long serialVersionUID = 0;
 

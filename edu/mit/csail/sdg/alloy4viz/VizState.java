@@ -35,6 +35,9 @@ import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
 import java.util.*;
 
+import edu.mit.csail.sdg.alloy4graph.GraphPort;
+
+
 /**
  * Mutable; this stores an unprojected model as well as the current theme
  * customization.
@@ -563,6 +566,9 @@ public final class VizState {
     // [N7] @Julien Richer
     // Ports relations
     public final MMap<Boolean> isPort = new MMap<Boolean>(true, false);
+    
+    // Ports orientations
+    public final MMap<GraphPort.Orientation> orientations = new MMap<GraphPort.Orientation>();
     
 
     public final class MInt {
