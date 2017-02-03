@@ -21,8 +21,10 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class represents the concept of port.
@@ -52,6 +54,11 @@ public class GraphPort extends AbstractGraphNode {
      * (From center)
      */
     static final int PortDistance = 10;
+    
+    /**
+     * Font size for the port label.
+     */
+    private int fontSize = 8;
     
     /**
      * Defines the color for representing a selected port.
@@ -169,11 +176,6 @@ public class GraphPort extends AbstractGraphNode {
     private int width, height;
     
     /**
-     * Font size for the port label.
-     */
-    private static final int fontSize = 8;
-    
-    /**
      * Coordinates of the label.
      */
     private int labelX, labelY;
@@ -184,15 +186,22 @@ public class GraphPort extends AbstractGraphNode {
      * @param node
      * @param uuid 
      */
-    public GraphPort(GraphNode node, Object uuid, String label, int order, Orientation or) {
+    public GraphPort(GraphNode node, Object uuid, String label, Orientation or) {
         super(node.graph, uuid);
         this.node = node;
         this.label = label;
-        this.order = order;
         this.orientation = or;
         this.node.ports.add(this);
+        
+        this.order = this.node.incNumPorts(or);
     }
     
+    /**
+     * Determines if coordinates are inside the port
+     * @param x x coordinate
+     * @param y y coordinate
+     * @return true if (x,y) is in the port [CURRENTLY: FALSE]
+     */
     @Override
     boolean contains(double x, double y) {
         return false;
@@ -206,6 +215,7 @@ public class GraphPort extends AbstractGraphNode {
      */
     @Override
     void draw(Artist gr, double scale, boolean highlight) {
+        // Check if the requested shape is available
         boolean available = false;
         for (DotShape s : GraphPort.AvailableShapes) {
             if (shape().equals(s))
@@ -219,6 +229,7 @@ public class GraphPort extends AbstractGraphNode {
             );
         }
         
+        // If we need to recalc (boundaries)
         if (this.needRecalc)
             recalc();
         
@@ -231,6 +242,7 @@ public class GraphPort extends AbstractGraphNode {
             gr.setColor(this.color);
         }
         
+        // Translate to the bottom left hand corner of the node (easier for calculi)
         gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
         
         // Draw port itself
@@ -245,31 +257,53 @@ public class GraphPort extends AbstractGraphNode {
                 // nop
         }
         
-        // Draw label
-        gr.drawString(this.label, this.labelX, this.labelY, this.labelTheta, GraphPort.fontSize);
+        // Draw label with requested font size
+        int fontTemp = gr.getFontSize();
+        gr.setFontSize(this.fontSize);
+        gr.drawString(this.label, this.labelX, this.labelY, this.labelTheta);
+        gr.setFontSize(fontTemp);
         
+        // Translate back the system where it was before (hopefully)
         gr.translate(this.node.getWidth() / 2, this.node.getHeight() / 2);
     }
     
+    /**
+     * Draw the port as a circle
+     * @param gr Artist on which to draw the port
+     */
     private void drawCircle(Artist gr) {
+        // Select center
         gr.translate(x(), y());
+        // Draw a full circle of the requested radius and color
         gr.fillCircle(this.radius);
+        // Draw a black hollow circle of the requested radius
         gr.setColor(Color.BLACK);
         gr.drawCircle(this.radius);
+        // Restore system
         gr.translate(-x(), -y());
     }
     
+    /**
+     * Draw the port as a box
+     * @param gr Artist on which to draw the port
+     */
     private void drawBox(Artist gr) {
+        // Create the actual shape, a square of side 2*radius
         Shape s = new Rectangle(
                 0,
                 0,
                 2*this.radius,
                 2*this.radius
         );
+        
+        // Translate to have the center of the square at (centerX,centerY)
         gr.translate(x() - this.radius, y() - this.radius);
+        // Draw the shape filled with requested color
         gr.draw(s, true);
+        // Draw the outline of the shape
         gr.setColor(Color.BLACK);
         gr.draw(s, false);
+        // Restore system
         gr.translate(this.radius - x(), this.radius - y());
     }
     
@@ -278,25 +312,24 @@ public class GraphPort extends AbstractGraphNode {
      */
     void recalc() {
         int dist = getDistance();
+        int labelWidth = getLabelSize();
         
-        // TODO: with label ?
+        // Recalculate width and height
         this.width = 2*this.radius;
         this.height = 2*this.radius;
         
-        Rectangle2D labelRect = Artist.getBounds(this.fontBold, this.label);
-        int labelWidth = (int)labelRect.getWidth(), labelHeight = (int)labelRect.getHeight();
-        
+        // Compute port and label position
         switch (this.orientation) {
             case East:
-                this.setX(this.node.getWidth());
-                this.setY(dist);
+                setX(this.node.getWidth());
+                setY(dist);
                 this.labelX = x() - this.radius - LabelPadding - labelWidth;
                 this.labelY = y() + this.radius;
                 this.labelTheta = 0.0;
                 break;
             case West:
-                this.setX(0);
-                this.setY(dist);
+                setX(0);
+                setY(dist);
                 this.labelX = x() + this.radius + LabelPadding;
                 this.labelY = y() + this.radius;
                 this.labelTheta = 0.0;
@@ -322,30 +355,40 @@ public class GraphPort extends AbstractGraphNode {
         this.needRecalc = false;
     }
     
+    /**
+     * Get the vertical (E/W) or horizontal (N/S) distance between the center of the port
+     * and the origin of the node
+     * @return the requested distance
+     */
     private int getDistance() {
         int length;
         if (this.orientation == Orientation.North || this.orientation == Orientation.South)
             length = this.node.getWidth();
         else
             length = this.node.getHeight();
-        int numports = this.node.numPorts(this.orientation);
         
-        return length*(this.order+1)/(numports+1);
+        int numports = this.node.numPorts.get(this.orientation);
+        
+        return length*(this.order+1)/(numports+1); // Simple barycenter calculus
     }
     
+    /**
+     * Get the label width (which is a vertical distance for N/S ports and a horizontal one for E/W). 
+     * @return the label size
+     */
     int getLabelSize() {
         if (this.label.length() == 0)
             return 0;
         
-        Rectangle2D rect = Artist.getBounds(this.fontBold, this.label);
-        
-        /*if (this.orientation.equals(Orientation.North) || this.orientation.equals(Orientation.South))
-            return (int)rect.getHeight();
-        else
-            return (int)rect.getWidth();*/
+        Rectangle2D rect = Artist.getBounds(this.fontBold, this.label, this.fontSize);
         return (int)rect.getWidth();
     }
     
+    /**
+     * Get the size of the port (just the shape).
+     * This is a horizontal distance if port is E/W and a vertical one if it is N/S
+     * @return the size of the shape
+     */
     int getPortSize() {
         if (this.orientation.equals(Orientation.North) || this.orientation.equals(Orientation.South))
             return getHeight();
@@ -353,61 +396,145 @@ public class GraphPort extends AbstractGraphNode {
             return getWidth();
     }
     
+    /**
+     * Get the full size of the port (including label and padding).
+     * This is a horizontal distance if port is E/W and a vertical one if it is N/S
+     * @return the full size
+     */
     int getSize() {
         return this.getLabelSize() + this.getPortSize() + LabelPadding;
     }
     
     /// Accessors/Mutators ///
+    /**
+     * Get the side on which the port is.
+     * @return the orientation
+     */
     public Orientation getOrientation() {
         return orientation;
     }
-
+    
+    /**
+     * Set the side on which the port is.
+     * The port will be appended to the existing ports on that side.
+     * @param orientation the new orientation
+     */
     public void setOrientation(Orientation orientation) {
+        // We need to reflect the change on other port (determine a new order, etc.)
+        // Properly remove the port from old side
+        this.node.decNumPorts(this.orientation);
+        for (GraphPort gp : this.node.ports) {
+            if (gp.getOrientation().equals(this.orientation) && gp.order > this.order)
+                gp.order--;
+        }
+        
+        // Append the port to the right side
         this.orientation = orientation;
+        this.order = this.node.incNumPorts(orientation);
+        
+        // In the end, update attributes
         this.needRecalc = true;
     }
 
+    /**
+     * Test if the font is bold
+     * @return true if font is bold
+     */
     public boolean isFontBold() {
         return fontBold;
     }
 
+    /**
+     * Set the boldness of the font
+     * @param fontBold new boldness (true = bold)
+     */
     public void setFontBold(boolean fontBold) {
         this.fontBold = fontBold;
     }
+    
+    /**
+     * Get the font size
+     * @return font size
+     */
+    public int getFontSize() {
+        return fontSize;
+    }
+    
+    /**
+     * Set the font size
+     * @param fs new font size
+     */
+    public void setFontSize(int fs) {
+        this.fontSize = fs;
+    }
 
+    /**
+     * Get port color
+     * @return port colro
+     */
     public Color getColor() {
         return color;
     }
 
+    /**
+     * Set port color
+     * @param color new color
+     */
     public void setColor(Color color) {
         this.color = color;
     }
 
+    /**
+     * Get port line style
+     * @return the port line style
+     */
     public DotStyle getStyle() {
         return style;
     }
 
+    /**
+     * Set port line style
+     * @param style new port line style
+     */
     public void setStyle(DotStyle style) {
         this.style = style;
     }
     
+    /**
+     * Get the order of the port on its side
+     * @return the order of the port
+     */
     public int getOrder() {
         return this.order;
     }
 
+    /**
+     * Set the shape of the port
+     * @param shape new shape
+     */
     @Override
     public void setShape(DotShape shape) {
         super.setShape(shape);
         this.needRecalc = true;
     }
     
+    /**
+     * Retrieve port width
+     * @return port width
+     */
     @Override
     public int getWidth() {
+        if (needRecalc) recalc();
         return this.width;
     }
     
+    /**
+     * Retrieve port height
+     * @return 
+     */
     @Override
     public int getHeight() {
+        if (needRecalc) recalc();
         return this.height;
     }
     

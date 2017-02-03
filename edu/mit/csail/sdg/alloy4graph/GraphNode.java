@@ -29,8 +29,10 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Mutable; represents a graphical node.
@@ -119,17 +121,34 @@ public strictfp class GraphNode extends AbstractGraphNode {
     /*package*/LinkedList<GraphPort> ports = new LinkedList<GraphPort>();
     
     /**
-     * Get the number of ports on target orientation.
-     * (Used to layout the ports)
+     * Store the current number of ports on each side.
+     * This is used mainly for establishing port order.
      * [N7-G. Dupont]
      */
-    /*package*/int numPorts(GraphPort.Orientation or) {
-        int res = 0;
-        for (GraphPort g : ports) {
-            if (g.getOrientation().equals(or))
-                res++;
-        }
-        return res;
+    /*package*/Map<GraphPort.Orientation,Integer> numPorts;
+    
+    /**
+     * Increment the number of ports on target side
+     * @param or the side on which to increment the number of ports
+     * @return the previous number of ports
+     * [N7-G. Dupont]
+     */
+    /*package*/ int incNumPorts(GraphPort.Orientation or) {
+        int r = this.numPorts.get(or);
+        this.numPorts.put(or, r + 1);
+        return r;
+    }
+    
+    /**
+     * Decrement the number of ports on target side
+     * @param or the side on which to decrement the number of ports
+     * @return the previous number of ports
+     * [N7-G. Dupont]
+     */
+    /*package*/ int decNumPorts(GraphPort.Orientation or) {
+        int r = this.numPorts.get(or);
+        this.numPorts.put(or, r - 1);
+        return r;
     }
 
    // =============================== these fields affect the computed bounds ===================================================
@@ -237,6 +256,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 this.labels.add(labels[i]);
             }
         }
+        
+        // [N7-G. Dupont] Instanciate map port
+        this.numPorts = new HashMap<GraphPort.Orientation, Integer>();
+        this.numPorts.put(GraphPort.Orientation.North, 0);
+        this.numPorts.put(GraphPort.Orientation.South, 0);
+        this.numPorts.put(GraphPort.Orientation.East, 0);
+        this.numPorts.put(GraphPort.Orientation.West, 0);
     }
 
     /**

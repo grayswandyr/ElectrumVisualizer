@@ -36,22 +36,28 @@ public class GraphTestClass extends JFrame {
         
         GraphNode nodeA = new GraphNode(graph, new Integer(1), "Test");
         
-        GraphPort portA = new GraphPort(nodeA, new Integer(2), "Port A", 0, GraphPort.Orientation.North);
+        GraphPort portA = new GraphPort(nodeA, new Integer(2), "Port A", GraphPort.Orientation.North);
         portA.setColor(Color.RED);
         portA.setShape(DotShape.CIRCLE);
         
-        GraphPort portA2 = new GraphPort(nodeA, new Integer(6), "Port A2", 1, GraphPort.Orientation.North);
+        GraphPort portA2 = new GraphPort(nodeA, new Integer(6), "Port A2", GraphPort.Orientation.North);
         portA2.setColor(Color.PINK);
         portA2.setShape(DotShape.CIRCLE);
         
-        GraphPort portB = new GraphPort(nodeA, new Integer(3), "Port B", 0, GraphPort.Orientation.South);
+        GraphPort portB = new GraphPort(nodeA, new Integer(3), "Port B", GraphPort.Orientation.South);
         portB.setColor(Color.GREEN);
         
-        GraphPort portC = new GraphPort(nodeA, new Integer(4), "Port C", 0, GraphPort.Orientation.East);
+        GraphPort portC = new GraphPort(nodeA, new Integer(4), "Port C", GraphPort.Orientation.East);
         portC.setColor(Color.BLUE);
         
-        GraphPort portD = new GraphPort(nodeA, new Integer(5), "Port D", 0, GraphPort.Orientation.West);
+        GraphPort portD = new GraphPort(nodeA, new Integer(5), "Port D", GraphPort.Orientation.West);
         portD.setColor(Color.ORANGE);
+        
+        GraphNode nodeB = new GraphNode(graph, new Integer(10), "Test 2");
+        GraphPort portBA = new GraphPort(nodeB, new Integer(11), "", GraphPort.Orientation.East);
+        GraphPort portBB = new GraphPort(nodeB, new Integer(12), "", GraphPort.Orientation.East);
+        GraphPort portBC = new GraphPort(nodeB, new Integer(13), "", GraphPort.Orientation.East);
+        portBB.setOrientation(GraphPort.Orientation.West);
         
         // Show graph on a graphviewer component
         JPanel graphpan = new GraphViewer(graph);

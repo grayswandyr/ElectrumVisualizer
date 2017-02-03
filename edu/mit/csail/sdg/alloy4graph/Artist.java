@@ -258,33 +258,54 @@ public final strictfp class Artist {
     }
 
     /**
-     * Saves the current font boldness.
+     * Saves the current font.
      */
-    private boolean fontBoldness = false;
+    private Font currentFont = new Font(Artist.fontName, Font.PLAIN, Artist.fontSize);
 
     /**
      * Changes the current font.
      */
     public void setFont(boolean fontBoldness) {
-        calc();
+        this.currentFont = new Font(Artist.fontName, (fontBoldness ? Font.BOLD : Font.PLAIN), this.currentFont.getSize());
+        calc(this.currentFont.getSize());
         if (gr != null) {
-            gr.setFont(fontBoldness ? cachedBoldFont : cachedPlainFont);
-        } else {
-            this.fontBoldness = fontBoldness;
+            gr.setFont(this.currentFont);
         }
+    }
+    
+    /**
+     * Set font size.
+     * [N7-G. Dupont]
+     * @param fs new font size
+     */
+    public void setFontSize(int fs) {
+        this.currentFont = new Font(Artist.fontName, this.currentFont.getStyle(), fs);
+        calc(this.currentFont.getSize());
+        if (gr != null) {
+            gr.setFont(this.currentFont);
+        }
+    }
+    
+    /**
+     * Get font size.
+     * [N7-G. Dupont]
+     * @return the current font size
+     */
+    public int getFontSize() {
+        return this.currentFont.getSize();
     }
     
     /**
      * [N7-G.Dupont] Draws the given string at (x, y) with no rotation.
      */
     public void drawString(String text, int x, int y) {
-        this.drawString(text, x, y, 0.0, Artist.fontSize);
+        this.drawString(text, x, y, 0.0);
     }
 
     /**
      * [N7-G.Dupont] Draws the given string at (x,y) with given rotation angle in radians.
      */
-    public void drawString(String text, int x, int y, double theta, int fs) {
+    public void drawString(String text, int x, int y, double theta) {
         if (text.length() == 0) {
             return;
         }
@@ -294,9 +315,8 @@ public final strictfp class Artist {
             if (theta != 0.0) gr.rotate(-theta, x, y); //[N7-G.Dupont] Restore coordinates
             return;
         }
-        calc(fs);
-        Font font = (fontBoldness ? cachedBoldFont : cachedPlainFont);
-        GlyphVector gv = font.createGlyphVector(new FontRenderContext(null, false, false), text);
+        calc(this.currentFont.getSize());
+        GlyphVector gv = this.currentFont.createGlyphVector(new FontRenderContext(null, false, false), text);
         //[N7-G.Dupont] Problem: rotate the text for PDF ?
         translate(x, y);
         draw(gv.getOutline(), true);
@@ -348,9 +368,9 @@ public final strictfp class Artist {
     }
     
     private static void calc(int fs) {
-        if (cachedMaxDescent >= 0) {
+        /*if (cachedMaxDescent >= 0) {
             return; // already done
-        }
+        }*/
         BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
         cachedGraphics = (Graphics2D) (image.getGraphics());
         cachedPlainMetrics = cachedGraphics.getFontMetrics(cachedPlainFont = new Font(fontName, Font.PLAIN, fs));
