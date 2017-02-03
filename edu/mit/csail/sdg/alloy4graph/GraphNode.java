@@ -30,9 +30,9 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.TreeSet;
 
 /** Mutable; represents a graphical node.
  *
@@ -172,7 +172,7 @@ public strictfp class GraphNode {
 
    //[N7-<Bossut,Quentin>]
    /** This field contains the children of this node. */
-   private TreeSet<GraphNode> children;
+   private HashSet<GraphNode> children;
 
    // ==================================================================================================
       
@@ -181,7 +181,7 @@ public strictfp class GraphNode {
       this.uuid = uuid;
       this.graph = graph;
       this.pos = graph.nodelist.size();
-      this.children = new TreeSet<>();                                                      //[N7-<Bossut,Quentin>]
+      this.children = new HashSet<>();                                                      //[N7-<Bossut,Quentin>]
       graph.nodelist.add(this);
       if (graph.layerlist.size()==0) graph.layerlist.add(new ArrayList<GraphNode>());
       graph.layerlist.get(0).add(this);
@@ -193,12 +193,12 @@ public strictfp class GraphNode {
    
    //[N7-<Bossut,Quentin>]
    /** Get the children of the Node. */
-   public TreeSet<GraphNode> getChildren() {
+   public HashSet<GraphNode> getChildren() {
        return this.children;
    }
    
    /** Set the children of the Node. */
-   public void setChildren(TreeSet<GraphNode> children) {
+   public void setChildren(HashSet<GraphNode> children) {
        this.children = children;
    }
    
@@ -361,7 +361,13 @@ public strictfp class GraphNode {
         }
         gr.translate(left-centerX, top-centerY);
       } else {
-          
+          int nbChildren=children.size();
+          int maxHeight=0;
+          int maxWidth=0;
+          for (GraphNode gn : children) {
+              maxHeight = (gn.getHeight() > maxHeight) ? gn.getHeight() : maxHeight;
+              maxWidth  = (gn.getWidth()  > maxWidth)  ? gn.getWidth()  : maxWidth;
+          }
       }
    }
 
