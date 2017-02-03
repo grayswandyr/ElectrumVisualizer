@@ -344,7 +344,7 @@ public final class VizCustomizationPanel extends JPanel {
          @Override public void   do_changed(Object value) { vizState.subVisible.put(rel, (IndexedAlloyType)value); };               //[N7-<Quentin>]
       };                                                                                                                     				//[N7-<Quentin>]
       JLabel containerLabel = OurUtil.label("Use as container:");                                                            				//[N7-<Quentin>]
-      JPanel containerPanel = OurUtil.makeH(containerLabel, 5, container);                                                   				//[N7-<Quentin>]
+      JPanel containerPanel = OurUtil.makeH(containerLabel, 5, container);                                                   			 	//[N7-<Quentin>]
       
       JPanel visible    = vizState.edgeVisible.pick(rel, "Show as arcs",      "Show relation as arcs");
       JPanel attr       = vizState.attribute  .pick(rel, "Show as attribute", "Additionally display this relation as an attribute on the nodes' labels");
