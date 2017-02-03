@@ -71,6 +71,12 @@ public final class StaticGraphMaker {
 	/** The resulting graph. */
 	private final Graph graph;
 
+  /** The mapthat contains every container AlloyAtom, and the list of list representing the rest of the tuple it contains. */
+	private	final Map<AlloyAtom, List<List<AlloyAtom>>> containmentTuples = new LinkedHashMap<AlloyAtom, List<List<AlloyAtom>>>();
+	
+	/** The map that contains every contained AlloyAtoms and the list of Alloy Atoms it is contained in. */
+	private final Map<AlloyAtom, Set<AlloyAtom>> containedInMap = new LinkedHashMap<AlloyAtom, Set<AlloyAtom>>();
+
 	/** Produces a single Graph from the given Instance and View and choice of Projection */
 	public static JPanel produceGraph(AlloyInstance instance, VizState view, AlloyProjection proj) throws ErrorFatal {
 		view = new VizState(view);
@@ -138,12 +144,10 @@ public final class StaticGraphMaker {
 		else if (view.getEdgePalette() == DotPalette.MARTHA) colors = colorsMartha;
 		else colors = colorsNeon;
 
-
+		//[N7-<Bossut, Quentin>]
 		//Creation of a Map to store atoms that are instances of a containment relation.
 		// The key of the Map is an AlloyAtom which is the container of the containmentTuple.
 		// The value is a List of List of AlloyAtoms; each List represents the rest of a containmentTuple (contained in key).
-		LinkedHashMap<AlloyAtom, List<List<AlloyAtom>>> containmentTuples = new LinkedHashMap<AlloyAtom, List<List<AlloyAtom>>>();
-		LinkedHashMap<AlloyAtom, Set<AlloyAtom>> containedInMap = new LinkedHashMap<AlloyAtom, Set<AlloyAtom>>();
 		for (AlloyRelation rel: model.getRelations()) {
 			IndexedAlloyType containerType = view.subVisible.get(rel);
 			if (!(containerType == null)) {
@@ -264,6 +268,32 @@ public final class StaticGraphMaker {
 		atom2node.put(atom,node);
 		return node;
 	}
+
+	//[N7<<Bossut, Quentin>]
+	/** Create the node for a specific AlloyAtom and each of his children, and their childrens, and so on.
+	 * @return the englobing AlloyNode created, null if thmarked as "Don't Show". */
+	private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds){
+		fatherNode = createNode(hidePrivate, hideMeta, father);
+		if (!directChilds.isEmpty()) {
+			for (List<AlloyAtom> childs : directChilds){
+				for (AlloyAtom child : childs) {
+					AlloyNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child));
+					if (!(fatherNode == null || childNode == null)) 
+						fatherNode.addChild(childNode);
+				}
+			}
+		}
+		
+		
+		
+		if (!(fatherNode == null)){
+
+
+		}
+		return fatherNode;
+	}
+
+
 
 	/** Create an edge for a given tuple from a relation (if neither start nor end node is explicitly invisible) */
 	private boolean createEdge(final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, AlloyTuple tuple, boolean bidirectional, Color magicColor) {
