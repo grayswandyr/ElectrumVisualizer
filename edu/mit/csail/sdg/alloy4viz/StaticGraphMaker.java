@@ -167,14 +167,14 @@ public final class StaticGraphMaker {
         }
         
         /**
-         * For each portRelation
+         * For each portRelation :
          * Add the non port atom to the box list
          * And keep to which port they are connected (Hashmap)
-         * new GraphEdge(from,to, Object uuid, String label, false, true, DotStyle.BLANK, null, Object group);
          */
         
         // Maps the Nodes to the ports linked <ports,nodes>
         HashMap<AlloyAtom,AlloyAtom> portMap = new HashMap<AlloyAtom,AlloyAtom>();
+        
         Set<AlloyTuple> tupleSet = null;
         for(AlloyRelation rel : portRelations){
             tupleSet = instance.relation2tuples(rel);
