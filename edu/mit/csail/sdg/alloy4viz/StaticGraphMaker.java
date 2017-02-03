@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 
 import edu.mit.csail.sdg.alloy4.ErrorFatal;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4graph.Artist;
 import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotDirection;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
@@ -97,13 +98,20 @@ public final class StaticGraphMaker {
      */
     public static JPanel produceGraph(AlloyInstance instance, VizState view, AlloyProjection proj) throws ErrorFatal {
         view = new VizState(view);
-        // [N7] Modified by @Louis Fauvarque
+        
+        // [N7] Modified by @Louis Fauvarque @Julien Richer
+        // Make the ports not visible
+        // Create blank arrows to link the nodes that are connected through ports
         ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
+        
         for(AlloyAtom atom : instance.getAllAtoms()){
             if(isPort(portRelations,atom)){
                 view.nodeVisible.put(atom.getType(), Boolean.FALSE);
+                
             }
         }
+        
+        new GraphEdge(from,to, Object uuid, String label, false, true, DotStyle.BLANK, null, Object group);
         
         
         if (proj == null) {

@@ -194,6 +194,7 @@ public final strictfp class GraphViewer extends JPanel {
          * Modify the graph here @Louis Fauvarque
          * First we remove the ports, and the ports relations
          * Then we add BLANK edges between the nodes connected by ports
+         * => done in StaticGraphMaker.produceGraph
          */
         
         graph.layout();
