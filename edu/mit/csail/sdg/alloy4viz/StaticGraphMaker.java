@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 
 import edu.mit.csail.sdg.alloy4.ErrorFatal;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4graph.Artist;
 import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotDirection;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
@@ -36,7 +37,7 @@ import edu.mit.csail.sdg.alloy4graph.Graph;
 import edu.mit.csail.sdg.alloy4graph.GraphEdge;
 import edu.mit.csail.sdg.alloy4graph.GraphNode;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * This utility class generates a graph for a particular index of the
@@ -97,19 +98,8 @@ public final class StaticGraphMaker {
      */
     public static JPanel produceGraph(AlloyInstance instance, VizState view, AlloyProjection proj) throws ErrorFatal {
         view = new VizState(view);
-        // [N7] Modified by @Louis Fauvarque
-        ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
-        ArrayList<AlloyAtom> portList = getPorts(portRelations, instance);
-        for (AlloyAtom port : portList) {
-            view.nodeVisible.put(port.getType(), Boolean.FALSE);
-        }
         
-        /**
-         * For each portRelation
-         * Add the non port atom to the box list
-         * And keep to which port they are connected (Hashmap)
-         */
-
+        
         if (proj == null) {
             proj = new AlloyProjection();
         }
@@ -162,6 +152,56 @@ public final class StaticGraphMaker {
         this.view = view;
         instance = StaticProjector.project(originalInstance, proj);
         model = instance.model;
+        
+        /**
+         * [N7] Modified by @Louis Fauvarque @Julien Richer
+         * Make the ports not visible
+         * Create blank arrows to link the nodes that are connected through ports
+         */
+        
+        ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
+        ArrayList<AlloyAtom> portList = getPorts(portRelations, instance);
+        
+        for (AlloyAtom port : portList) {
+            view.nodeVisible.put(port.getType(), Boolean.FALSE);
+        }
+        
+        /**
+         * For each portRelation
+         * Add the non port atom to the box list
+         * And keep to which port they are connected (Hashmap)
+         * new GraphEdge(from,to, Object uuid, String label, false, true, DotStyle.BLANK, null, Object group);
+         */
+        
+        // Maps the Nodes to the ports linked <ports,nodes>
+        HashMap<AlloyAtom,AlloyAtom> portMap = new HashMap<AlloyAtom,AlloyAtom>();
+        Set<AlloyTuple> tupleSet = null;
+        for(AlloyRelation rel : portRelations){
+            tupleSet = instance.relation2tuples(rel);
+            for(AlloyTuple tuple : tupleSet){
+                portMap.put(tuple.getEnd(),tuple.getStart());
+            }
+        }
+        
+        for(AlloyRelation rel : view.getCurrentModel().getRelations()){
+            if(!isIn(portRelations,rel)){
+                tupleSet = instance.relation2tuples(rel);
+                for(AlloyTuple tuple : tupleSet){
+                    // We check that each side of the tuple is a port
+                    if(isPort(portRelations,tuple.getStart()) && isPort(portRelations,tuple.getEnd())){
+                        AlloyAtom atomStart = portMap.get(tuple.getStart());
+                        AlloyAtom atomEnd = portMap.get(tuple.getEnd());
+                        
+                        GraphNode start = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                        GraphNode end = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                        new GraphEdge(start,end, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).set(DotStyle.BLANK);
+                    }
+                }
+            }
+        }
+
+        
+        
         for (AlloyRelation rel : model.getRelations()) {
             rels.put(rel, null);
         }
@@ -517,7 +557,7 @@ public final class StaticGraphMaker {
      * @param atom
      * @return boolean res
      */
-    private static boolean isPort(ArrayList<AlloyRelation> portRelations, AlloyAtom atom) {
+    private boolean isPort(ArrayList<AlloyRelation> portRelations, AlloyAtom atom) {
         boolean res = false;
         for (AlloyRelation eltA : portRelations) {
             if (eltA != null) {
@@ -532,7 +572,7 @@ public final class StaticGraphMaker {
     }
 
     
-    private static ArrayList getPorts(ArrayList<AlloyRelation> portRelations, AlloyInstance instance){
+    private ArrayList getPorts(ArrayList<AlloyRelation> portRelations, AlloyInstance instance){
         ArrayList<AlloyAtom> res = new ArrayList<AlloyAtom>();
             for(AlloyAtom atom : instance.getAllAtoms()){
                 if(isPort(portRelations, atom)){
