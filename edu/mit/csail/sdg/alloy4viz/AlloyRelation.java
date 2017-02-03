@@ -75,8 +75,7 @@ public final class AlloyRelation extends AlloyElement {
        ArrayList<IndexedAlloyType> indexedTypes = new ArrayList<IndexedAlloyType>();                                                           
        System.out.println(types);                                                                                                              
        for(AlloyType a : types) {                                                                                                              
-           indexedTypes.add(new IndexedAlloyType(a.getName(), a.isOne, a.isAbstract, a.isBuiltin, isPrivate, a.isMeta, a.isEnum, ++i));        
-           System.out.println(indexedTypes);                                                                                                   
+           indexedTypes.add(new IndexedAlloyType(a.getName(), a.isOne, a.isAbstract, a.isBuiltin, isPrivate, a.isMeta, a.isEnum, ++i));                                                                                                          
        }                                                                                                                                       
        return indexedTypes;                                                                                                                    
    }                                                                                                                                                      
