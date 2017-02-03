@@ -19,7 +19,7 @@ public class IndexedAlloyType extends AlloyType {
     }
     
     public String toString() {
-        return this.getName() + (index);
+        return this.getName() + "(" + index + ")";
     }
     
     

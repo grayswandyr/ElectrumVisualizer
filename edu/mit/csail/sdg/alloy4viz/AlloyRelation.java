@@ -21,6 +21,7 @@ import java.util.List;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.ConstList.TempList;
 import edu.mit.csail.sdg.alloy4.Util;
+import java.util.TreeSet;
 
 /** Immutable; represents an Alloy relation of 2 or higher arity.
  *
@@ -67,9 +68,9 @@ public final class AlloyRelation extends AlloyElement {
    public List<AlloyType> getTypes() { return types; }
 
    /** Returns an unmodifiable list of IndexedAlloyTypes representing the relation's type. */
-   public List<IndexedAlloyType> getIndexedTypes() { 
+   public TreeSet<IndexedAlloyType> getIndexedTypes() { 
        int i=0;
-       ConstList<IndexedAlloyType> indexedTypes = ConstList.make();
+       TreeSet<IndexedAlloyType> indexedTypes = new TreeSet<IndexedAlloyType>();
        for(AlloyType a : types) {
            indexedTypes.add(new IndexedAlloyType(a.getName(), a.isOne, a.isAbstract, a.isBuiltin, isPrivate, a.isMeta, a.isEnum, i++));
        }
