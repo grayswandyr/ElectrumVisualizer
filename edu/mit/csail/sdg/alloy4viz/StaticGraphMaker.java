@@ -139,14 +139,22 @@ public final class StaticGraphMaker {
 		
 			
 			//Creation of the set containing all containment relations.
-/*			HashMap<AlloyAtom, Set<AlloyAtom>> containmentTuples = new HashMap<AlloyAtom, Set<AlloyAtom>>();
+  	  LinkedHashMap<AlloyAtom, List<AlloyAtom>> containmentTuples = new LinkedHashMap<AlloyAtom, List<AlloyAtom>>();
 			for (AlloyRelation rel: model.getRelations()) {
-				if (!(view.subVisible.get(rel) == null)) {
+			  IndexedAlloyType containerType = view.subVisible.get(rel);
+				if (containerType == null) {
 					//The relation is a containment one.
-					containmentRelations.add(rel);
+				  int	indexType = containerType.getIndex();
+					for (AlloyTuple tuple : instance.relation2tuples(rel)) {
+						List<AlloyAtom> atoms = tuple.getAtoms();
+						AlloyAtom a = atoms.get(indexType);
+						atoms.remove(indexType); 
+						containmentTuples.put(a, atoms);
+					}
 				}
+				System.out.println(containmentTuples);
 			}
-	*/		
+			
 
 			//Iteration over relations of the model:
 			// Creates edges and nodes that are linked by them.
