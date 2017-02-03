@@ -68,17 +68,18 @@ public final class AlloyRelation extends AlloyElement {
    /** Returns an unmodifiable list of AlloyTypes representing the relation's type. */
    public List<AlloyType> getTypes() { return types; }
 
-   /** Returns an unmodifiable list of IndexedAlloyTypes representing the relation's type. */
-   public ArrayList<IndexedAlloyType> getIndexedTypes() { 
-       int i=0;
-       ArrayList<IndexedAlloyType> indexedTypes = new ArrayList<IndexedAlloyType>();
-       System.out.println(types);
-       for(AlloyType a : types) {
-           indexedTypes.add(new IndexedAlloyType(a.getName(), a.isOne, a.isAbstract, a.isBuiltin, isPrivate, a.isMeta, a.isEnum, ++i));
-           System.out.println(indexedTypes);
-       }
-       return indexedTypes; 
-   }
+   //[N7-<Bossut,Quentin>]
+   /** Returns an unmodifiable list of IndexedAlloyTypes representing the relation's type. */                                          
+   public ArrayList<IndexedAlloyType> getIndexedTypes() {                                                                                    
+       int i=0;                                                                                                                                
+       ArrayList<IndexedAlloyType> indexedTypes = new ArrayList<IndexedAlloyType>();                                                           
+       System.out.println(types);                                                                                                              
+       for(AlloyType a : types) {                                                                                                              
+           indexedTypes.add(new IndexedAlloyType(a.getName(), a.isOne, a.isAbstract, a.isBuiltin, isPrivate, a.isMeta, a.isEnum, ++i));        
+           System.out.println(indexedTypes);                                                                                                   
+       }                                                                                                                                       
+       return indexedTypes;                                                                                                                    
+   }                                                                                                                                                      
    
    /** Returns the arity of the relation. */
    public int getArity() { return types.size(); }
