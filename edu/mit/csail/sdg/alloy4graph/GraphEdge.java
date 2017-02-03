@@ -70,16 +70,16 @@ public final strictfp class GraphEdge {
     public final Object group;
 
     /**
-     * The "from" node; must stay in sync with GraphNode.ins and GraphNode.outs
-     * and GraphNode.selfs
+     * The "from" node; must stay in sync with AbstractGraphNode.ins and
+     * AbstractGraphNode.outs and AbstractGraphNode.selfs
      */
-    private GraphNode a;
+    private AbstractGraphNode a; // [N7-G.Dupont] An edge can connect either ports or nodes
 
     /**
-     * The "to" node; must stay in sync with GraphNode.ins and GraphNode.outs
-     * and GraphNode.selfs
+     * The "to" node; must stay in sync with AbstractGraphNode.ins and
+     * AbstractGraphNode.outs and AbstractGraphNode.selfs
      */
-    private GraphNode b;
+    private AbstractGraphNode b; // [N7-G.Dupont] An edge can connect either ports or nodes
 
     /**
      * The label (can be ""); NOTE: label will be drawn only if the start node
@@ -129,7 +129,7 @@ public final strictfp class GraphEdge {
      * Construct an edge from "from" to "to" with the given arrow head settings,
      * then add the edge to the graph.
      */
-    GraphEdge(GraphNode from, GraphNode to, Object uuid, String label, boolean drawArrowHeadOnFrom, boolean drawArrowHeadOnTo, DotStyle style, Color color, Object group) {
+    GraphEdge(AbstractGraphNode from, AbstractGraphNode to, Object uuid, String label, boolean drawArrowHeadOnFrom, boolean drawArrowHeadOnTo, DotStyle style, Color color, Object group) {
         if (group instanceof GraphNode) {
             throw new IllegalArgumentException("group cannot be a GraphNode");
         }
@@ -173,21 +173,21 @@ public final strictfp class GraphEdge {
     /**
      * Construct an edge from "from" to "to", then add the edge to the graph.
      */
-    public GraphEdge(GraphNode from, GraphNode to, Object uuid, String label, Object group) {
+    public GraphEdge(AbstractGraphNode from, AbstractGraphNode to, Object uuid, String label, Object group) {
         this(from, to, uuid, label, false, true, null, null, group);
     }
 
     /**
      * Returns the "from" node.
      */
-    public GraphNode a() {
+    public AbstractGraphNode a() {
         return a;
     }
 
     /**
      * Returns the "to" node.
      */
-    public GraphNode b() {
+    public AbstractGraphNode b() {
         return b;
     }
 
@@ -202,7 +202,7 @@ public final strictfp class GraphEdge {
         b.ins.remove(this);
         a.ins.add(this);
         b.outs.add(this);
-        GraphNode x = a;
+        AbstractGraphNode x = a;
         a = b;
         b = x;
     }
@@ -210,7 +210,7 @@ public final strictfp class GraphEdge {
     /**
      * Changes the "to" node to the given node.
      */
-    void change(GraphNode newTo) {
+    void change(AbstractGraphNode newTo) {
         if (b.graph != newTo.graph) {
             throw new IllegalArgumentException("You cannot draw an edge between two different graphs.");
         }
@@ -425,12 +425,12 @@ public final strictfp class GraphEdge {
         final int gap = style == DotStyle.BOLD ? 4 : 2; // If the line is bold, we need to shift the label to the right a little bit
         boolean failed = false;
         Curve p = path;
-        for (GraphNode a = this.a; a.shape() == null;) {
+        for (AbstractGraphNode a = this.a; a.shape() == null;) {
             GraphEdge e = a.ins.get(0);
             a = e.a;
             p = e.path().join(p);
         }
-        for (GraphNode b = this.b; b.shape() == null;) {
+        for (AbstractGraphNode b = this.b; b.shape() == null;) {
             GraphEdge e = b.outs.get(0);
             b = e.b;
             p = p.join(e.path());
@@ -620,7 +620,7 @@ public final strictfp class GraphEdge {
      */
     @Override
     public String toString() {
-        GraphNode a = this.a, b = this.b;
+        AbstractGraphNode a = this.a, b = this.b;
         if (a.shape() == null) {
             return ""; // This means this edge is virtual
         }
@@ -632,9 +632,23 @@ public final strictfp class GraphEdge {
             color = "0" + color;
         }
         StringBuilder out = new StringBuilder();
-        out.append("\"N" + a.pos() + "\"");
+        
+        if (a instanceof GraphNode) {
+            out.append("\"N" + ((GraphNode)a).pos() + "\"");
+        } else {
+            GraphPort ap = (GraphPort)a;
+            out.append("\"P[" + ap.getOrientation() + "," + ap.getOrder() + "]\"");
+        }
+        
         out.append(" -> ");
-        out.append("\"N" + b.pos() + "\"");
+        
+        if (b instanceof GraphNode) {
+            out.append("\"N" + ((GraphNode)b).pos() + "\"");
+        } else {
+            GraphPort bp = (GraphPort)b;
+            out.append("\"P[" + bp.getOrientation() + "," + bp.getOrder() + "]\"");
+        }
+        
         out.append(" [");
         out.append("uuid = \"" + (uuid == null ? "" : esc(uuid.toString())) + "\"");
         out.append(", color = \"#" + color + "\"");
