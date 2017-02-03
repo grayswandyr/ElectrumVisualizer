@@ -103,17 +103,19 @@ public final class StaticGraphMaker {
         // Make the ports not visible
         // Create blank arrows to link the nodes that are connected through ports
         ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
+        ArrayList<AlloyAtom> portList = getPorts(portRelations, instance);
         
-        for(AlloyAtom atom : instance.getAllAtoms()){
-            if(isPort(portRelations,atom)){
-                view.nodeVisible.put(atom.getType(), Boolean.FALSE);
-                
-            }
+        for (AlloyAtom port : portList) {
+            view.nodeVisible.put(port.getType(), Boolean.FALSE);
         }
         
-        new GraphEdge(from,to, Object uuid, String label, false, true, DotStyle.BLANK, null, Object group);
-        
-        
+        /**
+         * For each portRelation
+         * Add the non port atom to the box list
+         * And keep to which port they are connected (Hashmap)
+         * new GraphEdge(from,to, Object uuid, String label, false, true, DotStyle.BLANK, null, Object group);
+         */
+
         if (proj == null) {
             proj = new AlloyProjection();
         }
@@ -192,23 +194,23 @@ public final class StaticGraphMaker {
         }
         for (AlloyAtom atom : instance.getAllAtoms()) {
             List<AlloySet> sets = instance.atom2sets(atom);
-                if (sets.size() > 0) {
-                    for (AlloySet s : sets) {
-                        if (view.nodeVisible.resolve(s) && !view.hideUnconnected.resolve(s)) {
-                            createNode(hidePrivate, hideMeta, atom);
-                            break;
-                        }
+            if (sets.size() > 0) {
+                for (AlloySet s : sets) {
+                    if (view.nodeVisible.resolve(s) && !view.hideUnconnected.resolve(s)) {
+                        createNode(hidePrivate, hideMeta, atom);
+                        break;
                     }
-                } else if (view.nodeVisible.resolve(atom.getType()) && !view.hideUnconnected.resolve(atom.getType())) {
-                    createNode(hidePrivate, hideMeta, atom);
                 }
+            } else if (view.nodeVisible.resolve(atom.getType()) && !view.hideUnconnected.resolve(atom.getType())) {
+                createNode(hidePrivate, hideMeta, atom);
+            }
         }
         for (AlloyRelation rel : model.getRelations()) {
-                if (!(hidePrivate && rel.isPrivate)) {
-                    if (view.attribute.resolve(rel)) {
-                        edgesAsAttribute(rel);
-                    }
+            if (!(hidePrivate && rel.isPrivate)) {
+                if (view.attribute.resolve(rel)) {
+                    edgesAsAttribute(rel);
                 }
+            }
         }
         for (Map.Entry<GraphNode, Set<String>> e : attribs.entrySet()) {
             Set<String> set = e.getValue();
@@ -526,7 +528,7 @@ public final class StaticGraphMaker {
         for (AlloyRelation eltA : portRelations) {
             if (eltA != null) {
                 List<AlloyType> lst = eltA.getTypes();
-                res = res || lst.contains(atom.getType()) && lst.indexOf(atom.getType()) == lst.lastIndexOf(atom.getType()); 
+                res = res || lst.contains(atom.getType()) && lst.indexOf(atom.getType()) == lst.lastIndexOf(atom.getType());
                 if (res) {
                     break;
                 }
@@ -535,4 +537,14 @@ public final class StaticGraphMaker {
         return res;
     }
 
+    
+    private static ArrayList getPorts(ArrayList<AlloyRelation> portRelations, AlloyInstance instance){
+        ArrayList<AlloyAtom> res = new ArrayList<AlloyAtom>();
+            for(AlloyAtom atom : instance.getAllAtoms()){
+                if(isPort(portRelations, atom)){
+                    res.add(atom);
+                }
+            }
+        return res;
+    }
 }

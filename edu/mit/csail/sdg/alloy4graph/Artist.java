@@ -278,13 +278,13 @@ public final strictfp class Artist {
      * [N7-G.Dupont] Draws the given string at (x, y) with no rotation.
      */
     public void drawString(String text, int x, int y) {
-        this.drawString(text, x, y, 0.0);
+        this.drawString(text, x, y, 0.0, Artist.fontSize);
     }
 
     /**
      * [N7-G.Dupont] Draws the given string at (x,y) with given rotation angle in radians.
      */
-    public void drawString(String text, int x, int y, double theta) {
+    public void drawString(String text, int x, int y, double theta, int fs) {
         if (text.length() == 0) {
             return;
         }
@@ -294,7 +294,7 @@ public final strictfp class Artist {
             if (theta != 0.0) gr.rotate(-theta, x, y); //[N7-G.Dupont] Restore coordinates
             return;
         }
-        calc();
+        calc(fs);
         Font font = (fontBoldness ? cachedBoldFont : cachedPlainFont);
         GlyphVector gv = font.createGlyphVector(new FontRenderContext(null, false, false), text);
         //[N7-G.Dupont] Problem: rotate the text for PDF ?
@@ -344,13 +344,17 @@ public final strictfp class Artist {
      * descent.
      */
     private static void calc() {
+        Artist.calc(Artist.fontSize);
+    }
+    
+    private static void calc(int fs) {
         if (cachedMaxDescent >= 0) {
             return; // already done
         }
         BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
         cachedGraphics = (Graphics2D) (image.getGraphics());
-        cachedPlainMetrics = cachedGraphics.getFontMetrics(cachedPlainFont = new Font(fontName, Font.PLAIN, fontSize));
-        cachedBoldMetrics = cachedGraphics.getFontMetrics(cachedBoldFont = new Font(fontName, Font.BOLD, fontSize));
+        cachedPlainMetrics = cachedGraphics.getFontMetrics(cachedPlainFont = new Font(fontName, Font.PLAIN, fs));
+        cachedBoldMetrics = cachedGraphics.getFontMetrics(cachedBoldFont = new Font(fontName, Font.BOLD, fs));
         cachedGraphics.setFont(cachedPlainFont);
         cachedMaxAscent = cachedPlainMetrics.getMaxAscent();
         cachedMaxDescent = cachedPlainMetrics.getMaxDescent();
@@ -379,7 +383,10 @@ public final strictfp class Artist {
      * font size and font boldness settings.
      */
     public static Rectangle2D getBounds(boolean fontBoldness, String string) {
-        calc();
+        return Artist.getBounds(fontBoldness, string, Artist.fontSize);
+    }
+    public static Rectangle2D getBounds(boolean fontBoldness, String string, int fs) {
+        calc(fs);
         return (fontBoldness ? cachedBoldMetrics : cachedPlainMetrics).getStringBounds(string, cachedGraphics);
     }
 }
