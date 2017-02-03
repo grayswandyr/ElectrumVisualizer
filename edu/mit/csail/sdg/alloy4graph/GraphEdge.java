@@ -632,23 +632,23 @@ public final strictfp class GraphEdge {
             color = "0" + color;
         }
         StringBuilder out = new StringBuilder();
-        
+
         if (a instanceof GraphNode) {
-            out.append("\"N" + ((GraphNode)a).pos() + "\"");
+            out.append("\"N" + ((GraphNode) a).pos() + "\"");
         } else {
-            GraphPort ap = (GraphPort)a;
+            GraphPort ap = (GraphPort) a;
             out.append("\"P[" + ap.getOrientation() + "," + ap.getOrder() + "]\"");
         }
-        
+
         out.append(" -> ");
-        
+
         if (b instanceof GraphNode) {
-            out.append("\"N" + ((GraphNode)b).pos() + "\"");
+            out.append("\"N" + ((GraphNode) b).pos() + "\"");
         } else {
-            GraphPort bp = (GraphPort)b;
+            GraphPort bp = (GraphPort) b;
             out.append("\"P[" + bp.getOrientation() + "," + bp.getOrder() + "]\"");
         }
-        
+
         out.append(" [");
         out.append("uuid = \"" + (uuid == null ? "" : esc(uuid.toString())) + "\"");
         out.append(", color = \"#" + color + "\"");

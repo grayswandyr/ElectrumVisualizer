@@ -12,19 +12,18 @@ package edu.mit.csail.sdg.alloy4viz;
 public class IndexedAlloyType extends AlloyType {
 
     private int index;
-    
+
     public IndexedAlloyType(String name, boolean isOne, boolean isAbstract, boolean isBuiltin, boolean isPrivate, boolean isMeta, boolean isEnum, int index) {
         super(name, isOne, isAbstract, isBuiltin, isPrivate, isMeta, isEnum);
         this.index = index;
     }
-    
-    public int getIndex() { 
-        return this.index; 
+
+    public int getIndex() {
+        return this.index;
     }
-    
+
     public String toString() {
         return this.getName() + "(" + index + ")";
     }
-    
-    
+
 }

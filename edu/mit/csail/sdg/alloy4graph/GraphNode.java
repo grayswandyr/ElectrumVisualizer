@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashSet;
 
-
 /**
  * Mutable; represents a graphical node.
  *
@@ -45,7 +44,7 @@ import java.util.HashSet;
 // [N7-G.Dupont] Added superclass AbstractGraphNode
 public strictfp class GraphNode extends AbstractGraphNode {
 
-   // =============================== adjustable options ==================================================
+    // =============================== adjustable options ==================================================
     /**
      * This determines the minimum width of a dummy node.
      */
@@ -67,7 +66,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     private static final Color COLOR_CHOSENNODE = Color.LIGHT_GRAY;
 
-   // =============================== cached for performance ===================================
+    // =============================== cached for performance ===================================
     /**
      * The maximum ascent and descent. We deliberately do NOT make this field
      * "static" because only AWT thread can call Artist.
@@ -104,7 +103,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     protected static final double tan18 = 0.3249196962329063261558714122151344649549034715214751003078D;
 
-   // =============================== these fields do not affect the computed bounds ===============================================
+    // =============================== these fields do not affect the computed bounds ===============================================
     /**
      * The layer that this node is in; must stay in sync with Graph.layerlist
      */
@@ -115,37 +114,37 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * sync with Graph.nodelist
      */
     int pos;
-    
+
     /**
-     * A list of ports on the node.
-     * [N7-G. Dupont]
+     * A list of ports on the node. [N7-G. Dupont]
      */
-    /*package*/LinkedList<GraphPort> ports = new LinkedList<GraphPort>();
-    
+    /*package*/
+    LinkedList<GraphPort> ports = new LinkedList<GraphPort>();
+
     /**
-     * Store the current number of ports on each side.
-     * This is used mainly for establishing port order.
-     * [N7-G. Dupont]
+     * Store the current number of ports on each side. This is used mainly for
+     * establishing port order. [N7-G. Dupont]
      */
-    /*package*/Map<GraphPort.Orientation,Integer> numPorts;
-    
+    /*package*/
+    Map<GraphPort.Orientation, Integer> numPorts;
+
     /**
      * Increment the number of ports on target side
+     *
      * @param or the side on which to increment the number of ports
-     * @return the previous number of ports
-     * [N7-G. Dupont]
+     * @return the previous number of ports [N7-G. Dupont]
      */
     /*package*/ int incNumPorts(GraphPort.Orientation or) {
         int r = this.numPorts.get(or);
         this.numPorts.put(or, r + 1);
         return r;
     }
-    
+
     /**
      * Decrement the number of ports on target side
+     *
      * @param or the side on which to decrement the number of ports
-     * @return the previous number of ports
-     * [N7-G. Dupont]
+     * @return the previous number of ports [N7-G. Dupont]
      */
     /*package*/ int decNumPorts(GraphPort.Orientation or) {
         int r = this.numPorts.get(or);
@@ -153,7 +152,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         return r;
     }
 
-   // =============================== these fields affect the computed bounds ===================================================
+    // =============================== these fields affect the computed bounds ===================================================
     /**
      * The font boldness.
      * <p>
@@ -187,7 +186,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private DotStyle style = DotStyle.SOLID;
 
    // ============================ these fields are computed by calcBounds() =========================================
-
     /**
      * If (updown>=0), this is the distance from the center to the top edge.
      */
@@ -241,17 +239,14 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private Shape poly3 = null;
 
    //===================================================================================================  
-    
-		//
-   /** This field contains the children of this node. 
-		* [N7-R. Bossut, M. Quentin]
-		*/
-   private HashSet<GraphNode> children;
-
+    //
+    /**
+     * This field contains the children of this node. [N7-R. Bossut, M. Quentin]
+     */
+    private HashSet<GraphNode> children;
 
 		 //===================================================================================================  
-   
-		/**
+    /**
      * Create a new node with the given list of labels, then add it to the given
      * graph.
      */
@@ -259,7 +254,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         super(graph, uuid);
         this.pos = graph.nodelist.size();
         this.children = new HashSet<>(); //[N7-R. Bossut, M. Quentin]	
-				graph.nodelist.add(this);
+        graph.nodelist.add(this);
         if (graph.layerlist.size() == 0) {
             graph.layerlist.add(new ArrayList<GraphNode>());
         }
@@ -270,7 +265,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 this.labels.add(labels[i]);
             }
         }
-        
+
         // [N7-G. Dupont] Instanciate map port
         this.numPorts = new HashMap<GraphPort.Orientation, Integer>();
         this.numPorts.put(GraphPort.Orientation.North, 0);
@@ -279,26 +274,26 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.numPorts.put(GraphPort.Orientation.West, 0);
     }
 
-   /** Get the children of the Node. 
-		* [N7-R. Bossut, M. Quentin]
-		*/
-   public HashSet<GraphNode> getChildren() {
-       return this.children;
-   }
-   
-   /** Set the children of the Node. 
-		* [N7-R. Bossut, M. Quentin]
-	  */
-   public void setChildren(HashSet<GraphNode> children) {
-       this.children = children;
-   }
-   
-   /** Add a child to the family of the Node.
-		* [N7-R. Bossut, M. Quentin]
-		*/
-   public void addChild(GraphNode gn) {
-       this.children.add(gn);
-   }
+    /**
+     * Get the children of the Node. [N7-R. Bossut, M. Quentin]
+     */
+    public HashSet<GraphNode> getChildren() {
+        return this.children;
+    }
+
+    /**
+     * Set the children of the Node. [N7-R. Bossut, M. Quentin]
+     */
+    public void setChildren(HashSet<GraphNode> children) {
+        this.children = children;
+    }
+
+    /**
+     * Add a child to the family of the Node. [N7-R. Bossut, M. Quentin]
+     */
+    public void addChild(GraphNode gn) {
+        this.children.add(gn);
+    }
 
     /**
      * Changes the layer that this node is in; the new layer must be 0 or
@@ -487,105 +482,107 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     @Override
     void draw(Artist gr, double scale, boolean highlight) {
-        
-      if (children.isEmpty()) { //[N7-R. Bossut, M. Quentin]
-			if (shape() == null) {
-            return;
-        } else if (updown < 0) {
-            calcBounds();
-        }
-        final int top = graph.getTop(), left = graph.getLeft();
-        gr.set(style, scale);
-        gr.translate(x() - left, y() - top);
-        gr.setFont(fontBold);
-        if (highlight) {
-            gr.setColor(COLOR_CHOSENNODE);
-        } else {
-            gr.setColor(color);
-        }
-        if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
-            int hw = width / 2, hh = height / 2;
-            int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
-            if (shape() == DotShape.DOUBLE_CIRCLE) {
-                radius = radius + 5;
+
+        if (children.isEmpty()) { //[N7-R. Bossut, M. Quentin]
+            if (shape() == null) {
+                return;
+            } else if (updown < 0) {
+                calcBounds();
             }
-            gr.fillCircle(radius);
-            gr.setColor(Color.BLACK);
-            gr.drawCircle(radius);
-            if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
-                gr.set(DotStyle.SOLID, scale);
+            final int top = graph.getTop(), left = graph.getLeft();
+            gr.set(style, scale);
+            gr.translate(x() - left, y() - top);
+            gr.setFont(fontBold);
+            if (highlight) {
+                gr.setColor(COLOR_CHOSENNODE);
+            } else {
+                gr.setColor(color);
             }
-            if (shape() == DotShape.M_CIRCLE && 10 * radius >= 25 && radius > 5) {
-                int d = (int) sqrt(10 * radius - 25.0D);
-                if (d > 0) {
-                    gr.drawLine(-d, -radius + 5, d, -radius + 5);
-                    gr.drawLine(-d, radius - 5, d, radius - 5);
+            if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
+                int hw = width / 2, hh = height / 2;
+                int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
+                if (shape() == DotShape.DOUBLE_CIRCLE) {
+                    radius = radius + 5;
+                }
+                gr.fillCircle(radius);
+                gr.setColor(Color.BLACK);
+                gr.drawCircle(radius);
+                if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
+                    gr.set(DotStyle.SOLID, scale);
+                }
+                if (shape() == DotShape.M_CIRCLE && 10 * radius >= 25 && radius > 5) {
+                    int d = (int) sqrt(10 * radius - 25.0D);
+                    if (d > 0) {
+                        gr.drawLine(-d, -radius + 5, d, -radius + 5);
+                        gr.drawLine(-d, radius - 5, d, radius - 5);
+                    }
+                }
+                if (shape() == DotShape.DOUBLE_CIRCLE) {
+                    gr.drawCircle(radius - 5);
+                }
+            } else {
+                gr.draw(poly, true);
+                gr.setColor(Color.BLACK);
+                gr.draw(poly, false);
+                if (poly2 != null) {
+                    gr.draw(poly2, false);
+                }
+                if (poly3 != null) {
+                    gr.draw(poly3, false);
+                }
+                if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
+                    gr.set(DotStyle.SOLID, scale);
+                }
+                if (shape() == DotShape.M_DIAMOND) {
+                    gr.drawLine(-side + 8, -8, -side + 8, 8);
+                    gr.drawLine(-8, -side + 8, 8, -side + 8);
+                    gr.drawLine(side - 8, -8, side - 8, 8);
+                    gr.drawLine(-8, side - 8, 8, side - 8);
+                }
+                if (shape() == DotShape.M_SQUARE) {
+                    gr.drawLine(-side, -side + 8, -side + 8, -side);
+                    gr.drawLine(side, -side + 8, side - 8, -side);
+                    gr.drawLine(-side, side - 8, -side + 8, side);
+                    gr.drawLine(side, side - 8, side - 8, side);
                 }
             }
-            if (shape() == DotShape.DOUBLE_CIRCLE) {
-                gr.drawCircle(radius - 5);
-            }
-        } else {
-            gr.draw(poly, true);
-            gr.setColor(Color.BLACK);
-            gr.draw(poly, false);
-            if (poly2 != null) {
-                gr.draw(poly2, false);
-            }
-            if (poly3 != null) {
-                gr.draw(poly3, false);
-            }
-            if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
-                gr.set(DotStyle.SOLID, scale);
-            }
-            if (shape() == DotShape.M_DIAMOND) {
-                gr.drawLine(-side + 8, -8, -side + 8, 8);
-                gr.drawLine(-8, -side + 8, 8, -side + 8);
-                gr.drawLine(side - 8, -8, side - 8, 8);
-                gr.drawLine(-8, side - 8, 8, side - 8);
-            }
-            if (shape() == DotShape.M_SQUARE) {
-                gr.drawLine(-side, -side + 8, -side + 8, -side);
-                gr.drawLine(side, -side + 8, side - 8, -side);
-                gr.drawLine(-side, side - 8, -side + 8, side);
-                gr.drawLine(side, side - 8, side - 8, side);
-            }
-        }
-        gr.set(DotStyle.SOLID, scale);
-        int clr = color.getRGB() & 0xFFFFFF;
-        gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
-        if (labels != null && labels.size() > 0) {
-            int x = (-width / 2), y = yShift + (-labels.size() * ad / 2);
-            for (int i = 0; i < labels.size(); i++) {
-                String t = labels.get(i);
-                int w = ((int) (getBounds(fontBold, t).getWidth())) + 1; // Round it up
-                if (width > w) {
-                    w = (width - w) / 2;
-                } else {
-                    w = 0;
+            gr.set(DotStyle.SOLID, scale);
+            int clr = color.getRGB() & 0xFFFFFF;
+            gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
+            if (labels != null && labels.size() > 0) {
+                int x = (-width / 2), y = yShift + (-labels.size() * ad / 2);
+                for (int i = 0; i < labels.size(); i++) {
+                    String t = labels.get(i);
+                    int w = ((int) (getBounds(fontBold, t).getWidth())) + 1; // Round it up
+                    if (width > w) {
+                        w = (width - w) / 2;
+                    } else {
+                        w = 0;
+                    }
+                    gr.drawString(t, x + w, y + Artist.getMaxAscent());
+                    y = y + ad;
                 }
-                gr.drawString(t, x + w, y + Artist.getMaxAscent());
-                y = y + ad;
             }
+
+            // [N7-G. Dupont] Draw each ports
+            for (GraphPort p : this.ports) {
+                p.draw(gr, scale, false);
+            }
+
+            gr.translate(left - x(), top - y());
+        } else {
+            int nbChildren = children.size();
+            int maxHeight = 0;
+            int maxWidth = 0;
+            for (GraphNode gn : children) {
+                maxHeight = (gn.getHeight() > maxHeight) ? gn.getHeight() : maxHeight;
+                maxWidth = (gn.getWidth() > maxWidth) ? gn.getWidth() : maxWidth;
+            }
+            gr.drawLine(-maxHeight, -maxHeight + 8, -maxHeight + 8, -maxHeight);
+            gr.drawLine(maxHeight, -maxHeight + 8, maxHeight - 8, -maxHeight);
+            gr.drawLine(-maxHeight, maxHeight - 8, -maxHeight + 8, maxHeight);
+            gr.drawLine(maxHeight, maxHeight - 8, maxHeight - 8, maxHeight);
         }
-        
-        // [N7-G. Dupont] Draw each ports
-        for (GraphPort p : this.ports) {
-            p.draw(gr, scale, false);
-        }
-        
-        gr.translate(left - x(), top - y());
-} else {
-          int nbChildren=children.size();
-          int maxHeight=0;
-          int maxWidth=0;
-          for (GraphNode gn : children) {
-              maxHeight = (gn.getHeight() > maxHeight) ? gn.getHeight() : maxHeight;
-              maxWidth  = (gn.getWidth()  > maxWidth)  ? gn.getWidth()  : maxWidth;
-          }
-          gr.drawLine(-maxHeight, -maxHeight+8, -maxHeight+8, -maxHeight); gr.drawLine(maxHeight, -maxHeight+8, maxHeight-8, -maxHeight);
-          gr.drawLine(-maxHeight, maxHeight-8, -maxHeight+8, maxHeight); gr.drawLine(maxHeight, maxHeight-8, maxHeight-8, maxHeight);
-      }
     }
 
     /**
@@ -754,7 +751,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         graph.recalcBound(false);
     }
 
-   //===================================================================================================
+    //===================================================================================================
     /**
      * (Re-)calculate this node's bounds.
      */
@@ -796,9 +793,9 @@ public strictfp class GraphNode extends AbstractGraphNode {
         }
         height = hh * 2;
         updown = hh;
-        
+
         portBounds(); // [N7-G.Dupont]
-        
+
         switch (shape()) {
             case HOUSE: {
                 yShift = ad / 2;
@@ -1023,9 +1020,9 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 }
                 // [N7-G.Dupont] Using side and updown to get the job
                 poly.addPoint(-this.side, -this.updown);
-                poly.addPoint( this.side, -this.updown);
-                poly.addPoint( this.side,  this.updown);
-                poly.addPoint(-this.side,  this.updown);
+                poly.addPoint(this.side, -this.updown);
+                poly.addPoint(this.side, this.updown);
+                poly.addPoint(-this.side, this.updown);
             }
         }
         if (shape() != DotShape.EGG && shape() != DotShape.ELLIPSE) {
@@ -1044,7 +1041,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             reserved = reserved + (int) (getBounds(false, label).getWidth()) + selfLoopGL + selfLoopGR;
         }
     }
-    
+
     /**
      * [N7-G Dupont] Recalculate the boundaries of the node given the current
      * boundaries and the ports.
@@ -1059,52 +1056,57 @@ public strictfp class GraphNode extends AbstractGraphNode {
             switch (port.getOrientation()) {
                 case East:
                     eastPorts++;
-                    if (portSize > maxHPortSize)
+                    if (portSize > maxHPortSize) {
                         maxHPortSize = portSize;
+                    }
                     break;
                 case West:
                     westPorts++;
-                    if (portSize > maxHPortSize)
+                    if (portSize > maxHPortSize) {
                         maxHPortSize = portSize;
+                    }
                     break;
                 case South:
                     southPorts++;
-                    if (portSize > maxVPortSize)
+                    if (portSize > maxVPortSize) {
                         maxVPortSize = portSize;
+                    }
                     break;
                 case North:
                     northPorts++;
-                    if (portSize > maxVPortSize)
+                    if (portSize > maxVPortSize) {
                         maxVPortSize = portSize;
+                    }
                     break;
             }
         }
-        
-        if (northPorts == 0 && southPorts == 0 && eastPorts == 0 && westPorts == 0)
+
+        if (northPorts == 0 && southPorts == 0 && eastPorts == 0 && westPorts == 0) {
             return;
-        
+        }
+
         // Compute the minimal side and updown for a "correct" display of the
         // ports (according to minimal ports distance)
-        int minside   = (Math.max(eastPorts, westPorts) +1)*GraphPort.PortDistance/2,
-            minupdown = (Math.max(northPorts,southPorts)+1)*GraphPort.PortDistance/2;
-        
+        int minside = (Math.max(eastPorts, westPorts) + 1) * GraphPort.PortDistance / 2,
+                minupdown = (Math.max(northPorts, southPorts) + 1) * GraphPort.PortDistance / 2;
+
         // Compute the total padded size including ports (and eventually labels)
         int paddedside = 0, paddedupdown = 0;
-        
+
         if (maxVPortSize > -1) {
             paddedupdown = maxVPortSize + GraphPort.PortPadding;
         }
-        
+
         if (maxHPortSize > -1) {
             paddedside = maxHPortSize + GraphPort.PortPadding;
         }
-        
+
         // Decide between the two values (the bigger, the easier to read)
         this.side += Math.max(minside, paddedside);
         this.updown += Math.max(minupdown, paddedupdown);
     }
 
-   //===================================================================================================
+    //===================================================================================================
     /**
      * Returns a DOT representation of this node (or "" if this is a dummy node)
      */
