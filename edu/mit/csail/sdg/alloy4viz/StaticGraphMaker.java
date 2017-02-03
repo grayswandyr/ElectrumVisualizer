@@ -71,12 +71,15 @@ public final class StaticGraphMaker {
 	/** The resulting graph. */
 	private final Graph graph;
 
+	//[N7-<Bossut, Quentin>]
   /** The mapthat contains every container AlloyAtom, and the list of list representing the rest of the tuple it contains. */
 	private	final Map<AlloyAtom, List<List<AlloyAtom>>> containmentTuples = new LinkedHashMap<AlloyAtom, List<List<AlloyAtom>>>();
 	
+	//[N7-<Bossut, Quentin>]
 	/** The map that contains every contained AlloyAtoms and the list of Alloy Atoms it is contained in. */
 	private final Map<AlloyAtom, Set<AlloyAtom>> containedInMap = new LinkedHashMap<AlloyAtom, Set<AlloyAtom>>();
-
+	
+	//[N7-<Bossut, Quentin>]
 	/** Produces a single Graph from the given Instance and View and choice of Projection */
 	public static JPanel produceGraph(AlloyInstance instance, VizState view, AlloyProjection proj) throws ErrorFatal {
 		view = new VizState(view);
@@ -174,19 +177,30 @@ public final class StaticGraphMaker {
 						containedIn.add(a);
 						containedInMap.put(atom, containedIn);
 					}
+					//We also add the container in the map, but seeing this relation, it is not contained in anything.
+					Set<AlloyAtom> containedIn = containedInMap.get(a);
+					if (containedIn == null)
+						containedIn = new TreeSet<AlloyAtom>();
+					containedInMap.put(a, containedIn);
+
+					//VERBOSE
 					//System.out.println("Added: " + a + "=" + atoms);
 					//System.out.println("Get("+a+")="+containmentTuples.get(a));
 				}
-
 				//VERBOSE
-				System.out.println("containmentTuples: " + containmentTuples);
-				System.out.println("containedInMap: " + containedInMap);
-
+				//System.out.println("containmentTuples: " + containmentTuples);
+				//System.out.println("containedInMap: " + containedInMap);
 			}
 		}
 
-		
-
+	//TODO : Verify there are no cycle.
+	 
+		//Call createContainingNode for every atom that is in a containmentTuple but is not contained anywhere.
+		for (AlloyAtom atom : containedInMap.keySet()){
+			if (containedInMap.get(atom).isEmpty())
+				//The atom is not contained in any other atom.
+				createContainingNode(hidePrivate, hideMeta, atom, containmentTuples.get(atom));
+		}
 
 		//Iteration over relations of the model:
 		// Creates edges and nodes that are linked by them.
@@ -274,18 +288,19 @@ public final class StaticGraphMaker {
 	 * @return the englobing AlloyNode created, null if thmarked as "Don't Show". */
 	private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds){
 		GraphNode fatherNode = createNode(hidePrivate, hideMeta, father);
-		if (!directChilds.isEmpty()) {
+		if (!(directChilds == null)) { //If the given atom has childrens, we have to create corresponding node.
 			for (List<AlloyAtom> childs : directChilds){
 				for (AlloyAtom child : childs) {
+					//We use a recursiv call because the childrens can also be father.
 					GraphNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child));
 					if (!(fatherNode == null || childNode == null)) 
+						//We add the created child to the father childs.
 						fatherNode.addChild(childNode);
 				}
 			}
 		}
 		return fatherNode;
 	}
-
 
 
 	/** Create an edge for a given tuple from a relation (if neither start nor end node is explicitly invisible) */
