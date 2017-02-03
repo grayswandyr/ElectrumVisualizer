@@ -33,7 +33,7 @@ import java.util.List;
  * 
  * @author G. Dupont
  */
-public class GraphPort {
+public class GraphPort extends AbstractGraphNode {
     /** General Options **/
     
     /**
@@ -103,27 +103,9 @@ public class GraphPort {
     
     /// Non graphical ///
     /**
-     * A user-provided annotation that will be associated with this node (can be
-     * null) (need not be unique).
-     */
-    public final Object uuid;
-    
-    /**
      * The node this ports belongs to.
      */
     final GraphNode node;
-    
-    /**
-     * The "in" edges not including "self" edges.
-     * Must stay in sync with GraphEdge.a and GraphEdge.b
-     */
-    final LinkedList<GraphEdge> ins = new LinkedList<GraphEdge>();
-
-    /**
-     * The "out" edges not including "self" edges.
-     * Must stay in sync with GraphEdge.a and GraphEdge.b
-     */
-    final LinkedList<GraphEdge> outs = new LinkedList<GraphEdge>();
     
     /// Graphical ///
     /**
@@ -132,11 +114,6 @@ public class GraphPort {
     private boolean needRecalc = true;
     
     /// Position ///
-    /**
-     * Position of the center of the port.
-     */
-    private int centerX, centerY;
-    
     /**
      * Orientation of the port on the parent node.
      */
@@ -180,14 +157,6 @@ public class GraphPort {
      * bounds information.
      */
     private DotStyle style = DotStyle.SOLID;
-
-    /**
-     * The port shape; if null, then the port is a dummy node.
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    private DotShape shape = DotShape.BOX;
     
     /**
      * "radius" of the port.
@@ -211,12 +180,17 @@ public class GraphPort {
      * @param uuid 
      */
     public GraphPort(GraphNode node, Object uuid, String label, int order, Orientation or) {
+        super(node.graph, uuid);
         this.node = node;
-        this.uuid = uuid;
         this.label = label;
         this.order = order;
         this.orientation = or;
         this.node.ports.add(this);
+    }
+    
+    @Override
+    boolean contains(double x, double y) {
+        return false;
     }
     
     /**
@@ -225,16 +199,17 @@ public class GraphPort {
      * @param scale scale of the drawing
      * @param highlight whether or not the node is highlighted
      */
+    @Override
     void draw(Artist gr, double scale, boolean highlight) {
         boolean available = false;
         for (DotShape s : GraphPort.AvailableShapes) {
-            if (this.shape.equals(s))
+            if (shape().equals(s))
                 available = true;
         }
         
         if (!available) {
             System.out.println(
-                "Shape " + this.shape + " is unavailable. \n" +
+                "Shape " + shape() + " is unavailable. \n" +
                 "Available shapes are : " + String.join(",", GraphPort.AvailableShapesString())
             );
         }
@@ -254,7 +229,7 @@ public class GraphPort {
         gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
         
         // Draw port itself
-        switch (this.shape) {
+        switch (shape()) {
             case BOX:
                 drawBox(gr);
                 break;
@@ -272,11 +247,11 @@ public class GraphPort {
     }
     
     private void drawCircle(Artist gr) {
-        gr.translate(centerX, centerY);
+        gr.translate(x(), y());
         gr.fillCircle(this.radius);
         gr.setColor(Color.BLACK);
         gr.drawCircle(this.radius);
-        gr.translate(-centerX, -centerY);
+        gr.translate(-x(), -y());
     }
     
     private void drawBox(Artist gr) {
@@ -286,11 +261,11 @@ public class GraphPort {
                 2*this.radius,
                 2*this.radius
         );
-        gr.translate(centerX - this.radius, centerY - this.radius);
+        gr.translate(x() - this.radius, y() - this.radius);
         gr.draw(s, true);
         gr.setColor(Color.BLACK);
         gr.draw(s, false);
-        gr.translate(this.radius - centerX, this.radius - centerY);
+        gr.translate(this.radius - x(), this.radius - y());
     }
     
     /**
@@ -308,31 +283,31 @@ public class GraphPort {
         
         switch (this.orientation) {
             case East:
-                this.centerX = this.node.getWidth();
-                this.centerY = dist;
-                this.labelX = this.centerX - this.radius - LabelPadding - labelWidth;
-                this.labelY = this.centerY + this.radius;
+                this.setX(this.node.getWidth());
+                this.setY(dist);
+                this.labelX = x() - this.radius - LabelPadding - labelWidth;
+                this.labelY = y() + this.radius;
                 this.labelTheta = 0.0;
                 break;
             case West:
-                this.centerX = 0;
-                this.centerY = dist;
-                this.labelX = this.centerX + this.radius + LabelPadding;
-                this.labelY = this.centerY + this.radius;
+                this.setX(0);
+                this.setY(dist);
+                this.labelX = x() + this.radius + LabelPadding;
+                this.labelY = y() + this.radius;
                 this.labelTheta = 0.0;
                 break;
             case South:
-                this.centerX = dist;
-                this.centerY = this.node.getHeight();
-                this.labelX = this.centerX + this.radius;
-                this.labelY = this.centerY - this.radius - LabelPadding;
+                setX(dist);
+                setY(this.node.getHeight());
+                this.labelX = x() + this.radius;
+                this.labelY = y() - this.radius - LabelPadding;
                 this.labelTheta = -Math.PI/2.0;
                 break;
             case North:
-                this.centerX = dist;
-                this.centerY = 0;
-                this.labelX = this.centerX + this.radius;
-                this.labelY = this.centerY + this.radius + LabelPadding + labelWidth;
+                setX(dist);
+                setY(0);
+                this.labelX = x() + this.radius;
+                this.labelY = y() + this.radius + LabelPadding + labelWidth;
                 this.labelTheta = -Math.PI/2.0;
                 break;
             default:
@@ -410,20 +385,23 @@ public class GraphPort {
     public void setStyle(DotStyle style) {
         this.style = style;
     }
-
-    public DotShape getShape() {
-        return shape;
+    
+    public int getOrder() {
+        return this.order;
     }
 
+    @Override
     public void setShape(DotShape shape) {
-        this.shape = shape;
+        super.setShape(shape);
         this.needRecalc = true;
     }
     
+    @Override
     public int getWidth() {
         return this.width;
     }
     
+    @Override
     public int getHeight() {
         return this.height;
     }

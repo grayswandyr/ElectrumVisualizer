@@ -38,7 +38,8 @@ import java.util.List;
  * <p>
  * <b>Thread Safety:</b> Can be called only by the AWT event thread.
  */
-public strictfp class GraphNode {
+// [N7-G.Dupont] Added superclass AbstractGraphNode
+public strictfp class GraphNode extends AbstractGraphNode {
 
    // =============================== adjustable options ==================================================
     /**
@@ -101,30 +102,6 @@ public strictfp class GraphNode {
 
    // =============================== these fields do not affect the computed bounds ===============================================
     /**
-     * a user-provided annotation that will be associated with this node (can be
-     * null) (need not be unique)
-     */
-    public final Object uuid;
-
-    /**
-     * The X coordinate of the center of the node; modified by tweak(),
-     * layout_computeX(), layout(), and relayout_edges()
-     */
-    private int centerX = 0;
-
-    /**
-     * The Y coordinate of the center of the node; modified by tweak(),
-     * layout_computeX(), layout(), and relayout_edges()
-     */
-    private int centerY = 0;
-
-    /**
-     * The graph that this node belongs to; must stay in sync with
-     * Graph.nodelist and Graph.layerlist
-     */
-    final Graph graph;
-
-    /**
      * The layer that this node is in; must stay in sync with Graph.layerlist
      */
     private int layer = 0;
@@ -134,18 +111,6 @@ public strictfp class GraphNode {
      * sync with Graph.nodelist
      */
     int pos;
-
-    /**
-     * The "in" edges not including "self" edges; must stay in sync with
-     * GraphEdge.a and GraphEdge.b
-     */
-    final LinkedList<GraphEdge> ins = new LinkedList<GraphEdge>();
-
-    /**
-     * The "out" edges not including "self" edges; must stay in sync with
-     * GraphEdge.a and GraphEdge.b
-     */
-    final LinkedList<GraphEdge> outs = new LinkedList<GraphEdge>();
     
     /**
      * A list of ports on the node.
@@ -168,14 +133,6 @@ public strictfp class GraphNode {
     }
 
    // =============================== these fields affect the computed bounds ===================================================
-    /**
-     * The "self" edges; must stay in sync with GraphEdge.a and GraphEdge.b
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    final LinkedList<GraphEdge> selfs = new LinkedList<GraphEdge>();
-
     /**
      * The font boldness.
      * <p>
@@ -207,14 +164,6 @@ public strictfp class GraphNode {
      * bounds information.
      */
     private DotStyle style = DotStyle.SOLID;
-
-    /**
-     * The node shape; if null, then the node is a dummy node.
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    private DotShape shape = DotShape.BOX;
 
    // ============================ these fields are computed by calcBounds() =========================================
     /**
@@ -275,8 +224,7 @@ public strictfp class GraphNode {
      * graph.
      */
     public GraphNode(Graph graph, Object uuid, String... labels) {
-        this.uuid = uuid;
-        this.graph = graph;
+        super(graph, uuid);
         this.pos = graph.nodelist.size();
         graph.nodelist.add(this);
         if (graph.layerlist.size() == 0) {
@@ -353,49 +301,12 @@ public strictfp class GraphNode {
     }
 
     /**
-     * Returns the X coordinate of the center of the node.
-     */
-    public int x() {
-        return centerX;
-    }
-
-    /**
-     * Returns the Y coordinate of the center of the node.
-     */
-    public int y() {
-        return centerY;
-    }
-
-    /**
-     * Changes the X coordinate of the center of the node, without invalidating
-     * the computed bounds.
-     */
-    void setX(int x) {
-        centerX = x;
-    }
-
-    /**
-     * Changes the Y coordinate of the center of the node, without invalidating
-     * the computed bounds.
-     */
-    void setY(int y) {
-        centerY = y;
-    }
-
-    /**
-     * Returns the node shape (or null if the node is a dummy node).
-     */
-    DotShape shape() {
-        return shape;
-    }
-
-    /**
      * Changes the node shape (where null means change the node into a dummy
      * node), then invalidate the computed bounds.
      */
     public GraphNode set(DotShape shape) {
-        if (this.shape != shape) {
-            this.shape = shape;
+        if (shape() != shape) {
+            setShape(shape);
             updown = (-1);
         }
         return this;
@@ -453,7 +364,8 @@ public strictfp class GraphNode {
     /**
      * Returns the node height.
      */
-    int getHeight() {
+    @Override
+    public int getHeight() {
         if (updown < 0) {
             calcBounds();
         }
@@ -463,7 +375,8 @@ public strictfp class GraphNode {
     /**
      * Returns the node width.
      */
-    int getWidth() {
+    @Override
+    public int getWidth() {
         if (updown < 0) {
             calcBounds();
         }
@@ -497,38 +410,40 @@ public strictfp class GraphNode {
     /**
      * Returns true if the node contains the given point or not.
      */
+    @Override
     boolean contains(double x, double y) {
-        if (shape == null) {
+        if (shape() == null) {
             return false;
         } else if (updown < 0) {
             calcBounds();
         }
-        return poly.contains(x - centerX, y - centerY);
+        return poly.contains(x - x(), y - y());
     }
 
     /**
      * Draws this node at its current (x, y) location; this method will call
      * calcBounds() if necessary.
      */
+    @Override
     void draw(Artist gr, double scale, boolean highlight) {
-        if (shape == null) {
+        if (shape() == null) {
             return;
         } else if (updown < 0) {
             calcBounds();
         }
         final int top = graph.getTop(), left = graph.getLeft();
         gr.set(style, scale);
-        gr.translate(centerX - left, centerY - top);
+        gr.translate(x() - left, y() - top);
         gr.setFont(fontBold);
         if (highlight) {
             gr.setColor(COLOR_CHOSENNODE);
         } else {
             gr.setColor(color);
         }
-        if (shape == DotShape.CIRCLE || shape == DotShape.M_CIRCLE || shape == DotShape.DOUBLE_CIRCLE) {
+        if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
             int hw = width / 2, hh = height / 2;
             int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
-            if (shape == DotShape.DOUBLE_CIRCLE) {
+            if (shape() == DotShape.DOUBLE_CIRCLE) {
                 radius = radius + 5;
             }
             gr.fillCircle(radius);
@@ -537,14 +452,14 @@ public strictfp class GraphNode {
             if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
                 gr.set(DotStyle.SOLID, scale);
             }
-            if (shape == DotShape.M_CIRCLE && 10 * radius >= 25 && radius > 5) {
+            if (shape() == DotShape.M_CIRCLE && 10 * radius >= 25 && radius > 5) {
                 int d = (int) sqrt(10 * radius - 25.0D);
                 if (d > 0) {
                     gr.drawLine(-d, -radius + 5, d, -radius + 5);
                     gr.drawLine(-d, radius - 5, d, radius - 5);
                 }
             }
-            if (shape == DotShape.DOUBLE_CIRCLE) {
+            if (shape() == DotShape.DOUBLE_CIRCLE) {
                 gr.drawCircle(radius - 5);
             }
         } else {
@@ -560,13 +475,13 @@ public strictfp class GraphNode {
             if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
                 gr.set(DotStyle.SOLID, scale);
             }
-            if (shape == DotShape.M_DIAMOND) {
+            if (shape() == DotShape.M_DIAMOND) {
                 gr.drawLine(-side + 8, -8, -side + 8, 8);
                 gr.drawLine(-8, -side + 8, 8, -side + 8);
                 gr.drawLine(side - 8, -8, side - 8, 8);
                 gr.drawLine(-8, side - 8, 8, side - 8);
             }
-            if (shape == DotShape.M_SQUARE) {
+            if (shape() == DotShape.M_SQUARE) {
                 gr.drawLine(-side, -side + 8, -side + 8, -side);
                 gr.drawLine(side, -side + 8, side - 8, -side);
                 gr.drawLine(-side, side - 8, -side + 8, side);
@@ -596,7 +511,7 @@ public strictfp class GraphNode {
             p.draw(gr, scale, false);
         }
         
-        gr.translate(left - centerX, top - centerY);
+        gr.translate(left - x(), top - y());
     }
 
     /**
@@ -604,7 +519,7 @@ public strictfp class GraphNode {
      */
     private void setY(int layer, int y) {
         for (GraphNode n : graph.layer(layer)) {
-            n.centerY = y;
+            n.setY(y);
         }
     }
 
@@ -620,10 +535,10 @@ public strictfp class GraphNode {
         for (i++; i < graph.layers(); i++) {
             List<GraphNode> list = graph.layer(i);
             GraphNode first = list.get(0);
-            if (first.centerY + ph[i] / 2 + yJump > y) {
+            if (first.y() + ph[i] / 2 + yJump > y) {
                 setY(i, y - ph[i] / 2 - yJump);
             }
-            y = first.centerY - ph[i] / 2;
+            y = first.y() - ph[i] / 2;
         }
         graph.relayout_edges(false);
     }
@@ -640,10 +555,10 @@ public strictfp class GraphNode {
         for (i--; i >= 0; i--) {
             List<GraphNode> list = graph.layer(i);
             GraphNode first = list.get(0);
-            if (first.centerY - ph[i] / 2 - yJump < y) {
+            if (first.y() - ph[i] / 2 - yJump < y) {
                 setY(i, y + ph[i] / 2 + yJump);
             }
-            y = first.centerY + ph[i] / 2;
+            y = first.y() + ph[i] / 2;
         }
         graph.relayout_edges(false);
     }
@@ -653,15 +568,15 @@ public strictfp class GraphNode {
      */
     private void shiftLeft(List<GraphNode> peers, int i, int x) {
         final int xJump = Graph.xJump / 3;
-        centerX = x;
-        x = x - (shape == null ? 0 : side); // x is now the left-most edge of this node
+        this.setX(x);
+        x = x - (shape() == null ? 0 : side); // x is now the left-most edge of this node
         for (i--; i >= 0; i--) {
             GraphNode node = peers.get(i);
-            int side = (node.shape == null ? 0 : node.side);
-            if (node.centerX + side + node.getReserved() + xJump > x) {
-                node.centerX = x - side - node.getReserved() - xJump;
+            int side = (node.shape() == null ? 0 : node.side);
+            if (node.x() + side + node.getReserved() + xJump > x) {
+                node.setX(x - side - node.getReserved() - xJump);
             }
-            x = node.centerX - side;
+            x = node.x() - side;
         }
     }
 
@@ -670,15 +585,15 @@ public strictfp class GraphNode {
      */
     private void shiftRight(List<GraphNode> peers, int i, int x) {
         final int xJump = Graph.xJump / 3;
-        centerX = x;
-        x = x + (shape == null ? 0 : side) + getReserved(); // x is now the right most edge of this node
+        this.setX(x);
+        x = x + (shape() == null ? 0 : side) + getReserved(); // x is now the right most edge of this node
         for (i++; i < peers.size(); i++) {
             GraphNode node = peers.get(i);
-            int side = (node.shape == null ? 0 : node.side);
-            if (node.centerX - side - xJump < x) {
-                node.centerX = x + side + xJump;
+            int side = (node.shape() == null ? 0 : node.side);
+            if (node.x() - side - xJump < x) {
+                node.setX(x + side + xJump);
             }
-            x = node.centerX + side + node.getReserved();
+            x = node.x() + side + node.getReserved();
         }
     }
 
@@ -686,23 +601,23 @@ public strictfp class GraphNode {
      * Helper method that swaps a node towards the left.
      */
     private void swapLeft(List<GraphNode> peers, int i, int x) {
-        int side = (shape == null ? 2 : this.side);
+        int side = (shape() == null ? 2 : this.side);
         int left = x - side;
         while (true) {
             if (i == 0) {
-                centerX = x;
+                this.setX(x);
                 return;
             } // no clash possible
             GraphNode other = peers.get(i - 1);
-            int otherSide = (other.shape == null ? 0 : other.side);
-            int otherRight = other.centerX + otherSide + other.getReserved();
+            int otherSide = (other.shape() == null ? 0 : other.side);
+            int otherRight = other.x() + otherSide + other.getReserved();
             if (otherRight < left) {
-                centerX = x;
+                this.setX(x);
                 return;
             } // no clash
             graph.swapNodes(layer(), i, i - 1);
             i--;
-            if (other.shape != null) {
+            if (other.shape() != null) {
                 other.shiftRight(peers, i + 1, x + side + getReserved() + otherSide);
             }
         }
@@ -712,23 +627,23 @@ public strictfp class GraphNode {
      * Helper method that swaps a node towards the right.
      */
     private void swapRight(List<GraphNode> peers, int i, int x) {
-        int side = (shape == null ? 2 : this.side);
+        int side = (shape() == null ? 2 : this.side);
         int right = x + side + getReserved();
         while (true) {
             if (i == peers.size() - 1) {
-                centerX = x;
+                this.setX(x);
                 return;
             } // no clash possible
             GraphNode other = peers.get(i + 1);
-            int otherSide = (other.shape == null ? 0 : other.side);
-            int otherLeft = other.centerX - otherSide;
+            int otherSide = (other.shape() == null ? 0 : other.side);
+            int otherLeft = other.x() - otherSide;
             if (otherLeft > right) {
-                centerX = x;
+                this.setX(x);
                 return;
             } // no clash
             graph.swapNodes(layer(), i, i + 1);
             i++;
-            if (other.shape != null) {
+            if (other.shape() != null) {
                 other.shiftLeft(peers, i - 1, x - side - other.getReserved() - otherSide);
             }
         }
@@ -739,7 +654,7 @@ public strictfp class GraphNode {
      * re-layouts nearby nodes/edges as necessary)
      */
     void tweak(int x, int y) {
-        if (centerX == x && centerY == y) {
+        if (x() == x && y() == y) {
             return; // If no change, then return right away
         }
         List<GraphNode> layer = graph.layer(layer());
@@ -750,14 +665,14 @@ public strictfp class GraphNode {
                 break; // Figure out this node's position in its layer
             }
         }
-        if (centerX > x) {
+        if (x() > x) {
             swapLeft(layer, i, x);
-        } else if (centerX < x) {
+        } else if (x() < x) {
             swapRight(layer, i, x);
         }
-        if (centerY > y) {
+        if (y() > y) {
             shiftUp(y);
-        } else if (centerY < y) {
+        } else if (y() < y) {
             shiftDown(y);
         } else {
             graph.relayout_edges(layer());
@@ -780,7 +695,7 @@ public strictfp class GraphNode {
             updown = dummyHeight / 2;
         }
         poly = (poly2 = (poly3 = null));
-        if (shape == null) {
+        if (shape() == null) {
             return;
         }
         Polygon poly = new Polygon();
@@ -810,7 +725,7 @@ public strictfp class GraphNode {
         
         portBounds(); // [N7-G.Dupont]
         
-        switch (shape) {
+        switch (shape()) {
             case HOUSE: {
                 yShift = ad / 2;
                 updown = updown + yShift;
@@ -846,7 +761,7 @@ public strictfp class GraphNode {
                 dy = (dy / 2) * 2;
                 side += dx;
                 updown += dy / 2;
-                if (shape == DotShape.TRIANGLE) {
+                if (shape() == DotShape.TRIANGLE) {
                     yShift = dy / 2;
                     poly.addPoint(0, -updown);
                     poly.addPoint(hw + dx, updown);
@@ -895,7 +810,7 @@ public strictfp class GraphNode {
             }
             case M_DIAMOND:
             case DIAMOND: {
-                if (shape == DotShape.M_DIAMOND) {
+                if (shape() == DotShape.M_DIAMOND) {
                     if (hw < 10) {
                         hw = 10;
                         side = 10;
@@ -950,7 +865,7 @@ public strictfp class GraphNode {
                 poly.addPoint(hw - dx, hh + dy);
                 poly.addPoint(-hw + dx, hh + dy);
                 poly.addPoint(-hw, hh);
-                if (shape == DotShape.OCTAGON) {
+                if (shape() == DotShape.OCTAGON) {
                     break;
                 }
                 double c = sqrt(dx * dx + dy * dy), a = (dx * dy) / c, k = ((a + 5) * dy) / dx, r = sqrt((a + 5) * (a + 5) + k * k) - dy;
@@ -968,7 +883,7 @@ public strictfp class GraphNode {
                 poly.addPoint(hw - dx + x1, hh + dy + 5);
                 poly.addPoint(-hw + dx - x1, hh + dy + 5);
                 poly.addPoint(-hw - 5, hh + y1);
-                if (shape == DotShape.DOUBLE_OCTAGON) {
+                if (shape() == DotShape.DOUBLE_OCTAGON) {
                     break;
                 }
                 updown += 5;
@@ -991,7 +906,7 @@ public strictfp class GraphNode {
             case CIRCLE:
             case DOUBLE_CIRCLE: {
                 int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
-                if (shape == DotShape.DOUBLE_CIRCLE) {
+                if (shape() == DotShape.DOUBLE_CIRCLE) {
                     radius = radius + 5;
                 }
                 int L = ((int) (radius / cos18)) + 2, a = (int) (L * sin36), b = (int) (L * cos36), c = (int) (radius * tan18);
@@ -1014,7 +929,7 @@ public strictfp class GraphNode {
                 int pad = ad / 2;
                 side += pad;
                 updown += pad;
-                int d = (shape == DotShape.ELLIPSE) ? 0 : (ad / 2);
+                int d = (shape() == DotShape.ELLIPSE) ? 0 : (ad / 2);
                 GeneralPath path = new GeneralPath();
                 path.moveTo(-side, d);
                 path.quadTo(-side, -updown, 0, -updown);
@@ -1025,7 +940,7 @@ public strictfp class GraphNode {
                 this.poly = path;
             }
             default: { // BOX
-                if (shape != DotShape.BOX) {
+                if (shape() != DotShape.BOX) {
                     int d = ad / 2;
                     hw = hw + d;
                     side = hw;
@@ -1039,7 +954,7 @@ public strictfp class GraphNode {
                 poly.addPoint(-this.side,  this.updown);
             }
         }
-        if (shape != DotShape.EGG && shape != DotShape.ELLIPSE) {
+        if (shape() != DotShape.EGG && shape() != DotShape.ELLIPSE) {
             this.poly = poly;
         }
         for (int i = 0; i < selfs.size(); i++) {
@@ -1121,7 +1036,7 @@ public strictfp class GraphNode {
      */
     @Override
     public String toString() {
-        if (shape == null) {
+        if (shape() == null) {
             return ""; // This means it's a virtual node
         }
         int rgb = color.getRGB() & 0xFFFFFF;
@@ -1149,7 +1064,7 @@ public strictfp class GraphNode {
         }
         out.append("\", color=\"#" + main + "\"");
         out.append(", fontcolor = \"#" + text + "\"");
-        out.append(", shape = \"" + shape.getDotText() + "\"");
+        out.append(", shape = \"" + shape().getDotText() + "\"");
         out.append(", style = \"filled, " + style.getDotText() + "\"");
         out.append("]\n");
         return out.toString();
