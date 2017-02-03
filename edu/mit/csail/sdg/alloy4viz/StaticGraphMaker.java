@@ -36,6 +36,7 @@ import edu.mit.csail.sdg.alloy4graph.DotStyle;
 import edu.mit.csail.sdg.alloy4graph.Graph;
 import edu.mit.csail.sdg.alloy4graph.GraphEdge;
 import edu.mit.csail.sdg.alloy4graph.GraphNode;
+import edu.mit.csail.sdg.alloy4graph.GraphPort;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 import java.util.*;
 
@@ -193,7 +194,9 @@ public final class StaticGraphMaker {
                         AlloyAtom atomEnd = portMap.get(tuple.getEnd());
                         
                         GraphNode start = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                        new GraphPort(start, null, tuple.getStart().toString(),GraphPort.Orientation.South);
                         GraphNode end = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                        new GraphPort(end, null, tuple.getEnd().toString(),GraphPort.Orientation.North);
                         new GraphEdge(start,end, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).set(DotStyle.BLANK);
                     }
                 }
