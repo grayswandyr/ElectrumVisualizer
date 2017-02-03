@@ -69,7 +69,7 @@ public class GraphPort extends AbstractGraphNode {
      * This enumeration represents where is the port drawn.
      * This assume the node's shape is not too "funky"
      */
-    enum Orientation {
+    public enum Orientation {
         North("North"), // The node is on the top edge
         South("South"), // The node is on the bottom edge
         East("East"),  // The node is on the right edge
@@ -184,7 +184,7 @@ public class GraphPort extends AbstractGraphNode {
     /**
      * Cstr.
      * @param node
-     * @param uuid 
+     * @paramg uuid 
      */
     public GraphPort(GraphNode node, Object uuid, String label, Orientation or) {
         super(node.graph, uuid);
