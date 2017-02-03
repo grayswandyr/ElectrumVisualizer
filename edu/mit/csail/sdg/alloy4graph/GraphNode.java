@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeSet;
 
 /** Mutable; represents a graphical node.
  *
@@ -169,11 +170,18 @@ public strictfp class GraphNode {
 
    //===================================================================================================
 
+   //[N7-<Bossut,Quentin>]
+   /** This field contains the children of this node. */
+   private TreeSet<GraphNode> children;
+
+   // ==================================================================================================
+      
    /** Create a new node with the given list of labels, then add it to the given graph. */
    public GraphNode(Graph graph, Object uuid, String... labels) {
       this.uuid = uuid;
       this.graph = graph;
       this.pos = graph.nodelist.size();
+      this.children = new TreeSet<>();                                                      //[N7-<Bossut,Quentin>]
       graph.nodelist.add(this);
       if (graph.layerlist.size()==0) graph.layerlist.add(new ArrayList<GraphNode>());
       graph.layerlist.get(0).add(this);
@@ -182,7 +190,23 @@ public strictfp class GraphNode {
          for(int i=0; i<labels.length; i++) this.labels.add(labels[i]);
       }
    }
-
+   
+   //[N7-<Bossut,Quentin>]
+   /** Get the children of the Node. */
+   public TreeSet<GraphNode> getChildren() {
+       return this.children;
+   }
+   
+   /** Set the children of the Node. */
+   public void setChildren(TreeSet<GraphNode> children) {
+       this.children = children;
+   }
+   
+   /** Add a child to the family of the Node. */
+   public void addChild(GraphNode gn) {
+       this.children.add(gn);
+   }
+   
    /** Changes the layer that this node is in; the new layer must be 0 or greater.
     * <p> If a node is removed from a layer, the order of the other nodes in that layer remain unchanged.
     * <p> If a node is added to a new layer, then it is added to the right of the original rightmost node in that layer.
@@ -291,49 +315,54 @@ public strictfp class GraphNode {
       gr.translate(centerX-left, centerY-top);
       gr.setFont(fontBold);
       if (highlight) gr.setColor(COLOR_CHOSENNODE); else gr.setColor(color);
-      if (shape==DotShape.CIRCLE || shape==DotShape.M_CIRCLE || shape==DotShape.DOUBLE_CIRCLE) {
-         int hw=width/2, hh=height/2;
-         int radius = ((int) (sqrt( hw*((double)hw) + ((double)hh)*hh ))) + 2;
-         if (shape==DotShape.DOUBLE_CIRCLE) radius=radius+5;
-         gr.fillCircle(radius);
-         gr.setColor(Color.BLACK);
-         gr.drawCircle(radius);
-         if (style==DotStyle.DOTTED || style==DotStyle.DASHED) gr.set(DotStyle.SOLID, scale);
-         if (shape==DotShape.M_CIRCLE && 10*radius>=25 && radius>5) {
-            int d = (int) sqrt(10*radius - 25.0D);
-            if (d>0) { gr.drawLine(-d,-radius+5,d,-radius+5); gr.drawLine(-d,radius-5,d,radius-5); }
-         }
-         if (shape==DotShape.DOUBLE_CIRCLE) gr.drawCircle(radius-5);
+            
+      if (children.isEmpty()) { //[N7-<Bossut, Quentin>]
+        if (shape==DotShape.CIRCLE || shape==DotShape.M_CIRCLE || shape==DotShape.DOUBLE_CIRCLE) {
+           int hw=width/2, hh=height/2;
+           int radius = ((int) (sqrt( hw*((double)hw) + ((double)hh)*hh ))) + 2;
+           if (shape==DotShape.DOUBLE_CIRCLE) radius=radius+5;
+           gr.fillCircle(radius);
+           gr.setColor(Color.BLACK);
+           gr.drawCircle(radius);
+           if (style==DotStyle.DOTTED || style==DotStyle.DASHED) gr.set(DotStyle.SOLID, scale);
+           if (shape==DotShape.M_CIRCLE && 10*radius>=25 && radius>5) {
+              int d = (int) sqrt(10*radius - 25.0D);
+              if (d>0) { gr.drawLine(-d,-radius+5,d,-radius+5); gr.drawLine(-d,radius-5,d,radius-5); }
+           }
+           if (shape==DotShape.DOUBLE_CIRCLE) gr.drawCircle(radius-5);
+        } else {
+           gr.draw(poly,true);
+           gr.setColor(Color.BLACK);
+           gr.draw(poly,false);
+           if (poly2!=null) gr.draw(poly2,false);
+           if (poly3!=null) gr.draw(poly3,false);
+           if (style==DotStyle.DOTTED || style==DotStyle.DASHED) gr.set(DotStyle.SOLID, scale);
+           if (shape==DotShape.M_DIAMOND) {
+              gr.drawLine(-side+8, -8, -side+8, 8); gr.drawLine(-8, -side+8, 8, -side+8);
+              gr.drawLine(side-8, -8, side-8, 8); gr.drawLine(-8, side-8, 8, side-8);
+           }
+           if (shape==DotShape.M_SQUARE) {
+              gr.drawLine(-side, -side+8, -side+8, -side); gr.drawLine(side, -side+8, side-8, -side);
+              gr.drawLine(-side, side-8, -side+8, side); gr.drawLine(side, side-8, side-8, side);
+           }
+        }
+        gr.set(DotStyle.SOLID, scale);
+        int clr = color.getRGB() & 0xFFFFFF;
+        gr.setColor((clr==0x000000 || clr==0xff0000 || clr==0x0000ff) ? Color.WHITE : Color.BLACK);
+        if (labels!=null && labels.size()>0) {
+           int x=(-width/2), y=yShift+(-labels.size()*ad/2);
+           for(int i=0; i<labels.size(); i++) {
+              String t = labels.get(i);
+              int w = ((int) (getBounds(fontBold, t).getWidth())) + 1; // Round it up
+              if (width>w) w=(width-w)/2; else w=0;
+              gr.drawString(t, x+w, y+Artist.getMaxAscent());
+              y=y+ad;
+           }
+        }
+        gr.translate(left-centerX, top-centerY);
       } else {
-         gr.draw(poly,true);
-         gr.setColor(Color.BLACK);
-         gr.draw(poly,false);
-         if (poly2!=null) gr.draw(poly2,false);
-         if (poly3!=null) gr.draw(poly3,false);
-         if (style==DotStyle.DOTTED || style==DotStyle.DASHED) gr.set(DotStyle.SOLID, scale);
-         if (shape==DotShape.M_DIAMOND) {
-            gr.drawLine(-side+8, -8, -side+8, 8); gr.drawLine(-8, -side+8, 8, -side+8);
-            gr.drawLine(side-8, -8, side-8, 8); gr.drawLine(-8, side-8, 8, side-8);
-         }
-         if (shape==DotShape.M_SQUARE) {
-            gr.drawLine(-side, -side+8, -side+8, -side); gr.drawLine(side, -side+8, side-8, -side);
-            gr.drawLine(-side, side-8, -side+8, side); gr.drawLine(side, side-8, side-8, side);
-         }
+          
       }
-      gr.set(DotStyle.SOLID, scale);
-      int clr = color.getRGB() & 0xFFFFFF;
-      gr.setColor((clr==0x000000 || clr==0xff0000 || clr==0x0000ff) ? Color.WHITE : Color.BLACK);
-      if (labels!=null && labels.size()>0) {
-         int x=(-width/2), y=yShift+(-labels.size()*ad/2);
-         for(int i=0; i<labels.size(); i++) {
-            String t = labels.get(i);
-            int w = ((int) (getBounds(fontBold, t).getWidth())) + 1; // Round it up
-            if (width>w) w=(width-w)/2; else w=0;
-            gr.drawString(t, x+w, y+Artist.getMaxAscent());
-            y=y+ad;
-         }
-      }
-      gr.translate(left-centerX, top-centerY);
    }
 
    /** Helper method that sets the Y coordinate of every node in a given layer. */
