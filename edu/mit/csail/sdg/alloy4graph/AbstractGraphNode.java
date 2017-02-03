@@ -24,8 +24,20 @@ import java.util.LinkedList;
  * connect to a port).
  */
 public abstract class AbstractGraphNode {
+    /**
+     * Graph element's object uuid.
+     * This can be null; this has not to be unique.
+     */
     public final Object uuid;
+    
+    /**
+     * Coordinates of the center of the element.
+     */
     private int centerX, centerY;
+    
+    /**
+     * General shape of the element.
+     */
     private DotShape shape = DotShape.BOX;
     
     /**
@@ -41,48 +53,105 @@ public abstract class AbstractGraphNode {
     final LinkedList<GraphEdge> outs = new LinkedList<GraphEdge>();
     
     /**
-     * The "self" edges; must stay in sync with GraphEdge.a and GraphEdge.b
+     * The "self" edges; must stay in sync with GraphEdge.a and GraphEdge.b .
      * <p>
      * When this value changes, we should invalidate the previously computed
      * bounds information.
      */
     final LinkedList<GraphEdge> selfs = new LinkedList<GraphEdge>();
     
+    /**
+     * The graph the element belongs to.
+     */
     Graph graph;
     
+    /**
+     * Constructor.
+     * @param graph the graph this element belongs to
+     * @param uuid the element's uuid
+     */
     public AbstractGraphNode(Graph graph, Object uuid) {
         this.graph = graph;
         this.uuid = uuid;
     }
     
+    /**
+     * Draw the element thanks to given Artist.
+     * @param gr the artist with which to draw the element
+     * @param scale the scale to set the artist
+     * @param highlights indicate if the element is highlighted (ie: selected/hovered)
+     */
     abstract void draw(Artist gr, double scale, boolean highlights);
     
+    /**
+     * Determines if coordinates are inside/on the element.
+     * @param x x coordinate to test
+     * @param y y coordinate to test
+     * @return true if the point (x,y) is inside the shape of the element
+     */
     abstract boolean contains(double x, double y);
     
+    /**
+     * Get the x coordinate of the center of the element.
+     * @return centerX
+     */
     public int x() {
         return centerX;
     }
     
+    /**
+     * Set the x coordinate of the center of the element
+     * @param x new x coordinate
+     */
     public void setX(int x) {
         centerX = x;
     }
     
+    /**
+     * Get the y coordinate of the center of the element.
+     * @return centerY
+     */
     public int y() {
         return centerY;
     }
     
+    /**
+     * Set the y coordinate of the center of the element
+     * @param y new y coordinate
+     */
     public void setY(int y) {
         centerY = y;
     }
     
+    /**
+     * Get the shape of the element
+     * @return shape of the element
+     */
     public DotShape shape() {
         return shape;
     }
     
+    /**
+     * Set the shape of the element
+     * @param s new shape for the element
+     */
     public void setShape(DotShape s) {
         shape = s;
     }
     
+    /**
+     * Get the width of the element.
+     * This function is abstract as it depends on various specific graphic attributes :
+     * label, font, padding, etc.
+     * @return the width of the element.
+     */
     public abstract int getWidth();
+    
+    /**
+     * Get the height of the element.
+     * This function is abstract as it depends on various specific graphic attributes :
+     * label, font, padding, etc.
+     * @return the height of the element.
+     */
     public abstract int getHeight();
 }

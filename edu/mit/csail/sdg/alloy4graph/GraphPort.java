@@ -169,6 +169,11 @@ public class GraphPort extends AbstractGraphNode {
     private int width, height;
     
     /**
+     * Font size for the port label.
+     */
+    private static final int fontSize = 8;
+    
+    /**
      * Coordinates of the label.
      */
     private int labelX, labelY;
@@ -241,7 +246,7 @@ public class GraphPort extends AbstractGraphNode {
         }
         
         // Draw label
-        gr.drawString(this.label, this.labelX, this.labelY, this.labelTheta);
+        gr.drawString(this.label, this.labelX, this.labelY, this.labelTheta, GraphPort.fontSize);
         
         gr.translate(this.node.getWidth() / 2, this.node.getHeight() / 2);
     }
