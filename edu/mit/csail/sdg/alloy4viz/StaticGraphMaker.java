@@ -19,6 +19,7 @@ import java.awt.Color;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -142,17 +143,17 @@ public final class StaticGraphMaker {
   	  LinkedHashMap<AlloyAtom, List<AlloyAtom>> containmentTuples = new LinkedHashMap<AlloyAtom, List<AlloyAtom>>();
 			for (AlloyRelation rel: model.getRelations()) {
 			  IndexedAlloyType containerType = view.subVisible.get(rel);
-				if (containerType == null) {
+				if (!(containerType == null)) {
 					//The relation is a containment one.
-				  int	indexType = containerType.getIndex();
+				  int	indexType = containerType.getIndex()-1;
 					for (AlloyTuple tuple : instance.relation2tuples(rel)) {
-						List<AlloyAtom> atoms = tuple.getAtoms();
+						ArrayList<AlloyAtom> atoms = new ArrayList<AlloyAtom>(tuple.getAtoms());
 						AlloyAtom a = atoms.get(indexType);
 						atoms.remove(indexType); 
 						containmentTuples.put(a, atoms);
 					}
-				}
 				System.out.println(containmentTuples);
+				}
 			}
 			
 
