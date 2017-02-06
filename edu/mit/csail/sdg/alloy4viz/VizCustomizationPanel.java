@@ -178,7 +178,7 @@ public final class VizCustomizationPanel extends JPanel {
         if (divider != null && divider.getDividerLocation() > dim.width) {
             dim.width = divider.getDividerLocation();
         }
-        dim.height = 150;
+        dim.height = 200;
         zoomPane.setPreferredSize(dim);
         dim.width = 450;
         zoomPane.setMinimumSize(dim);
@@ -592,11 +592,20 @@ public final class VizCustomizationPanel extends JPanel {
             }
         };
         
+        final JLabel orientLabel = OurUtil.label("Weight:");
+        JPanel orientPanel = OurUtil.makeH(orientLabel, 5, orientBox);
+        orientPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        orientPanel.setAlignmentY(0.5f);
+        orientPanel.setToolTipText("Choose the orientation of the port on the node.");
+        
+        
         JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint);
         JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, port);
+        JPanel panelPort = OurUtil.makeHB(wcolor, port, orientPanel);
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
+        parent.add(OurUtil.makeHB(wcolor, 10, panelPort, 2, null));
     }
 
    //=============================================================================================================//
