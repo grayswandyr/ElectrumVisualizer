@@ -314,10 +314,6 @@ public class GraphPort extends AbstractGraphNode {
         int dist = getDistance();
         int labelWidth = getLabelSize();
         
-        // Recalculate width and height
-        this.width = 2*this.radius;
-        this.height = 2*this.radius;
-        
         // Compute port and label position
         switch (this.orientation) {
             case East:
@@ -460,7 +456,7 @@ public class GraphPort extends AbstractGraphNode {
      */
     @Override
     public int getWidth() {
-        if (needRecalc) recalc();
+        this.width = 2*this.radius;
         return this.width;
     }
     
@@ -470,7 +466,7 @@ public class GraphPort extends AbstractGraphNode {
      */
     @Override
     public int getHeight() {
-        if (needRecalc) recalc();
+        this.height = 2*this.radius;
         return this.height;
     }
     

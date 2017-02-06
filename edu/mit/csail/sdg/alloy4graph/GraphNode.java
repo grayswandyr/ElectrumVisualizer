@@ -1005,7 +1005,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         int minside   = (Math.max(eastPorts, westPorts) +1)*GraphPort.PortDistance/2,
             minupdown = (Math.max(northPorts,southPorts)+1)*GraphPort.PortDistance/2;
         
-        // Compute the total padded size including ports (and eventually labels)
+        // Compute the total padded size including ports and labels
         int paddedside = 0, paddedupdown = 0;
         
         if (maxVPortSize > -1) {

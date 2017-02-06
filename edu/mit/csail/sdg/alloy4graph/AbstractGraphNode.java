@@ -67,7 +67,7 @@ public abstract class AbstractGraphNode {
     Graph graph;
     
     /// Graphical attributes ///
-    private int fontSize;
+    private int fontSize = 12;
     
     /**
      * The font boldness.
