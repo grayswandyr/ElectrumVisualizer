@@ -33,6 +33,10 @@ import java.util.Map;
  * interface with the environment. This is only a way of representing things,
  * and can be set by the user (via a checkbox in the theme editor).
  * 
+ * Note: the coordinates of the port are <b>relative to the node</b>, not to the
+ * port. So the absolute coordinates of the center of the port is :
+ *      (NodeLeft + PortX, NodeTop + PortY)
+ * 
  * @author G. Dupont
  */
 public class GraphPort extends AbstractGraphNode {
@@ -54,11 +58,6 @@ public class GraphPort extends AbstractGraphNode {
      * (From center)
      */
     static final int PortDistance = 10;
-    
-    /**
-     * Font size for the port label.
-     */
-    private int fontSize = 8;
     
     /**
      * Defines the color for representing a selected port.
@@ -142,30 +141,6 @@ public class GraphPort extends AbstractGraphNode {
     
     /// Styling ///
     /**
-     * The font boldness.
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    private boolean fontBold = false;
-
-    /**
-     * The node color; never null.
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    private Color color = Color.WHITE;
-
-    /**
-     * The line style; never null.
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    private DotStyle style = DotStyle.SOLID;
-    
-    /**
      * "radius" of the port.
      */
     private int radius = 5;
@@ -194,17 +169,42 @@ public class GraphPort extends AbstractGraphNode {
         this.node.ports.add(this);
         
         this.order = this.node.incNumPorts(or);
+        
+        this.setFontSize(8);
     }
     
     /**
      * Determines if coordinates are inside the port
      * @param x x coordinate
      * @param y y coordinate
-     * @return true if (x,y) is in the port [CURRENTLY: FALSE]
+     * @return true if (x,y) is in the port
      */
     @Override
     boolean contains(double x, double y) {
-        return false;
+        if (this.shape() == null)
+            return false;
+        
+        boolean result = false;
+        int absoluteX = this.node.x() - this.node.getWidth() / 2 + this.x(),
+            absoluteY = this.node.y() - this.node.getHeight() / 2 + this.y();
+        switch(this.shape()) {
+            case BOX:
+                result =
+                        (absoluteX - this.radius <= x && x <= absoluteX + this.radius) &&
+                        (absoluteY - this.radius <= y && y <= absoluteY + this.radius)
+                ;
+                break;
+            case CIRCLE:
+                double dx = (x - (double)absoluteX),
+                       dy = (y - (double)absoluteY);
+                result =
+                        Math.sqrt(dx*dx + dy*dy) < this.radius
+                ;
+                break;
+            default:
+                // nop
+        }
+        return result;
     }
     
     /**
@@ -234,12 +234,12 @@ public class GraphPort extends AbstractGraphNode {
             recalc();
         
         // Set style
-        gr.set(this.style, scale);
-        gr.setFont(this.fontBold);
+        gr.set(this.getStyle(), scale);
+        gr.setFont(this.getFontBoldness());
         if (highlight) {
             gr.setColor(GraphPort.COLOR_CHOSENNODE);
         } else {
-            gr.setColor(this.color);
+            gr.setColor(this.getColor());
         }
         
         // Translate to the bottom left hand corner of the node (easier for calculi)
@@ -259,7 +259,7 @@ public class GraphPort extends AbstractGraphNode {
         
         // Draw label with requested font size
         int fontTemp = gr.getFontSize();
-        gr.setFontSize(this.fontSize);
+        gr.setFontSize(this.getFontSize());
         gr.drawString(this.label, this.labelX, this.labelY, this.labelTheta);
         gr.setFontSize(fontTemp);
         
@@ -380,7 +380,7 @@ public class GraphPort extends AbstractGraphNode {
         if (this.label.length() == 0)
             return 0;
         
-        Rectangle2D rect = Artist.getBounds(this.fontBold, this.label, this.fontSize);
+        Rectangle2D rect = Artist.getBounds(this.getFontBoldness(), this.label, this.getFontSize());
         return (int)rect.getWidth();
     }
     
@@ -434,70 +434,6 @@ public class GraphPort extends AbstractGraphNode {
         
         // In the end, update attributes
         this.needRecalc = true;
-    }
-
-    /**
-     * Test if the font is bold
-     * @return true if font is bold
-     */
-    public boolean isFontBold() {
-        return fontBold;
-    }
-
-    /**
-     * Set the boldness of the font
-     * @param fontBold new boldness (true = bold)
-     */
-    public void setFontBold(boolean fontBold) {
-        this.fontBold = fontBold;
-    }
-    
-    /**
-     * Get the font size
-     * @return font size
-     */
-    public int getFontSize() {
-        return fontSize;
-    }
-    
-    /**
-     * Set the font size
-     * @param fs new font size
-     */
-    public void setFontSize(int fs) {
-        this.fontSize = fs;
-    }
-
-    /**
-     * Get port color
-     * @return port colro
-     */
-    public Color getColor() {
-        return color;
-    }
-
-    /**
-     * Set port color
-     * @param color new color
-     */
-    public void setColor(Color color) {
-        this.color = color;
-    }
-
-    /**
-     * Get port line style
-     * @return the port line style
-     */
-    public DotStyle getStyle() {
-        return style;
-    }
-
-    /**
-     * Set port line style
-     * @param style new port line style
-     */
-    public void setStyle(DotStyle style) {
-        this.style = style;
     }
     
     /**

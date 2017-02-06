@@ -153,36 +153,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
 
    // =============================== these fields affect the computed bounds ===================================================
     /**
-     * The font boldness.
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    private boolean fontBold = false;
-
-    /**
      * The node labels; if null or empty, then the node has no labels.
      * <p>
      * When this value changes, we should invalidate the previously computed
      * bounds information.
      */
     private List<String> labels = null;
-
-    /**
-     * The node color; never null.
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    private Color color = Color.WHITE;
-
-    /**
-     * The line style; never null.
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    private DotStyle style = DotStyle.SOLID;
 
    // ============================ these fields are computed by calcBounds() =========================================
     /**
@@ -330,45 +306,34 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * Changes the node shape (where null means change the node into a dummy
      * node), then invalidate the computed bounds.
      */
-    public GraphNode set(DotShape shape) {
-        if (shape() != shape) {
-            setShape(shape);
+    @Override
+    public void setShape(DotShape shape) {
+        if (super.shape() != shape && shape != null) {
+            super.setShape(shape);
             updown = (-1);
         }
-        return this;
     }
 
     /**
      * Changes the node color, then invalidate the computed bounds.
      */
-    public GraphNode set(Color color) {
-        if (this.color != color && color != null) {
-            this.color = color;
+    @Override
+    public void setColor(Color color) {
+        if (super.getColor() != color && color != null) {
+            super.setColor(color);
             updown = (-1);
         }
-        return this;
     }
 
     /**
      * Changes the line style, then invalidate the computed bounds.
      */
-    public GraphNode set(DotStyle style) {
-        if (this.style != style && style != null) {
-            this.style = style;
+    @Override
+    public void setStyle(DotStyle style) {
+        if (super.getStyle() != style && style != null) {
+            super.setStyle(style);
             updown = (-1);
         }
-        return this;
-    }
-
-    /**
-     * Changes the font boldness, then invalidate the computed bounds.
-     */
-    public GraphNode setFontBoldness(boolean bold) {
-        if (this.fontBold != bold) {
-            this.fontBold = bold;
-            updown = (-1);
-        }
-        return this;
     }
 
     /**
@@ -458,13 +423,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
             calcBounds();
         }
         final int top = graph.getTop(), left = graph.getLeft();
-        gr.set(style, scale);
+        gr.set(this.getStyle(), scale);
         gr.translate(x() - left, y() - top);
-        gr.setFont(fontBold);
+        gr.setFont(this.getFontBoldness());
         if (highlight) {
             gr.setColor(COLOR_CHOSENNODE);
         } else {
-            gr.setColor(color);
+            gr.setColor(this.getColor());
         }
         if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
             int hw = width / 2, hh = height / 2;
@@ -475,7 +440,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             gr.fillCircle(radius);
             gr.setColor(Color.BLACK);
             gr.drawCircle(radius);
-            if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
+            if (this.getStyle() == DotStyle.DOTTED || this.getStyle() == DotStyle.DASHED) {
                 gr.set(DotStyle.SOLID, scale);
             }
             if (shape() == DotShape.M_CIRCLE && 10 * radius >= 25 && radius > 5) {
@@ -498,7 +463,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             if (poly3 != null) {
                 gr.draw(poly3, false);
             }
-            if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
+            if (this.getStyle() == DotStyle.DOTTED || this.getStyle() == DotStyle.DASHED) {
                 gr.set(DotStyle.SOLID, scale);
             }
             if (shape() == DotShape.M_DIAMOND) {
@@ -515,13 +480,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
         gr.set(DotStyle.SOLID, scale);
-        int clr = color.getRGB() & 0xFFFFFF;
+        int clr = this.getColor().getRGB() & 0xFFFFFF;
         gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
         if (labels != null && labels.size() > 0) {
             int x = (-width / 2), y = yShift + (-labels.size() * ad / 2);
             for (int i = 0; i < labels.size(); i++) {
                 String t = labels.get(i);
-                int w = ((int) (getBounds(fontBold, t).getWidth())) + 1; // Round it up
+                int w = ((int) (getBounds(this.getFontBoldness(), t).getWidth())) + 1; // Round it up
                 if (width > w) {
                     w = (width - w) / 2;
                 } else {
@@ -728,7 +693,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         if (labels != null) {
             for (int i = 0; i < labels.size(); i++) {
                 String t = labels.get(i);
-                Rectangle2D rect = getBounds(fontBold, t);
+                Rectangle2D rect = getBounds(this.getFontBoldness(), t);
                 int ww = ((int) (rect.getWidth())) + 1; // Round it up
                 if (width < ww) {
                     width = ww;
@@ -1065,7 +1030,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         if (shape() == null) {
             return ""; // This means it's a virtual node
         }
-        int rgb = color.getRGB() & 0xFFFFFF;
+        int rgb = this.getColor().getRGB() & 0xFFFFFF;
         String text = (rgb == 0xFF0000 || rgb == 0x0000FF || rgb == 0) ? "FFFFFF" : "000000";
         String main = Integer.toHexString(rgb);
         while (main.length() < 6) {
@@ -1091,7 +1056,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         out.append("\", color=\"#" + main + "\"");
         out.append(", fontcolor = \"#" + text + "\"");
         out.append(", shape = \"" + shape().getDotText() + "\"");
-        out.append(", style = \"filled, " + style.getDotText() + "\"");
+        out.append(", style = \"filled, " + this.getStyle().getDotText() + "\"");
         out.append("]\n");
         return out.toString();
     }

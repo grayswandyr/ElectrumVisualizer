@@ -16,6 +16,7 @@
  */
 package edu.mit.csail.sdg.alloy4graph;
 
+import java.awt.Color;
 import java.util.LinkedList;
 
 /**
@@ -64,6 +65,33 @@ public abstract class AbstractGraphNode {
      * The graph the element belongs to.
      */
     Graph graph;
+    
+    /// Graphical attributes ///
+    private int fontSize;
+    
+    /**
+     * The font boldness.
+     * <p>
+     * When this value changes, we should invalidate the previously computed
+     * bounds information.
+     */
+    private boolean fontBoldness = false;
+    
+    /**
+     * The node color; never null.
+     * <p>
+     * When this value changes, we should invalidate the previously computed
+     * bounds information.
+     */
+    private Color color = Color.WHITE;
+
+    /**
+     * The line style; never null.
+     * <p>
+     * When this value changes, we should invalidate the previously computed
+     * bounds information.
+     */
+    private DotStyle style = DotStyle.SOLID;
     
     /**
      * Constructor.
@@ -137,6 +165,62 @@ public abstract class AbstractGraphNode {
      */
     public void setShape(DotShape s) {
         shape = s;
+    }
+    
+    public boolean getFontBoldness() {
+        return fontBoldness;
+    }
+    
+    public void setFondBoldness(boolean fb) {
+        fontBoldness = fb;
+    }
+    
+    /**
+     * Get port color
+     * @return port colro
+     */
+    public Color getColor() {
+        return color;
+    }
+
+    /**
+     * Set port color
+     * @param color new color
+     */
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    /**
+     * Get port line style
+     * @return the port line style
+     */
+    public DotStyle getStyle() {
+        return style;
+    }
+
+    /**
+     * Set port line style
+     * @param style new port line style
+     */
+    public void setStyle(DotStyle style) {
+        this.style = style;
+    }
+    
+    /**
+     * Get the font size
+     * @return font size
+     */
+    public int getFontSize() {
+        return fontSize;
+    }
+    
+    /**
+     * Set the font size
+     * @param fs new font size
+     */
+    public void setFontSize(int fs) {
+        this.fontSize = fs;
     }
     
     /**
