@@ -54,6 +54,9 @@ import edu.mit.csail.sdg.alloy4.OurPDFWriter;
 import edu.mit.csail.sdg.alloy4.OurPNGWriter;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4viz.AlloyInstance;
+import edu.mit.csail.sdg.alloy4viz.AlloyRelation;
+import java.util.ArrayList;
 
 /**
  * This class displays the graph.
@@ -188,10 +191,11 @@ public final strictfp class GraphViewer extends JPanel {
         }
     }
 
+
     /**
      * Construct a GraphViewer that displays the given graph.
      */
-    public GraphViewer(final Graph graph) {
+    public GraphViewer(final Graph graph, AlloyInstance instance, ArrayList<AlloyRelation> portRelations) {
         OurUtil.make(this, BLACK, WHITE, new EmptyBorder(0, 0, 0, 0));
         setBorder(null);
         this.scale = graph.defaultScale;
@@ -200,12 +204,15 @@ public final strictfp class GraphViewer extends JPanel {
         graph.layout();
         
         /**
-         * [N7] @Julien Richer
-         * Add the ports to the graph
+         * [N7] @Julien Richer @Louis Fauvarque
+         * Add the edges between the ports
+         * 
+         * For each tuple, if start and end are ports, then create an edge
          */
-        for(GraphNode n : graph.nodes) {
-            
-        }
+        
+        
+        
+        
         
         
         final JMenuItem zoomIn = new JMenuItem("Zoom In");

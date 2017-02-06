@@ -92,6 +92,12 @@ public final class StaticGraphMaker {
      * The resulting graph.
      */
     private final Graph graph;
+    
+    /** 
+     * [N7] @Louis Fauvarque
+     * The port relations
+     */
+    static private ArrayList<AlloyRelation> portRelations = null;
 
     /**
      * Produces a single Graph from the given Instance and View and choice of
@@ -109,7 +115,7 @@ public final class StaticGraphMaker {
         if (graph.nodes.size() == 0) {
             new GraphNode(graph, "", "Due to your theme settings, every atom is hidden.", "Please click Theme and adjust your settings.");
         }
-        return new GraphViewer(graph);
+        return new GraphViewer(graph,instance, portRelations);
     }
 
     /**
