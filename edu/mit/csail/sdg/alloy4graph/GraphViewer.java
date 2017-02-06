@@ -56,7 +56,11 @@ import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4viz.AlloyInstance;
 import edu.mit.csail.sdg.alloy4viz.AlloyRelation;
+import edu.mit.csail.sdg.alloy4viz.AlloyTuple;
+import edu.mit.csail.sdg.alloy4viz.StaticGraphMaker;
+import edu.mit.csail.sdg.alloy4viz.VizState;
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * This class displays the graph.
@@ -194,8 +198,11 @@ public final strictfp class GraphViewer extends JPanel {
 
     /**
      * Construct a GraphViewer that displays the given graph.
+     * @param graph : The graph to display
+     * @param instance : The instance of the model
+     * @param view : The State of the model
      */
-    public GraphViewer(final Graph graph, AlloyInstance instance, ArrayList<AlloyRelation> portRelations) {
+    public GraphViewer(final Graph graph, AlloyInstance instance, VizState view) {
         OurUtil.make(this, BLACK, WHITE, new EmptyBorder(0, 0, 0, 0));
         setBorder(null);
         this.scale = graph.defaultScale;
@@ -211,6 +218,19 @@ public final strictfp class GraphViewer extends JPanel {
          */
         
         
+        ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
+        Set<AlloyRelation> relations = instance.model.getRelations();
+        
+        Set<AlloyTuple> tupleSet = null;
+        for(AlloyRelation rel : relations){
+            tupleSet = instance.relation2tuples(rel);
+            for(AlloyTuple tuple : tupleSet){
+                if(StaticGraphMaker.isPort(portRelations,tuple.getStart()) && StaticGraphMaker.isPort(portRelations,tuple.getStart())){
+                    // TODO, understand why they don't show...
+                    new GraphEdge(StaticGraphMaker.getPortFromAtom(tuple.getStart()),StaticGraphMaker.getPortFromAtom(tuple.getEnd()),null,"",null).set(DotStyle.SOLID);
+                }
+            }
+        }
         
         
         
