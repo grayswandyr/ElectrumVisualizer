@@ -585,14 +585,19 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel port = vizState.isPort.pick(rel, "Is a port relation", "Define the relation as a node/port relation");
         
         // Combobox to define the orientation of a port
-        OurCombobox orientBox = new OurCombobox(true, GraphPort.Orientation.values(), 105, 35, null) {
+        OurCombobox orientBox = new OurCombobox(true, GraphPort.Orientation.values(), 105, 35, vizState.orientations.get(rel)) {
+            @Override
+            public String do_getText(Object value) {
+                return value == null ? "None" : ((GraphPort.Orientation) value).toString();
+            }
+            
             @Override
             public void do_changed(Object value) {
                 vizState.orientations.put(rel, (GraphPort.Orientation) value);
             }
         };
         
-        final JLabel orientLabel = OurUtil.label("Weight:");
+        final JLabel orientLabel = OurUtil.label("Orientation:");
         JPanel orientPanel = OurUtil.makeH(orientLabel, 5, orientBox);
         orientPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         orientPanel.setAlignmentY(0.5f);
