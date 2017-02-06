@@ -92,21 +92,20 @@ public final class StaticGraphMaker {
      */
     private final Graph graph;
 
-    //[N7-<Bossut, Quentin>]
+    //[N7-R.Bossut, M.Quentin]
     /**
      * The mapthat contains every container AlloyAtom, and the list of list
      * representing the rest of the tuple it contains.
      */
     private final Map<AlloyAtom, List<List<AlloyAtom>>> containmentTuples = new LinkedHashMap<AlloyAtom, List<List<AlloyAtom>>>();
 
-    //[N7-<Bossut, Quentin>]
+    //[N7-R.Bossut, M.Quentin]
     /**
      * The map that contains every contained AlloyAtoms and the list of Alloy
      * Atoms it is contained in.
      */
     private final Map<AlloyAtom, Set<AlloyAtom>> containedInMap = new LinkedHashMap<AlloyAtom, Set<AlloyAtom>>();
 
-    //[N7-<Bossut, Quentin>]
     /**
      * Produces a single Graph from the given Instance and View and choice of
      * Projection
@@ -179,7 +178,7 @@ public final class StaticGraphMaker {
             colors = colorsNeon;
         }
 
-        //[N7-<Bossut, Quentin>]
+        //[N7-R.Bossut, M.Quentin]
         //Creation of a Map to store atoms that are instances of a containment relation.
         // The key of the Map is an AlloyAtom which is the container of the containmentTuple.
         // The value is a List of List of AlloyAtoms; each List represents the rest of a containmentTuple (contained in key).
@@ -228,8 +227,14 @@ public final class StaticGraphMaker {
             }
         }
 
-        //TODO : Verify there are no cycle.
-        //Call createContainingNode for every atom that is in a containmentTuple but is not contained anywhere.
+				//Verify there is no cycle in containment relations.
+				for (AlloyAtom atom : containedInMap.keySet()) {
+					if (!isNotCycle(atom)){
+						new GraphNode(graph, "", "The containment relations you have precised are creating a cycle.", "Please click Theme and adjust your settings.");
+						return;
+					}
+				}
+				//Call createContainingNode for every atom that is in a containmentTuple but is not contained anywhere.
         for (AlloyAtom atom : containedInMap.keySet()) {
             if (containedInMap.get(atom).isEmpty()) //The atom is not contained in any other atom.
             {
@@ -243,7 +248,7 @@ public final class StaticGraphMaker {
         for (AlloyRelation rel : model.getRelations()) {
             DotColor c = view.edgeColor.resolve(rel);
             Color cc = (c == DotColor.MAGIC) ? colors.get(ci) : c.getColor(view.getEdgePalette());
-            boolean isCon = !(view.subVisible.get(rel) == null); //[N7-<Bossut,Quentin>] If rel is a containing relation, we do not print the edge.*/
+            boolean isCon = !(view.subVisible.get(rel) == null); //[N7-R.Bossut,M.Quentin] If rel is a containing relation, we do not print the edge.*/
             int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel) || isCon) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
             rels.put(rel, count);
             magicColor.put(rel, cc);
@@ -350,13 +355,47 @@ public final class StaticGraphMaker {
         return node;
     }
 
-    //[N7<<Bossut, Quentin>]
+		//[N7-R.Bossut, M.Quentin]
+		/** Function detecting if there is a cycle in the containment relation.
+		 * @param contained atom whose parents will be tested.
+		 * @param cantBeContained a set of atoms that can't be container of contained, at any level.
+		 */
+		private boolean isNotCycle(AlloyAtom contained, Set<AlloyAtom> cantBeContainer){
+			Set<AlloyAtom> containers = containedInMap.get(contained);
+			if (containers == null) return true; //Should not happen since every atom involved in a containment relation is a key in containedInMap. 
+			TreeSet<AlloyAtom> newCantBeContainer;
+			if (!containers.isEmpty()){
+				for (AlloyAtom a : cantBeContainer){
+					if (containers.contains(a))
+						return false; //If any atom from cantBeContainer is a container, there is a cycle.
+				}
+				//If no cycle has been detected at this level, we have to check at next level, adding contained to the list of atoms that can't be container.
+				for (AlloyAtom a : containers){ 
+					newCantBeContainer = new TreeSet(cantBeContainer);
+					newCantBeContainer.add(a);
+					if(!isNotCycle(a, newCantBeContainer))
+						return false;
+				}
+			}
+			//If we arrive at this point, it means there are no cycle.
+			return true;
+		}
+
+		/** Function verifying there is no cycle starting from a specified atom.
+		 * @param contained the starting point atom for the detection of cycles.
+		 */
+		private boolean isNotCycle(AlloyAtom contained){
+			TreeSet<AlloyAtom> set = new TreeSet<AlloyAtom>();
+			set.add(contained);
+			return isNotCycle(contained, set);
+		}
+
+    //[N7-R.Bossut, M.Quentin]
     /**
      * Create the node for a specific AlloyAtom and each of his children, and
      * their childrens, and so on.
      *
-     * @return the englobing AlloyNode created, null if thmarked as "Don't
-     * Show".
+     * @return the englobing AlloyNode created, null if marked as "Don't Show".
      */
     private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds) {
         GraphNode fatherNode = createNode(hidePrivate, hideMeta, father);
