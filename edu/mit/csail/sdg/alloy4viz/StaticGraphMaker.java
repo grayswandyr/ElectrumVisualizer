@@ -259,9 +259,7 @@ public final class StaticGraphMaker {
 
         //Iteration over the atoms of the instance:
         // Draws unconnected nodes that are visibles and not hidden-when-unconnected.
-		/*			TreeSet<AlloyAtom> toBeDrawn = new TreeSet<AlloyAtom>(instance.getAllAtoms());
-         toBeDrawn.removeAll(atomsInContainingRelation); */
-        for (AlloyAtom atom : instance.getAllAtoms() /*toBeDrawn*/) {
+        for (AlloyAtom atom : instance.getAllAtoms()) {
             List<AlloySet> sets = instance.atom2sets(atom); //Gets a sorted list of AlloySets containing atom.
             if (sets.size() > 0) {
                 for (AlloySet s : sets) {
@@ -381,6 +379,7 @@ public final class StaticGraphMaker {
 			return true;
 		}
 
+    //[N7-R.Bossut, M.Quentin]
 		/** Function verifying there is no cycle starting from a specified atom.
 		 * @param contained the starting point atom for the detection of cycles.
 		 */
