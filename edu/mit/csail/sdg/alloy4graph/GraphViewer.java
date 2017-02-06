@@ -134,6 +134,10 @@ public final strictfp class GraphViewer extends JPanel {
         if (selected instanceof GraphEdge) {
             return ((GraphEdge) selected).uuid;
         }
+        // [N7-G.Dupont] Added port support
+        if (highlight instanceof GraphPort) {
+            return ((GraphPort) highlight).uuid;
+        }
         return null;
     }
 
@@ -147,6 +151,10 @@ public final strictfp class GraphViewer extends JPanel {
         }
         if (highlight instanceof GraphEdge) {
             return ((GraphEdge) highlight).uuid;
+        }
+        // [N7-G.Dupont] Added port support
+        if (highlight instanceof GraphPort) {
+            return ((GraphPort) highlight).uuid;
         }
         return null;
     }
@@ -284,6 +292,7 @@ public final strictfp class GraphViewer extends JPanel {
                         ));
                     }
                 }
+                // [N7-G.Dupont] TODO: port drag ?
             }
         });
         addMouseListener(new MouseAdapter() {
@@ -317,9 +326,9 @@ public final strictfp class GraphViewer extends JPanel {
                     selected = alloyFind(oldMouseX = ev.getX(), oldMouseY = ev.getY());
                     highlight = null;
                     alloyRepaint();
-                    if (selected instanceof GraphNode) {
-                        oldX = ((GraphNode) selected).x();
-                        oldY = ((GraphNode) selected).y();
+                    if (selected instanceof AbstractGraphNode) {
+                        oldX = ((AbstractGraphNode) selected).x();
+                        oldY = ((AbstractGraphNode) selected).y();
                     }
                 }
             }
