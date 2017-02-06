@@ -294,7 +294,10 @@ public final class StaticGraphMaker {
         DotStyle style = view.nodeStyle(atom, instance);
         DotShape shape = view.shape(atom, instance);
         String label = atomname(atom, false);
-        node = new GraphNode(graph, atom, label).set(shape).set(color.getColor(view.getNodePalette())).set(style);
+        node = new GraphNode(graph, atom, label);
+        node.setShape(shape);
+        node.setColor(color.getColor(view.getNodePalette()));
+        node.setStyle(style);
         // Get the label based on the sets and relations
         String setsLabel = "";
         boolean showLabelByDefault = view.showAsLabel.get(null);
