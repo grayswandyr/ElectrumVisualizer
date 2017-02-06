@@ -226,6 +226,7 @@ public final strictfp class GraphViewer extends JPanel {
             tupleSet = instance.relation2tuples(rel);
             for(AlloyTuple tuple : tupleSet){
                 if(StaticGraphMaker.isPort(portRelations,tuple.getStart()) && StaticGraphMaker.isPort(portRelations,tuple.getStart())){
+                    // TODO, understand why they don't show...
                     new GraphEdge(StaticGraphMaker.getPortFromAtom(tuple.getStart()),StaticGraphMaker.getPortFromAtom(tuple.getEnd()),null,"",null).set(DotStyle.SOLID);
                 }
             }
