@@ -447,7 +447,8 @@ public final strictfp class Graph {
             GraphNode a = (GraphNode)e.a(), b = (GraphNode)e.b();
             while (a.layer() - b.layer() > 1) {
                 GraphNode tmp = a;
-                a = new GraphNode(a.graph, e.uuid).set((DotShape) null);
+                a = new GraphNode(a.graph, e.uuid);
+                a.setShape((DotShape) null);
                 a.setLayer(tmp.layer() - 1);
                 // now we have three nodes in the vertical order of "tmp", "a", then "b"
                 e.change(a);                                                                           // let old edge go from "tmp" to "a"
@@ -1078,6 +1079,12 @@ public final strictfp class Graph {
             }
             if (n.contains(x, y)) {
                 return n;
+            }
+            
+            // [N7-G.Dupont] Added finding in the ports of each nodes
+            for (GraphPort p : n.ports) {
+                if (p.contains(x, y))
+                    return p;
             }
         }
         for (GraphEdge e : edges) {
