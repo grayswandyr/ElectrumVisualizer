@@ -31,6 +31,7 @@ our @classpath = (
     './pardinus-0.3.1.jar',
     './org.sat4j.core.jar',
     './AppleJavaExtensions-1.4.jar',
+    './VectorGraphics2D-0.11.jar',
     './resources/',
 );
 
