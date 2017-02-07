@@ -141,9 +141,11 @@ public final strictfp class GraphEdge {
         }
         a = from;
         b = to;
-        if (a.graph != b.graph) {
-            throw new IllegalArgumentException("You cannot draw an edge between two different graphs.");
-        }
+        // [N7-R Bossut, M Quentin]
+        // TODO 
+        //if (a.graph != b.graph) {
+        //    throw new IllegalArgumentException("You cannot draw an edge between two different graphs.");
+        //}
         if (a == b) {
             a.selfs.add(this);
         } else {
