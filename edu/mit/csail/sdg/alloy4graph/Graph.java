@@ -271,6 +271,7 @@ public final strictfp class Graph {
         // in "A Fast & Effective Heuristic for the Feedback Arc Set Problem"
         // in Information Processing Letters, Volume 47, Number 6, Pages 319-323, 1993
         final int num = nodes.size();
+        //System.out.println("Nodes: " + nodes + "\n\nLENGTH: " + num + "\n\n");
         if ((Integer.MAX_VALUE - 1) / 2 < num) {
             throw new OutOfMemoryError();
         }
@@ -294,7 +295,7 @@ public final strictfp class Graph {
                     throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
                 }
                 GraphNode a = (GraphNode)aa;
-                if (!in.contains(a)) {
+                if (!in.contains(a) && aa.graph == n.graph) {
                     in.add(a);
                 }
             }
@@ -341,6 +342,7 @@ public final strictfp class Graph {
             }
             bins.get(grBIN[x.pos()]).remove(x);
             for (GraphNode n : grIN.get(x.pos())) {
+                //System.out.println("Npos: " + n.pos());
                 grOUT.get(n.pos()).remove(x);
             }
             for (GraphNode n : grOUT.get(x.pos())) {
