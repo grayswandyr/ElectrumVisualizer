@@ -106,7 +106,14 @@ public enum DotShape {
     /**
      * Lined Circle
      */
-    M_CIRCLE("Lined Circle", "Mcircle");
+    M_CIRCLE("Lined Circle", "Mcircle"),
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Dummy node
+     */
+    
+    DUMMY("Dummy","Dummy");
 
     /**
      * The description of this line style.

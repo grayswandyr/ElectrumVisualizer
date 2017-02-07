@@ -164,7 +164,11 @@ public abstract class AbstractGraphNode {
      * @param s new shape for the element
      */
     public void setShape(DotShape s) {
-        shape = s;
+        if(s == DotShape.DUMMY){
+            shape = null;
+        } else {
+            shape = s;
+        }
     }
     
     public boolean getFontBoldness() {
