@@ -496,6 +496,9 @@ public final strictfp class GraphEdge {
      * the current zoom scale, draw the edge.
      */
     void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
+        // We don't draw the edge for the moment
+        return;
+        /**
         if (style != DotStyle.BLANK) {
             final int top = a.graph.getTop(), left = a.graph.getLeft();
             gr.translate(-left, -top);
@@ -534,6 +537,7 @@ public final strictfp class GraphEdge {
             }
             drawArrowhead(gr, scale, highEdge, highGroup);
         }
+        */ 
     }
 
     /**
