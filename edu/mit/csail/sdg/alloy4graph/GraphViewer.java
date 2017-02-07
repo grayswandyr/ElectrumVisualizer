@@ -15,6 +15,7 @@
 
 package edu.mit.csail.sdg.alloy4graph;
 
+import de.erichseifert.vectorgraphics2d.EPSGraphics2D;
 import static java.awt.Color.BLACK;
 import static java.awt.Color.WHITE;
 import static java.awt.event.InputEvent.BUTTON1_MASK;
@@ -55,6 +56,16 @@ import edu.mit.csail.sdg.alloy4.OurPDFWriter;
 import edu.mit.csail.sdg.alloy4.OurPNGWriter;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
+
+//[N7-G.Dupont] Use of VectorGraphics2D for PDF export
+import de.erichseifert.vectorgraphics2d.PDFGraphics2D;
+import de.erichseifert.vectorgraphics2d.ProcessingPipeline;
+import de.erichseifert.vectorgraphics2d.SVGGraphics2D;
+import edu.mit.csail.sdg.alloy4.VectorialExporter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 /** This class displays the graph.
  *
@@ -130,11 +141,13 @@ public final strictfp class GraphViewer extends JPanel {
         final JMenuItem zoomIn = new JMenuItem("Zoom In");
         final JMenuItem zoomOut = new JMenuItem("Zoom Out");
         final JMenuItem zoomToFit = new JMenuItem("Zoom to Fit");
-        final JMenuItem print = new JMenuItem("Export to PNG or PDF");
+        final JMenuItem print = new JMenuItem("Export to PNG");
+        final JMenuItem printVect = new JMenuItem("Export as vectorial image..."); // [N7-G. Dupont]
         pop.add(zoomIn);
         pop.add(zoomOut);
         pop.add(zoomToFit);
         pop.add(print);
+        pop.add(printVect);
         ActionListener act = new ActionListener() {
            public void actionPerformed(ActionEvent e) {
               Container c=getParent();
@@ -149,6 +162,8 @@ public final strictfp class GraphViewer extends JPanel {
                  double scale1 = ((double)w)/graph.getTotalWidth(), scale2 = ((double)h)/graph.getTotalHeight();
                  if (scale1<scale2) scale=scale1; else scale=scale2;
               }
+              // [N7-G.Dupont]
+              if (e.getSource() == printVect) alloySaveVectorWindow();
               alloyRepaint();
            }
         };
@@ -156,6 +171,7 @@ public final strictfp class GraphViewer extends JPanel {
         zoomOut.addActionListener(act);
         zoomToFit.addActionListener(act);
         print.addActionListener(act);
+        printVect.addActionListener(act); //[N7-G.Dupont]
         addMouseMotionListener(new MouseMotionAdapter() {
            @Override public void mouseMoved(MouseEvent ev) {
               if (pop.isVisible()) return;
@@ -295,10 +311,10 @@ public final strictfp class GraphViewer extends JPanel {
        });
        final JRadioButton b1 = new JRadioButton("As a PNG with the window's current magnification:", true);
        final JRadioButton b2 = new JRadioButton("As a PNG with a specific width, height, and resolution:", false);
-       final JRadioButton b3 = new JRadioButton("As a PDF with the given resolution:", false);
+       //final JRadioButton b3 = new JRadioButton("As a PDF with the given resolution:", false);
        b1.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
-             b2.setSelected(false); b3.setSelected(false);
+             b2.setSelected(false); //b3.setSelected(false);
              if (!b1.isSelected()) b1.setSelected(true);
              w1.setEnabled(false); h1.setEnabled(false); d1.setEnabled(false); dp1.setEnabled(false); msg.setText(" ");
              w1.setBackground(WHITE); h1.setBackground(WHITE); d1.setBackground(WHITE);
@@ -306,30 +322,30 @@ public final strictfp class GraphViewer extends JPanel {
        });
        b2.addActionListener(new ActionListener() {
            public void actionPerformed(ActionEvent e) {
-              b1.setSelected(false); b3.setSelected(false);
+              b1.setSelected(false); //b3.setSelected(false);
               if (!b2.isSelected()) b2.setSelected(true);
               w1.setEnabled(true); h1.setEnabled(true); d1.setEnabled(true); dp1.setEnabled(false); msg.setText(" ");
               alloyRefresh(1,ratio,w1,w2,h1,h2,d1,d2,msg);
            }
        });
-       b3.addActionListener(new ActionListener() {
+       /*b3.addActionListener(new ActionListener() {
            public void actionPerformed(ActionEvent e) {
               b1.setSelected(false); b2.setSelected(false);
               if (!b3.isSelected()) b3.setSelected(true);
               w1.setEnabled(false); h1.setEnabled(false); d1.setEnabled(false); dp1.setEnabled(true); msg.setText(" ");
               w1.setBackground(WHITE); h1.setBackground(WHITE); d1.setBackground(WHITE);
            }
-       });
+       });*/
        // Ask whether the user wants to change the width, height, and DPI
        double myScale;
        while(true) {
-          if (!OurDialog.getInput("Export as PNG or PDF", new Object[]{
+          if (!OurDialog.getInput("Export as PNG", new Object[]{
              b1, OurUtil.makeH(20, w, null), OurUtil.makeH(20, h, null), " ",
              b2, OurUtil.makeH(20, w0, w1, w2, null),
              OurUtil.makeH(20, h0, h1, h2, null),
              OurUtil.makeH(20, d0, d1, d2, null),
              OurUtil.makeH(20, msg, null),
-             b3, OurUtil.makeH(20, dp0, dp1, dp2, null)
+             //b3, OurUtil.makeH(20, dp0, dp1, dp2, null)
           })) return;
           // Let's validate the values
           if (b2.isSelected()) {
@@ -342,11 +358,11 @@ public final strictfp class GraphViewer extends JPanel {
              if (widthInPixel>4000 || heightInPixel>4000)
                 if (!OurDialog.yesno("The image dimension ("+widthInPixel+"x"+heightInPixel+") is very large. Are you sure?"))
                    continue;
-          } else if (b3.isSelected()) {
+          } /*else if (b3.isSelected()) {
              try { dpi=Double.parseDouble(dp1.getText()); } catch(NumberFormatException ex) { dpi=(-1); }
              if (dpi<50 || dpi>3000) { OurDialog.alert("The DPI must be between 50 and 3000."); continue; }
              myScale=0; // This field is unused for PDF generation
-          } else {
+          } */else {
              dpi=72;
              myScale=scale;
           }
@@ -354,18 +370,18 @@ public final strictfp class GraphViewer extends JPanel {
        }
        // Ask the user for a filename
        File filename;
-       if (b3.isSelected())
+       /*if (b3.isSelected())
            filename = OurDialog.askFile(false, null, ".pdf", "PDF file");
-       else
+       else*/
            filename = OurDialog.askFile(false, null, ".png", "PNG file");
        if (filename==null) return;
        if (filename.exists() && !OurDialog.askOverwrite(filename.getAbsolutePath())) return;
        // Attempt to write the PNG or PDF file
        try {
           System.gc(); // Try to avoid possible premature out-of-memory exceptions
-          if (b3.isSelected())
+          /*if (b3.isSelected())
              alloySaveAsPDF(filename.getAbsolutePath(), (int)dpi);
-          else
+          else*/
              alloySaveAsPNG(filename.getAbsolutePath(), myScale, dpi, dpi);
           synchronized(GraphViewer.class) { oldDPI=dpi; }
           Util.setCurrentDirectory(filename.getParentFile());
@@ -373,22 +389,87 @@ public final strictfp class GraphViewer extends JPanel {
           OurDialog.alert("An error has occured in writing the output file:\n" + ex);
        }
     }
+    
+    private void alloySaveVectorWindow() {
+        VectorialExporter.asModalDialog(SwingUtilities.getWindowAncestor(this), "Vectorial export", new VectorialExporter.ExportCallback() {
+            @Override
+            public void exportAction(
+                String filename,
+                VectorialExporter.OutputFormat format,
+                Integer width, Integer height,
+                Integer marginleft, Integer marginright,
+                Integer margintop, Integer marginbottom) {
+                //
+                alloySaveAsVector(filename, format, width, height, marginleft, marginright, margintop, marginbottom);
+            }
+        });
+    }
 
-    /** Export the current drawing as a PDF file with the given image resolution. */
-    public void alloySaveAsPDF(String filename, int dpi) throws IOException {
-       try {
-          double xwidth = dpi*8L+(dpi/2L); // Width is up to 8.5 inch
-          double xheight = dpi*11L;        // Height is up to 11 inch
-          double scale1 = (xwidth-dpi)  / graph.getTotalWidth();  // We leave 0.5 inch on the left and right
-          double scale2 = (xheight-dpi) / graph.getTotalHeight(); // We leave 0.5 inch on the left and right
-          if (scale1<scale2) scale2=scale1; // Choose the scale such that the image does not exceed the page in either direction
-          OurPDFWriter x = new OurPDFWriter(filename, dpi, scale2);
-          graph.draw(new Artist(x), scale2, null, false);
-          x.close();
-       } catch(Throwable ex) {
-          if (ex instanceof IOException) throw (IOException)ex;
-          throw new IOException("Failure writing the PDF file to " + filename + " (" + ex + ")");
-       }
+    /**
+     * Export the current drawing as a PDF file with the given image resolution.
+     * [N7-G.Dupont] Export with an external library, more flexible and easier
+     * to use.
+     */
+    public void alloySaveAsVector(String filename, VectorialExporter.OutputFormat format, int paperW, int paperH, int marginLeft, int marginRight, int marginTop, int marginBottom) {
+        // Parameters of the graphics
+        double graphW = graph.getTotalWidth(), graphH = graph.getTotalHeight();
+        double contentW = (double)(paperW - marginLeft - marginRight),
+               contentH = (double)(paperH - marginTop - marginBottom);
+        final double nscale;
+
+        if (graphW > graphH) // We want graphW = contentW
+            nscale = contentW / graphW;
+        else
+            nscale = contentH / graphH;
+        
+        OurDialog.waitFor(
+            SwingUtilities.getWindowAncestor(this),
+            "Exporting to " + format.name(), "Exporting graph to " + format.name() + "...", "Export finished !",
+            new SwingWorker<Void,Void>() {
+                @Override
+                protected Void doInBackground() {
+                    ProcessingPipeline g = null;
+                    
+                    switch (format) {
+                        case PDF:
+                            g = new PDFGraphics2D(0.0, 0.0, paperW, paperH);
+                            break;
+                        case SVG:
+                            g = new SVGGraphics2D(0.0, 0.0, paperW, paperH);
+                            break;
+                        case EPS:
+                            g = new EPSGraphics2D(0.0, 0.0, paperW, paperH);
+                            break;
+                        default:
+                            // nop
+                    }
+                    
+                    g.translate(marginLeft, marginRight);
+                    g.scale(nscale, nscale);
+                    graph.draw(new Artist(g), nscale, null, false);
+                    FileOutputStream fos = null;
+                    try {
+                        fos = new FileOutputStream(filename);
+                        fos.write(g.getBytes());
+                    } catch(FileNotFoundException ex) {
+                        OurDialog.alert("Cannot write to file " + filename + ": file not found (" + ex.getMessage() + ")");
+                    } catch(SecurityException ex) {
+                        OurDialog.alert("Cannot write to file " + filename + ": security issue (" + ex.getMessage() + ")");
+                    } catch (IOException ex) {
+                        OurDialog.alert("Cannot write to file " + filename + ": " + ex.getMessage());
+                    } finally {
+                        if (fos != null) {
+                            try {
+                                fos.close();
+                            } catch (IOException ex) {
+                                OurDialog.alert("Error while closing file " + filename + ": " + ex.getMessage());
+                            }
+                        }
+                    }
+                    return null;
+                }
+            }
+        );
     }
 
     /** Export the current drawing as a PNG file with the given file name and image resolution. */
