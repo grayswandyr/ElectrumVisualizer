@@ -238,7 +238,7 @@ public final class StaticGraphMaker {
         for (AlloyAtom atom : containedInMap.keySet()) {
             if (containedInMap.get(atom).isEmpty()) //The atom is not contained in any other atom.
             {
-                createContainingNode(hidePrivate, hideMeta, atom, containmentTuples.get(atom));
+                createContainingNode(hidePrivate, hideMeta, atom, containmentTuples.get(atom), null);
             }
         }
 
@@ -352,7 +352,54 @@ public final class StaticGraphMaker {
         atom2node.put(atom, node);
         return node;
     }
-
+    
+   /**
+     * Return the node for a specific AlloyAtom (create it if it doesn't exist
+     * yet, and adds it to nodes).
+     *
+     * @return null if the atom is explicitly marked as "Don't Show".
+     */
+    private GraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom, Graph otherGraph) {
+        GraphNode node = atom2node.get(atom);
+        if (node != null) {
+            return node;
+        }
+        if ((hidePrivate && atom.getType().isPrivate)
+                || (hideMeta && atom.getType().isMeta)
+                || !view.nodeVisible(atom, instance)) {
+            return null;
+        }
+        // Make the node
+        DotColor color = view.nodeColor(atom, instance);
+        DotStyle style = view.nodeStyle(atom, instance);
+        DotShape shape = view.shape(atom, instance);
+        String label = atomname(atom, false);
+        node = new GraphNode(otherGraph, atom, label).set(shape).set(color.getColor(view.getNodePalette())).set(style);
+        // Get the label based on the sets and relations
+        String setsLabel = "";
+        boolean showLabelByDefault = view.showAsLabel.get(null);
+        for (AlloySet set : instance.atom2sets(atom)) {
+            String x = view.label.get(set);
+            if (x.length() == 0) {
+                continue;
+            }
+            Boolean showLabel = view.showAsLabel.get(set);
+            if ((showLabel == null && showLabelByDefault) || (showLabel != null && showLabel.booleanValue())) {
+                setsLabel += ((setsLabel.length() > 0 ? ", " : "") + x);
+            }
+        }
+        if (setsLabel.length() > 0) {
+            Set<String> list = attribs.get(node);
+            if (list == null) {
+                attribs.put(node, list = new TreeSet<String>());
+            }
+            list.add("(" + setsLabel + ")");
+        }
+        nodes.put(node, atom);
+        atom2node.put(atom, node);
+        return node;
+    }
+    
 		//[N7-R.Bossut, M.Quentin]
 		/** Function detecting if there is a cycle in the containment relation.
 		 * @param contained atom whose parents will be tested.
@@ -396,13 +443,19 @@ public final class StaticGraphMaker {
      *
      * @return the englobing AlloyNode created, null if marked as "Don't Show".
      */
-    private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds) {
-        GraphNode fatherNode = createNode(hidePrivate, hideMeta, father);
+    private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds, Graph containedGraph) {
+        GraphNode fatherNode;
+        if (containedGraph == null){
+            fatherNode = createNode(hidePrivate, hideMeta, father);
+        }else{
+            fatherNode = createNode(hidePrivate, hideMeta, father, containedGraph);
+        }
         if (!(directChilds == null)) { //If the given atom has childrens, we have to create corresponding node.
+            Graph subGraph = fatherNode.getSubGraph();
             for (List<AlloyAtom> childs : directChilds) {
                 for (AlloyAtom child : childs) {
                     //We use a recursiv call because the childrens can also be father.
-                    GraphNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child));
+                    GraphNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child), subGraph);
                     if (!(fatherNode == null || childNode == null)) //We add the created child to the father childs.
                     {
                         fatherNode.addChild(childNode);
