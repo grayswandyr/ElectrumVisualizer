@@ -37,6 +37,7 @@ import edu.mit.csail.sdg.alloy4graph.Graph;
 import edu.mit.csail.sdg.alloy4graph.GraphEdge;
 import edu.mit.csail.sdg.alloy4graph.GraphNode;
 import edu.mit.csail.sdg.alloy4graph.GraphPort;
+import edu.mit.csail.sdg.alloy4graph.GraphRelation; // [N7] Modified @Julien Richer
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 import java.util.*;
 
@@ -181,13 +182,15 @@ public final class StaticGraphMaker {
          */
         
         // Maps the Nodes to the ports linked <ports,nodes>
-        HashMap<AlloyAtom,AlloyAtom> portMap = new HashMap<AlloyAtom,AlloyAtom>();
+        //HashMap<AlloyAtom,AlloyAtom> portMap = new HashMap<AlloyAtom,AlloyAtom>();
+        List<GraphRelation> relList = new ArrayList<GraphRelation>();
         
         Set<AlloyTuple> tupleSet = null;
         for(AlloyRelation rel : portRelations){
             tupleSet = instance.relation2tuples(rel);
             for(AlloyTuple tuple : tupleSet){
-                portMap.put(tuple.getEnd(),tuple.getStart());
+                //portMap.put(tuple.getEnd(),tuple.getStart());
+                relList.add(new GraphRelation(rel,tuple.getEnd(),tuple.getStart()));
             }
         }
         
@@ -197,14 +200,35 @@ public final class StaticGraphMaker {
                 for(AlloyTuple tuple : tupleSet){
                     // We check that each side of the tuple is a port
                     if(isPort(portRelations,tuple.getStart()) && isPort(portRelations,tuple.getEnd())){
-                        AlloyAtom atomStart = portMap.get(tuple.getStart());
-                        AlloyAtom atomEnd = portMap.get(tuple.getEnd());
+                        //AlloyAtom atomStart = portMap.get(tuple.getStart());
+                        //AlloyAtom atomEnd = portMap.get(tuple.getEnd());
+                        AlloyAtom atomStart = null;
+                        AlloyRelation relStart = null;
+                        AlloyAtom atomEnd = null;
+                        AlloyRelation relEnd = null;
+                        for(GraphRelation grel : relList) {
+                            if(grel.getStart()==tuple.getStart()) {
+                                atomStart = grel.getEnd();
+                                relStart = grel.getRelation();
+                            }
+                            if(grel.getStart()==tuple.getEnd()) {
+                                atomEnd = grel.getEnd();
+                                relEnd = grel.getRelation();
+                            }
+                        }
                         
-                        GraphNode start = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                        atom2port.put(tuple.getStart(), new GraphPort(start, null, tuple.getStart().toString(),GraphPort.Orientation.South));
-                        GraphNode end = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
-                        atom2port.put(tuple.getEnd(), new GraphPort(end, null, tuple.getEnd().toString(),GraphPort.Orientation.North));
-                        new GraphEdge(start,end, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).set(DotStyle.BLANK);
+                        GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                        GraphPort startPort = new GraphPort(startNode, null, tuple.getStart().toString(),GraphPort.Orientation.North);
+                        startPort.setOrientation(view.orientations.get(relStart));
+                        atom2port.put(tuple.getStart(), startPort);
+                        
+                        GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                        GraphPort endPort = new GraphPort(endNode, null, tuple.getEnd().toString(),GraphPort.Orientation.North);
+                        endPort.setOrientation(view.orientations.get(relEnd));
+                        atom2port.put(tuple.getEnd(), endPort);
+                        
+                        
+                        new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).set(DotStyle.BLANK);
                     }
                 }
             }

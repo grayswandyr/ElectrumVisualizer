@@ -92,6 +92,8 @@ public final class VizState {
         // [N7] @Julien Richer
         // Ports relations
         isPort.putAll(old.isPort);
+        // Ports orientations
+        orientations.putAll(old.orientations);
         
         changedSinceLastSave = false;
     }
@@ -147,6 +149,9 @@ public final class VizState {
         // Ports relations
         isPort.clear();
         isPort.put(null, false);
+        // Ports orientations
+        orientations.clear();
+
         
         // Provide some nice defaults for "Int" and "seq/Int" type
         AlloyType sigint = AlloyType.INT;
@@ -666,6 +671,25 @@ public final class VizState {
             map.putAll(x.map);
             change();
         }
+        
+        
+        /** [N7] @Julien Richer
+         * Prints the map in the console
+         */
+        public void printMap() {
+            System.out.println("PRINTMAP START");
+            
+            Set listKeys = map.keySet();
+            Iterator iter = listKeys.iterator();
+
+            while(iter.hasNext()) {
+            	Object key = iter.next();
+            	System.out.println(key+"=>"+map.get(key));
+            }
+            
+            System.out.println("PRINTMAP END");
+        }
+        
 
         /**
          * [N7] Modified by @Louis Fauvarque
