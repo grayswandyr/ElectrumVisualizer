@@ -132,6 +132,18 @@ public final strictfp class Graph {
     final List<GraphEdge> edgelist = new ArrayList<GraphEdge>();
 
     /**
+     * [N7] @Louis Fauvarque
+     * The list of the edges between the ports.
+     */
+    final List<GraphEdge> portEdgeList = new ArrayList<GraphEdge>();
+    
+    /**
+     * An unmodifiable view of the list of edges between two ports.
+     */
+    
+    public final List<GraphEdge> portEdges = Collections.unmodifiableList(portEdgeList);
+    
+    /**
      * An unmodifiable view of the list of nodes.
      */
     public final List<GraphNode> nodes = Collections.unmodifiableList(nodelist);
@@ -983,6 +995,15 @@ public final strictfp class Graph {
         for (GraphEdge e : edges) {
             e.resetPath();
         }
+        /**
+         * [N7] @Louis Fauvarque
+         * Resets the port edges
+         */
+        
+        for (GraphEdge e : portEdges){
+            e.resetPath();
+        }
+        
         // Now, scan layer-by-layer to find edges that intersect nodes improperly, and bend them accordingly
         for (int layer = layers() - 1; layer > 0; layer--) {
             List<GraphNode> top = layer(layer), bottom = layer(layer - 1);

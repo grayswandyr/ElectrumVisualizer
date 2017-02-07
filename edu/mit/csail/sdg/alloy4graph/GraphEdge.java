@@ -150,8 +150,15 @@ public final strictfp class GraphEdge {
             a.outs.add(this);
             b.ins.add(this);
         }
+        
+        /**
+         * [N7] @Louis Fauvarque
+         * Added the distinction between the normal edges and the edges 
+         */
         if (!(a instanceof GraphPort || b instanceof GraphPort)) {
             a.graph.edgelist.add(this);
+        } else if(a instanceof GraphPort && b instanceof GraphPort) {
+            a.graph.portEdgeList.add(this);
         }
         this.uuid = uuid;
         this.group = group;
