@@ -22,12 +22,17 @@ import static javax.swing.JOptionPane.YES_NO_OPTION;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dialog;
+import java.awt.Dialog.ModalityType;
 import java.awt.FileDialog;
 import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
+import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Locale;
@@ -39,10 +44,14 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileFilter;
 
 /** Graphical dialog methods for asking the user some questions.
@@ -245,5 +254,33 @@ public final class OurDialog {
       window.setLocationRelativeTo(null);
       window.setVisible(true);
       return window;
+   }
+   
+   /** [N7-G.Dupont] Undeterminated wait dialog. */
+   public static void waitFor(Window parent, String title, String message, String doneMessage, SwingWorker<?,?> worker) {
+       final JDialog dialog = new JDialog(parent, title, ModalityType.APPLICATION_MODAL);
+       worker.addPropertyChangeListener(new PropertyChangeListener() {
+          @Override
+          public void propertyChange(PropertyChangeEvent evt) {
+             if (evt.getPropertyName().equals("state")) {
+                if (evt.getNewValue() == SwingWorker.StateValue.DONE) {
+                   dialog.dispose();
+                   if (doneMessage.length() > 0) showmsg(title, doneMessage);
+                }
+             }
+          }
+       });
+       worker.execute();
+       
+       JProgressBar progressBar = new JProgressBar();
+       progressBar.setIndeterminate(true);
+       JPanel panel = new JPanel(new BorderLayout());
+       panel.add(progressBar, BorderLayout.CENTER);
+       if (message.length() > 0) panel.add(new JLabel(message), BorderLayout.PAGE_START);
+       dialog.add(panel);
+       dialog.pack();
+       dialog.setLocationRelativeTo(parent);
+       dialog.setVisible(true);
+       if (parent == null) parent.dispose();
    }
 }

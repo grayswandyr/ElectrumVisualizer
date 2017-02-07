@@ -84,7 +84,10 @@ public final strictfp class OurPDFWriter {
    public OurPDFWriter setDashedLine()  { if (line!=3) buf.write("1 w [6 3] 0 d\n"); line=3; return this; }
 
    /** Shifts the coordinate space by the given amount. */
-   public OurPDFWriter shiftCoordinateSpace(int x, int y)  { buf.write("1 0 0 1 ").writes(x).writes(y).write("cm\n"); return this; }
+   public OurPDFWriter shiftCoordinateSpace(int x, int y)  {
+       buf.write("1 0 0 1 ").writes(x).writes(y).write("cm\n");
+       return this;
+   }
 
    /** Draws a line from (x1, y1) to (x2, y2). */
    public OurPDFWriter drawLine(int x1, int y1, int x2, int y2) {
