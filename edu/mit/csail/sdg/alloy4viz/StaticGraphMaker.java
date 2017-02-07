@@ -181,15 +181,15 @@ public final class StaticGraphMaker {
          * And keep to which port they are connected (Hashmap)
          */
         
-        // Maps the Nodes to the ports linked <ports,nodes>
-        //HashMap<AlloyAtom,AlloyAtom> portMap = new HashMap<AlloyAtom,AlloyAtom>();
+        // List of GraphRelations that link a node, one of its port and the relation between them
+        // (relation,port,node)
         List<GraphRelation> relList = new ArrayList<GraphRelation>();
         
         Set<AlloyTuple> tupleSet = null;
         for(AlloyRelation rel : portRelations){
             tupleSet = instance.relation2tuples(rel);
             for(AlloyTuple tuple : tupleSet){
-                //portMap.put(tuple.getEnd(),tuple.getStart());
+                // Create a new GraphRelation and stock it in the list
                 relList.add(new GraphRelation(rel,tuple.getEnd(),tuple.getStart()));
             }
         }
@@ -200,12 +200,12 @@ public final class StaticGraphMaker {
                 for(AlloyTuple tuple : tupleSet){
                     // We check that each side of the tuple is a port
                     if(isPort(portRelations,tuple.getStart()) && isPort(portRelations,tuple.getEnd())){
-                        //AlloyAtom atomStart = portMap.get(tuple.getStart());
-                        //AlloyAtom atomEnd = portMap.get(tuple.getEnd());
                         AlloyAtom atomStart = null;
                         AlloyRelation relStart = null;
                         AlloyAtom atomEnd = null;
                         AlloyRelation relEnd = null;
+                        
+                        // Get the relation and its extremities
                         for(GraphRelation grel : relList) {
                             if(grel.getStart()==tuple.getStart()) {
                                 atomStart = grel.getEnd();
@@ -217,6 +217,7 @@ public final class StaticGraphMaker {
                             }
                         }
                         
+                        // Create the 2 nodes and the 2 ports
                         GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                         GraphPort startPort = new GraphPort(startNode, null, tuple.getStart().toString(),GraphPort.Orientation.North);
                         startPort.setOrientation(view.orientations.get(relStart));
@@ -227,7 +228,7 @@ public final class StaticGraphMaker {
                         endPort.setOrientation(view.orientations.get(relEnd));
                         atom2port.put(tuple.getEnd(), endPort);
                         
-                        
+                        // Create the edge between the 2 nodes connected through the 2 ports
                         new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).set(DotStyle.BLANK);
                     }
                 }
