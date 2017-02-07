@@ -362,7 +362,17 @@ public final strictfp class GraphEdge {
      * the center of the "to" node.
      */
     void resetPath() {
-        double ax = a.x(), ay = a.y();
+        /**
+         * [N7] Louis Fauvarque Adds the case of GraphPorts
+         */
+        double ax, ay;
+        if (a instanceof GraphNode) {
+            ax = a.x();
+            ay = a.y();
+        } else {
+            ax = a.x() + ((GraphPort) a).node.x() - ((GraphPort) a).node.getWidth()/2;
+            ay = a.y() + ((GraphPort) a).node.y() - ((GraphPort) a).node.getHeight()/2;
+        }
         if (a == b) {
             double w = 0;
             for (int n = a.selfs.size(), i = 0; i < n; i++) {
@@ -394,7 +404,19 @@ public final strictfp class GraphEdge {
                     n++;
                 }
             }
-            double cx = b.x(), cy = b.y(), bx = (ax + cx) / 2, by = (ay + cy) / 2;
+            /**
+             * [N7] @Louis Fauvarque Adds the case of GraphPorts
+             */
+            double cx, cy;
+            if (b instanceof GraphNode) {
+                cx = b.x();
+                cy = b.y();
+            } else {
+                cx = b.x() + ((GraphPort) b).node.x() - ((GraphPort) b).node.getWidth()/2;
+                cy = b.y() + ((GraphPort) b).node.y() - ((GraphPort) b).node.getHeight()/2;
+            }
+
+            double bx = (ax + cx) / 2, by = (ay + cy) / 2;
             path = new Curve(ax, ay);
             if (n > 1 && (n & 1) == 1) {
                 if (i < n / 2) {

@@ -171,6 +171,7 @@ public class GraphPort extends AbstractGraphNode {
         this.order = this.node.incNumPorts(or);
         
         this.setFontSize(8);
+        recalc();
     }
     
     /**
