@@ -92,8 +92,12 @@ public final class VizState {
         // [N7] @Julien Richer
         // Ports relations
         isPort.putAll(old.isPort);
+        
         // Ports orientations
         orientations.putAll(old.orientations);
+        
+        // Ports colors
+        portColor.putAll(old.portColor);
         
         changedSinceLastSave = false;
     }
@@ -149,8 +153,13 @@ public final class VizState {
         // Ports relations
         isPort.clear();
         isPort.put(null, false);
+        
         // Ports orientations
         orientations.clear();
+        
+        // Ports colors
+        portColor.clear();
+        portColor.put(null, DotColor.RED);
 
         
         // Provide some nice defaults for "Int" and "seq/Int" type
@@ -574,6 +583,9 @@ public final class VizState {
     
     // Ports orientations
     public final MMap<GraphPort.Orientation> orientations = new MMap<GraphPort.Orientation>();
+    
+    // Ports colors
+    public final MMap<DotColor> portColor = new MMap<DotColor>();
     
 
     public final class MInt {

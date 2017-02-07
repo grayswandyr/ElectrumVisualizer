@@ -604,9 +604,29 @@ public final class VizCustomizationPanel extends JPanel {
         orientPanel.setToolTipText("Choose the orientation of the port on the node.");
         
         
+        // Combobox to define the color of a port
+        OurCombobox colorBox = new OurCombobox(true, DotColor.values(), 105, 35, vizState.portColor.get(rel)) {
+            @Override
+            public String do_getText(Object value) {
+                return value == null ? "None" : ((DotColor) value).toString();
+            }
+            
+            @Override
+            public void do_changed(Object value) {
+                vizState.portColor.put(rel, (DotColor) value);
+            }
+        };
+        
+        final JLabel colorLabel = OurUtil.label("Color:");
+        JPanel colorPanel = OurUtil.makeH(colorLabel, 5, colorBox);
+        colorPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        colorPanel.setAlignmentY(0.5f);
+        colorPanel.setToolTipText("Choose the color of the port on the node.");
+        
+        
         JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint);
         JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, port);
-        JPanel panelPort = OurUtil.makeHB(wcolor, port, orientPanel);
+        JPanel panelPort = OurUtil.makeHB(wcolor, port, orientPanel, colorPanel);
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
