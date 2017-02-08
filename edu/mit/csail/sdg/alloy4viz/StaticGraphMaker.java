@@ -248,8 +248,7 @@ public final class StaticGraphMaker {
         for (AlloyRelation rel : model.getRelations()) {
             DotColor c = view.edgeColor.resolve(rel);
             Color cc = (c == DotColor.MAGIC) ? colors.get(ci) : c.getColor(view.getEdgePalette());
-            boolean isCon = false; // !(view.subVisible.get(rel) == null); //[N7-R.Bossut,M.Quentin] If rel is a containing relation, we do not print the edge.*/
-            int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel) || isCon) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
+            int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel)) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
             rels.put(rel, count);
             magicColor.put(rel, cc);
             if (count > 0) {
@@ -478,7 +477,8 @@ public final class StaticGraphMaker {
         // If the tuple's arity>2, then we append the node labels for all the intermediate nodes.
         // eg. Say a given tuple is (A,B,C,D) from the relation R.
         // An edge will be drawn from A to D, with the label "R [B, C]"
-        if ((hidePrivate && tuple.getStart().getType().isPrivate)
+     	  System.out.println("Creating edge"); 
+				if ((hidePrivate && tuple.getStart().getType().isPrivate)
                 || (hideMeta && tuple.getStart().getType().isMeta)
                 || !view.nodeVisible(tuple.getStart(), instance)) {
             return false;
@@ -488,9 +488,27 @@ public final class StaticGraphMaker {
                 || !view.nodeVisible(tuple.getEnd(), instance)) {
             return false;
         }
-        GraphNode start = createNode(hidePrivate, hideMeta, tuple.getStart());
+			
+
+				// If the starting atom is contained in the ending one, we don't print the edge.
+				// Same if the ending is contained in the starting.
+				AlloyAtom atomStart = tuple.getStart();
+				AlloyAtom atomEnd = tuple.getEnd();
+				Set<AlloyAtom> map = containedInMap.get(atomStart);
+				if (!(map == null)){
+					if (map.contains(atomEnd))
+							return false;
+				}
+				map = containedInMap.get(atomEnd);
+				if (!(map == null)){
+					if (map.contains(atomStart))
+						return false;
+				}
+
+				GraphNode start = createNode(hidePrivate, hideMeta, tuple.getStart());
         GraphNode end = createNode(hidePrivate, hideMeta, tuple.getEnd());
-        if (start == null || end == null) {
+        System.out.println("   start: " + start + "   end: " + end);
+				if (start == null || end == null) {
             return false;
         }
         boolean layoutBack = view.layoutBack.resolve(rel);
@@ -530,9 +548,12 @@ public final class StaticGraphMaker {
      */
     private int edgesAsArcs(final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, Color magicColor) {
         int count = 0;
+				System.out.println("edgesAsArcs for relation rel: " + rel);
+				System.out.println("Tuples to be printed: " + instance.relation2tuples(rel));
         if (!view.mergeArrows.resolve(rel)) {
             // If we're not merging bidirectional arrows, simply create an edge for each tuple.
             for (AlloyTuple tuple : instance.relation2tuples(rel)) {
+							System.out.println("Call to createEdge");
                 if (createEdge(hidePrivate, hideMeta, rel, tuple, false, magicColor)) {
                     count++;
                 }
@@ -546,7 +567,7 @@ public final class StaticGraphMaker {
             if (!ignore.contains(tuple)) {
                 AlloyTuple reverse = tuple.getArity() > 2 ? null : tuple.reverse();
                 // If the reverse tuple is in the same relation, and it is not a self-edge, then draw it as a <-> arrow.
-                if (reverse != null && tuples.contains(reverse) && !reverse.equals(tuple)) {
+								if (reverse != null && tuples.contains(reverse) && !reverse.equals(tuple)) {
                     ignore.add(reverse);
                     if (createEdge(hidePrivate, hideMeta, rel, tuple, true, magicColor)) {
                         count = count + 2;

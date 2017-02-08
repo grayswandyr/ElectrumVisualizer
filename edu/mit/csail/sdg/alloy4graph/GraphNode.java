@@ -595,13 +595,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
 
             imbricatedNodeBounds();
             
-            gr.setColor(Color.CYAN);
+            gr.setColor(Color.YELLOW);
             gr.draw(poly, true);
             gr.setColor(Color.BLACK);   
             gr.draw(poly, false);
             
             subGraph.draw(gr, scale, uuid, true);
-            subGraph.layoutSubGraph(-side - 4, -side - 4, side + 4, side + 4, this);
+            subGraph.layoutSubGraph(-side - 4, -side - 4, this);
             
             /**Inutile pour le moment.
             if (poly2 != null) {
@@ -1112,7 +1112,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * [N7- R Bossut, M Quentin] Recalculate the boundaries of the imbricated nodes 
      * given the current boundaries and its children.
      */
-    private void imbricatedNodeBounds() {
+    void imbricatedNodeBounds() {
         
         int nbChildren = children.size();
             int maxUpdown = 0;
@@ -1122,16 +1122,16 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 maxSide = (gn.side > maxSide) ? gn.side : maxSide;
             }
 
-            updown = nbChildren * maxUpdown;
-            side = nbChildren * maxSide; 
+            this.updown = nbChildren * maxUpdown;
+            this.side = nbChildren * maxSide; 
      
             //TODO
             //Change the form of the polygon
             poly = new Polygon();
-            ((Polygon) poly).addPoint(-side - 4, -updown - 4);
-            ((Polygon) poly).addPoint(side + 4, -updown - 4);
-            ((Polygon) poly).addPoint(side + 4, updown + 4);
-            ((Polygon) poly).addPoint(-side - 4, updown + 4);
+            ((Polygon) poly).addPoint(-side, -updown );
+            ((Polygon) poly).addPoint(side, -updown);
+            ((Polygon) poly).addPoint(side, updown);
+            ((Polygon) poly).addPoint(-side, updown);
             
     }
     

@@ -562,8 +562,12 @@ public final strictfp class Graph {
      * rightBottomX and rightBottomY are the coordinates of the fatherNode's Bottom-Right corner
      * father represents 
      */
-    public void layoutSubGraph(int leftTopX, int leftTopY, int rightBottomX, int rightBottomY, GraphNode father) {
+    public void layoutSubGraph(int leftTopX, int leftTopY, GraphNode father) {
         HashSet<GraphNode> children = father.getChildren();
+        
+        int nbChildren = children.size();
+        
+        //TODO Retrieve the relations between the nodes and constructs the layers
         
         int height;
         int width;
@@ -571,28 +575,38 @@ public final strictfp class Graph {
         int maxHeight=0;
         int maxWidth=0;
         
-        int layerDistX = 0;
+        int layerWidth = 0;
         int layerDistY = 0;
+        
+        int centerX = father.x();
+        int centerY = father.y();
         for (GraphNode child : children) {
             for (GraphEdge e : child.outs) 
+                System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
+            for (GraphEdge e : child.ins)
                 System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
             
             height = child.getHeight();
             width = child.getWidth();
             
-            maxWidth = (maxWidth < width) ? width : maxWidth;
-            maxHeight = (maxHeight < height) ? height : maxHeight;
+            //maxWidth = (maxWidth < width) ? width : maxWidth;
+            //maxHeight = (maxHeight < height) ? height : maxHeight;
             
-            layerDistX += leftTopX + child.getWidth() + this.xJump;
-            layerDistY += leftTopY + child.getHeight() + this.yJump;
+            layerWidth += child.getWidth() + this.xJump;
+            //layerDistY += child.getHeight() + this.yJump;
             
             //child.setX((int) Math.floor((5 + leftTopX + child.getWidth())));
             //child.setY((int) Math.floor((5 + leftTopY + child.getHeight())));
             
-            child.setX(layerDistX);
-            child.setY(layerDistY);
-            
         }
+        int startX = centerX - layerWidth;
+        for (GraphNode child : children) {
+            startX += child.getWidth() + this.xJump;
+            System.out.println(startX);
+            child.setX(startX);
+            //child.setY(startY);
+        }
+        
     }
     
     /**
@@ -795,7 +809,12 @@ public final strictfp class Graph {
 
         // Calculate each node's width and height
         for (GraphNode n : nodes) {
-            n.calcBounds();
+            if (n.getChildren().isEmpty()) {
+                n.calcBounds();
+            } else {
+                n.imbricatedNodeBounds();
+                System.out.println("DOUUUUUUZZZEEEEEE");
+            }
         }
 
         // Layout the nodes
