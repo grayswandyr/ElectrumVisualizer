@@ -1045,6 +1045,15 @@ public final strictfp class Graph {
                 for (GraphEdge e : n.outs) {
                     e.resetPath();
                 }
+                /**
+                 * [N7] @Louis Fauvarque
+                 * Refresh the port edges
+                 */
+                for (GraphPort port : n.ports) {
+                    for (GraphEdge e : port.outs) {
+                        e.resetPath();
+                    }
+                }
             }
             checkUpperCollision(top);
             checkLowerCollision(bottom);
@@ -1055,6 +1064,15 @@ public final strictfp class Graph {
             for (GraphNode n : top) {
                 for (GraphEdge e : n.outs) {
                     e.resetPath();
+                }
+                /**
+                 * [N7] @Louis Fauvarque
+                 * Refresh the port edges
+                 */
+                for (GraphPort port : n.ports) {
+                    for (GraphEdge e : port.outs) {
+                        e.resetPath();
+                    }
                 }
             }
             checkUpperCollision(top);
@@ -1069,6 +1087,10 @@ public final strictfp class Graph {
             }
         }
         for (GraphEdge e : edges) {
+            e.layout_arrowHead();
+            e.repositionLabel(sp);
+        }
+        for (GraphEdge e : portEdges) {
             e.layout_arrowHead();
             e.repositionLabel(sp);
         }
