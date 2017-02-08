@@ -217,15 +217,44 @@ public final class StaticGraphMaker {
                             }
                         }
                         
-                        // Create the 2 nodes and the 2 ports
+                        /** 
+                         * [N7] @Julien Richer
+                         * Create the 2 nodes and the 2 ports
+                         */
+                        
+                        // First side
                         GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                        GraphPort startPort = new GraphPort(startNode, null, tuple.getStart().toString(),GraphPort.Orientation.North);
-                        startPort.setOrientation(view.orientations.get(relStart));
+                        GraphPort startPort = new GraphPort(startNode, null, tuple.getStart().toString(),GraphPort.Orientation.South);
+                        
+                        // Set the port orientation
+                        GraphPort.Orientation startOrient = view.orientations.get(relStart);
+                        if(startOrient!=null) {
+                            startPort.setOrientation(startOrient);
+                        }
+                        
+                        // Set the port color
+                        DotColor startColor = view.portColor.get(relStart);
+                        if(startColor!=null) {
+                            startPort.setColor(startColor.getColor(view.getPortPalette()));
+                        }
                         atom2port.put(tuple.getStart(), startPort);
                         
+                        
+                        // Second side
                         GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
                         GraphPort endPort = new GraphPort(endNode, null, tuple.getEnd().toString(),GraphPort.Orientation.North);
-                        endPort.setOrientation(view.orientations.get(relEnd));
+                        
+                        // Set the port orientation
+                        GraphPort.Orientation endOrient = view.orientations.get(relEnd);
+                        if(endOrient!=null) {
+                            endPort.setOrientation(endOrient);
+                        }
+                        
+                        // Set the port color
+                        DotColor endColor = view.portColor.get(relEnd);
+                        if(endColor!=null) {
+                            endPort.setColor(endColor.getColor(view.getPortPalette()));
+                        }
                         atom2port.put(tuple.getEnd(), endPort);
                         
                         // Create the edge between the 2 nodes connected through the 2 ports
