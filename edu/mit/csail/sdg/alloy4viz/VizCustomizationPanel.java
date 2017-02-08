@@ -588,7 +588,7 @@ public final class VizCustomizationPanel extends JPanel {
         OurCombobox orientBox = new OurCombobox(true, GraphPort.Orientation.values(), 105, 35, vizState.orientations.get(rel)) {
             @Override
             public String do_getText(Object value) {
-                return value == null ? "None" : ((GraphPort.Orientation) value).toString();
+                return value == null ? "Inherit" : ((GraphPort.Orientation) value).toString();
             }
             
             @Override
@@ -608,7 +608,7 @@ public final class VizCustomizationPanel extends JPanel {
         OurCombobox colorBox = new OurCombobox(true, DotColor.values(), 105, 35, vizState.portColor.get(rel)) {
             @Override
             public String do_getText(Object value) {
-                return value == null ? "None" : ((DotColor) value).toString();
+                return value == null ? "Inherit" : ((DotColor) value).toString();
             }
             
             @Override
@@ -624,9 +624,32 @@ public final class VizCustomizationPanel extends JPanel {
         colorPanel.setToolTipText("Choose the color of the port on the node.");
         
         
+        // Combobox to define the shape of a port
+        OurCombobox shapeBox = new OurCombobox(true, GraphPort.AvailableShapes, 105, 35, vizState.portShape.get(rel)) {
+            @Override
+            public String do_getText(Object value) {
+                return value == null ? "Inherit" : ((DotShape) value).toString();
+            }
+            
+            @Override
+            public void do_changed(Object value) {
+                vizState.portShape.put(rel, (DotShape) value);
+                System.out.println("VCP");
+                vizState.portShape.printMap();
+            }
+        };
+        
+        final JLabel shapeLabel = OurUtil.label("Shape:");
+        JPanel shapePanel = OurUtil.makeH(shapeLabel, 5, shapeBox);
+        shapePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        shapePanel.setAlignmentY(0.5f);
+        shapePanel.setToolTipText("Choose the shape of the port on the node.");
+        
+        
+        // Panels layout
         JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint);
         JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, port);
-        JPanel panelPort = OurUtil.makeHB(wcolor, port, orientPanel, colorPanel);
+        JPanel panelPort = OurUtil.makeHB(wcolor, port, orientPanel, colorPanel, shapePanel);
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));

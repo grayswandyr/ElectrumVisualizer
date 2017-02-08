@@ -100,6 +100,9 @@ public final class VizState {
         // Ports colors
         portColor.putAll(old.portColor);
         
+        // Ports shapes
+        portShape.putAll(old.portShape);
+        
         changedSinceLastSave = false;
     }
 
@@ -162,6 +165,10 @@ public final class VizState {
         // Ports colors
         portColor.clear();
         portColor.put(null, DotColor.RED);
+        
+        // Ports shapes
+        portShape.clear();
+        portShape.put(null, DotShape.BOX);
 
         
         // Provide some nice defaults for "Int" and "seq/Int" type
@@ -612,6 +619,9 @@ public final class VizState {
     // Ports colors
     public final MMap<DotColor> portColor = new MMap<DotColor>();
     
+    // Ports shapes
+    public final MMap<DotShape> portShape = new MMap<DotShape>();
+    
 
     public final class MInt {
 
@@ -714,7 +724,7 @@ public final class VizState {
          * Prints the map in the console
          */
         public void printMap() {
-            System.out.println("PRINTMAP START");
+            System.out.println("<-START->");
             
             Set listKeys = map.keySet();
             Iterator iter = listKeys.iterator();
@@ -724,7 +734,7 @@ public final class VizState {
             	System.out.println(key+"=>"+map.get(key));
             }
             
-            System.out.println("PRINTMAP END");
+            System.out.println("<-END->");
         }
         
 
