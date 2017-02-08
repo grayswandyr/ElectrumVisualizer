@@ -634,8 +634,6 @@ public final class VizCustomizationPanel extends JPanel {
             @Override
             public void do_changed(Object value) {
                 vizState.portShape.put(rel, (DotShape) value);
-                System.out.println("VCP");
-                vizState.portShape.printMap();
             }
         };
         

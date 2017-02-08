@@ -161,6 +161,7 @@ public final class VizState {
         
         // Ports orientations
         orientations.clear();
+        orientations.put(null, GraphPort.Orientation.North);
         
         // Ports colors
         portColor.clear();
