@@ -103,6 +103,9 @@ public final class VizState {
         // Ports shapes
         portShape.putAll(old.portShape);
         
+        // Ports styles
+        portStyle.putAll(old.portStyle);
+        
         changedSinceLastSave = false;
     }
 
@@ -170,6 +173,10 @@ public final class VizState {
         // Ports shapes
         portShape.clear();
         portShape.put(null, DotShape.BOX);
+        
+        // Ports styles
+        portStyle.clear();
+        portStyle.put(null, DotStyle.SOLID);
 
         
         // Provide some nice defaults for "Int" and "seq/Int" type
@@ -622,6 +629,9 @@ public final class VizState {
     
     // Ports shapes
     public final MMap<DotShape> portShape = new MMap<DotShape>();
+    
+    // Ports styles
+    public final MMap<DotStyle> portStyle = new MMap<DotStyle>();
     
 
     public final class MInt {

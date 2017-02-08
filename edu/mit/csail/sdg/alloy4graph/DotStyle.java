@@ -111,6 +111,22 @@ public enum DotStyle {
         }
         return null;
     }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Returns the list of values that the user is allowed to select from.
+     */
+    public static Object[] valuesWithout(DotStyle exclude) {
+        Object[] ans = new Object[values().length - 1];
+        int i = 0;
+        for (DotStyle d : values()) {
+            if (d != exclude) {
+                ans[i++] = d;
+            }
+        }
+        return ans;
+    }
+    
 
     /**
      * This value is used in writing XML.

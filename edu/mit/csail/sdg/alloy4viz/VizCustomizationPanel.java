@@ -644,10 +644,30 @@ public final class VizCustomizationPanel extends JPanel {
         shapePanel.setToolTipText("Choose the shape of the port on the node.");
         
         
+        // Combobox to define the shape of a port
+        OurCombobox styleBox = new OurCombobox(true, DotStyle.valuesWithout(DotStyle.BLANK), 105, 35, vizState.portStyle.get(rel)) {
+            @Override
+            public String do_getText(Object value) {
+                return value == null ? "Inherit" : ((DotStyle) value).toString();
+            }
+            
+            @Override
+            public void do_changed(Object value) {
+                vizState.portStyle.put(rel, (DotStyle) value);
+            }
+        };
+        
+        final JLabel styleLabel = OurUtil.label("Style:");
+        JPanel stylePanel = OurUtil.makeH(styleLabel, 5, styleBox);
+        stylePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        stylePanel.setAlignmentY(0.5f);
+        stylePanel.setToolTipText("Choose the style of the port on the node.");
+        
+        
         // Panels layout
         JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint);
         JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, port);
-        JPanel panelPort = OurUtil.makeHB(wcolor, port, orientPanel, colorPanel, shapePanel);
+        JPanel panelPort = OurUtil.makeHB(wcolor, port, orientPanel, colorPanel, shapePanel, stylePanel);
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
