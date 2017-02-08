@@ -354,8 +354,8 @@ public final class A4SolutionReader {
 		// set up the basic values of the A4Solution object
 		final int bitwidth = Integer.parseInt(inst.getAttribute("bitwidth"));
 		final int maxseq = Integer.parseInt(inst.getAttribute("maxseq"));
-		final int tracelength = Integer.parseInt(inst.getAttribute("tracelength"));  // pt.uminho.haslab: the trace length of the instance
-		final int backloop = Integer.parseInt(inst.getAttribute("backloop"));  // pt.uminho.haslab: the back loop of the instance
+		final int tracelength = Integer.parseInt(inst.getAttribute("tracelength", "0"));  // pt.uminho.haslab: the trace length of the instance //[N7-G.Dupont] must parse instance of regular Alloy 4
+		final int backloop = Integer.parseInt(inst.getAttribute("backloop", "0"));  // pt.uminho.haslab: the back loop of the instance //[N7-G.Dupont] Idem
 		final int max = Util.max(bitwidth), min = Util.min(bitwidth);
 		if (bitwidth >= 1 && bitwidth <= 30)
 			for (int i = min; i <= max; i++) {
@@ -445,8 +445,8 @@ public final class A4SolutionReader {
 		} catch (Throwable ex) {
             // [N7-G. Dupont] (debug) Can be interesting to have a better understanding
             // of the error
-            //System.err.println("Error occured in A4SolutionReader.read :");
-            //ex.printStackTrace();
+            System.err.println("Error occured in A4SolutionReader.read :");
+            ex.printStackTrace();
 			if (ex instanceof Err)
 				throw ((Err) ex);
 			else
