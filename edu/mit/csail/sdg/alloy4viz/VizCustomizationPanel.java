@@ -376,7 +376,7 @@ public final class VizCustomizationPanel extends JPanel {
                 vizState.nodeColor.put(elt, (DotColor) value);
             }
         };
-        JComboBox shape = new OurCombobox(true, DotShape.values(), 125, 35, vizState.shape.get(elt)) {
+        JComboBox shape = new OurCombobox(true, DotShape.valuesWithout(DotShape.DUMMY), 125, 35, vizState.shape.get(elt)) {
             private static final long serialVersionUID = 0;
 
             @Override
@@ -743,7 +743,7 @@ public final class VizCustomizationPanel extends JPanel {
                 vizState.nodeColor.put(null, (DotColor) value);
             }
         };
-        JComboBox shape = new OurCombobox(false, DotShape.values(), 135, 35, vizState.shape.get(null)) {
+        JComboBox shape = new OurCombobox(false, DotShape.valuesWithout(DotShape.DUMMY), 135, 35, vizState.shape.get(null)) {
             private static final long serialVersionUID = 0;
 
             @Override
