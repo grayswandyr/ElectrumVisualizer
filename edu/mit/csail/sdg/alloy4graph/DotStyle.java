@@ -12,63 +12,106 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package edu.mit.csail.sdg.alloy4graph;
 
 import javax.swing.Icon;
 
 import edu.mit.csail.sdg.alloy4.OurUtil;
 
-/** Immutable; this defines the set of possible line styles (SOLID, DASHED, DOTTED...)
+/**
+ * Immutable; this defines the set of possible line styles (SOLID, DASHED,
+ * DOTTED...)
  *
- * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
+ * <p>
+ * <b>Thread Safety:</b> Can be called only by the AWT event thread.
  */
-
 public enum DotStyle {
 
-    /** Solid line. */
+    /**
+     * Solid line.
+     */
     SOLID("Solid", "solid"),
-
-    /** Dashed line. */
+    /**
+     * Dashed line.
+     */
     DASHED("Dashed", "dashed"),
-
-    /** Dotted line. */
+    /**
+     * Dotted line.
+     */
     DOTTED("Dotted", "dotted"),
-
-    /** Bold line. */
+    /**
+     * Bold line.
+     */
     BOLD("Bold", "bold");
 
-    /** The description of this line style. */
+    /**
+     * The description of this line style.
+     */
     private final String name;
 
-    /** The icon for this line style. */
+    /**
+     * The icon for this line style.
+     */
     private final Icon icon;
 
-    /** The corresponding DOT attribute. */
+    /**
+     * The corresponding DOT attribute.
+     */
     private final String dotName;
 
-    /** Constructs a DotStyle object. */
+    /**
+     * Constructs a DotStyle object.
+     */
     private DotStyle(String name, String dotName) {
-       this.name = name;
-       this.icon = OurUtil.loadIcon("icons/StyleIcons/" + dotName + ".gif");
-       this.dotName = dotName;
+        this.name = name;
+        this.icon = OurUtil.loadIcon("icons/StyleIcons/" + dotName + ".gif");
+        this.dotName = dotName;
     }
 
-    /** Returns the String that will be displayed in the GUI to represent this value. */
-    public String getDisplayedText() { return name; }
+    /**
+     * Returns the String that will be displayed in the GUI to represent this
+     * value.
+     */
+    public String getDisplayedText() {
+        return name;
+    }
 
-    /** Returns the String that should be written into the dot file for this value, when used with the given palette. */
-    public String getDotText() { return dotName; }
+    /**
+     * Returns the String that should be written into the dot file for this
+     * value, when used with the given palette.
+     */
+    public String getDotText() {
+        return dotName;
+    }
 
-    /** Returns the Icon that will be displayed in the GUI to represent this value, when used with the given palette. */
-    public Icon getIcon() { return icon; }
+    /**
+     * Returns the Icon that will be displayed in the GUI to represent this
+     * value, when used with the given palette.
+     */
+    public Icon getIcon() {
+        return icon;
+    }
 
-    /** This method is used in parsing the XML value into a valid style; returns null if there is no match. */
+    /**
+     * This method is used in parsing the XML value into a valid style; returns
+     * null if there is no match.
+     */
     public static DotStyle parse(String x) {
-        if (x != null) for(DotStyle d: values()) if (d.name.equals(x)) return d;
+        if (x != null) {
+            for (DotStyle d : values()) {
+                if (d.name.equals(x)) {
+                    return d;
+                }
+            }
+        }
         return null;
     }
 
-    /** This value is used in writing XML. */
-    @Override public String toString() { return name; }
+    /**
+     * This value is used in writing XML.
+     */
+    @Override
+    public String toString() {
+        return name;
+    }
 }

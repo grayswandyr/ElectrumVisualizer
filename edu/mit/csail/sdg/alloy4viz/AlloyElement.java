@@ -12,22 +12,33 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package edu.mit.csail.sdg.alloy4viz;
 
-/** Immutable; it's the abstract superclass extended by AlloyType, AlloySet, and AlloyRelation.
+/**
+ * Immutable; it's the abstract superclass extended by AlloyType, AlloySet, and
+ * AlloyRelation.
  *
- * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
+ * <p>
+ * <b>Thread Safety:</b> Can be called only by the AWT event thread.
  */
-
 public abstract class AlloyElement implements Comparable<AlloyElement> {
 
-   /** The name of the element. */
-   private final String name;
+    /**
+     * The name of the element.
+     */
+    private final String name;
 
-   /** Returns the name of this element. */
-   public String getName() { return name; }
+    /**
+     * Returns the name of this element.
+     */
+    public String getName() {
+        return name;
+    }
 
-   /** Constructs a new AlloyElement with that name. */
-   AlloyElement(String name) { this.name=name; }
+    /**
+     * Constructs a new AlloyElement with that name.
+     */
+    AlloyElement(String name) {
+        this.name = name;
+    }
 }

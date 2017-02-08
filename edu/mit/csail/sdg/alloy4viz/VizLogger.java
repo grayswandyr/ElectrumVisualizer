@@ -1,6 +1,7 @@
 package edu.mit.csail.sdg.alloy4viz;
 
 public class VizLogger {
+
     private String tag = "";
 
     public VizLogger(String tag) {
@@ -9,8 +10,8 @@ public class VizLogger {
 
     public void log(String msg) {
         System.out.println(
-            (tag.length() == 0 ? "" : "[" + tag + "] ") +
-            msg
+                (tag.length() == 0 ? "" : "[" + tag + "] ")
+                + msg
         );
     }
 
@@ -18,5 +19,3 @@ public class VizLogger {
         this.log(msg);
     }
 }
-
-

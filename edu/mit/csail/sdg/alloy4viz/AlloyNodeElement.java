@@ -12,16 +12,21 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package edu.mit.csail.sdg.alloy4viz;
 
-/** Immutable; it's the abstract superclass extended by both AlloyType and AlloySet.
+/**
+ * Immutable; it's the abstract superclass extended by both AlloyType and
+ * AlloySet.
  *
- * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
+ * <p>
+ * <b>Thread Safety:</b> Can be called only by the AWT event thread.
  */
-
 public abstract class AlloyNodeElement extends AlloyElement {
 
-   /** Constructs an AlloyNodeElement object with that name. */
-   AlloyNodeElement(String name) { super(name); }
+    /**
+     * Constructs an AlloyNodeElement object with that name.
+     */
+    AlloyNodeElement(String name) {
+        super(name);
+    }
 }
