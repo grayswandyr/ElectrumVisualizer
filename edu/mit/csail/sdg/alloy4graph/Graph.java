@@ -287,35 +287,37 @@ public final strictfp class Graph {
         ArrayList<LinkedList<GraphNode>> grOUT = new ArrayList<LinkedList<GraphNode>>(num);
         int[] grBIN = new int[num];
         for (GraphNode n : nodes) {
+            //if (n.graph == this) { //[N7-R. Bossut, M. Quentin]
             int ni = n.pos();
-            LinkedList<GraphNode> in = new LinkedList<GraphNode>(), out = new LinkedList<GraphNode>();
-            for (GraphEdge e : n.ins) {
-                AbstractGraphNode aa = e.a();
-                if (!(aa instanceof GraphNode)) {
-                    throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                LinkedList<GraphNode> in = new LinkedList<GraphNode>(), out = new LinkedList<GraphNode>();
+                for (GraphEdge e : n.ins) {
+                    AbstractGraphNode aa = e.a();
+                    if (!(aa instanceof GraphNode)) {
+                        throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                    }
+                    GraphNode a = (GraphNode)aa;
+                    if (!in.contains(a) && a.graph == n.graph) {
+                        in.add(a);
+                    }
                 }
-                GraphNode a = (GraphNode)aa;
-                if (!in.contains(a) && aa.graph == n.graph) {
-                    in.add(a);
+                for (GraphEdge e : n.outs) {
+                    AbstractGraphNode ab = e.b();
+                    if (!(ab instanceof GraphNode)) {
+                        throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                    }
+                    GraphNode b = (GraphNode)ab;
+                    if (!out.contains(b) && b.graph == n.graph) {
+                        out.add(b);
+                    }
                 }
-            }
-            for (GraphEdge e : n.outs) {
-                AbstractGraphNode ab = e.b();
-                if (!(ab instanceof GraphNode)) {
-                    throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
-                }
-                GraphNode b = (GraphNode)ab;
-                if (!out.contains(b)) {
-                    out.add(b);
-                }
-            }
-            grIN.add(in);
-            grOUT.add(out);
-            grBIN[ni] = (out.size() == 0) ? 0 : (in.size() == 0 ? (2 * num) : (out.size() - in.size() + num));
-            bins.get(grBIN[ni]).add(n);
-         // bin[0]     = { v | #out=0 }
-            // bin[n + d] = { v | d=#out-#in and #out!=0 and #in!=0 } for -n < d < n
-            // bin[n + n] = { v | #in=0 and #out>0 }
+                grIN.add(in);
+                grOUT.add(out);
+                grBIN[ni] = (out.size() == 0) ? 0 : (in.size() == 0 ? (2 * num) : (out.size() - in.size() + num));
+                bins.get(grBIN[ni]).add(n);
+             // bin[0]     = { v | #out=0 }
+                // bin[n + d] = { v | d=#out-#in and #out!=0 and #in!=0 } for -n < d < n
+                // bin[n + n] = { v | #in=0 and #out>0 }
+            //} //[N7-R. Bossut, M. Quentin]
         }
         // Main loop
         final LinkedList<GraphNode> s1 = new LinkedList<GraphNode>(), s2 = new LinkedList<GraphNode>();
@@ -342,7 +344,6 @@ public final strictfp class Graph {
             }
             bins.get(grBIN[x.pos()]).remove(x);
             for (GraphNode n : grIN.get(x.pos())) {
-                //System.out.println("Npos: " + n.pos());
                 grOUT.get(n.pos()).remove(x);
             }
             for (GraphNode n : grOUT.get(x.pos())) {

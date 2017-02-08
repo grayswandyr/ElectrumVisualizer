@@ -213,9 +213,11 @@ public final strictfp class GraphEdge {
      * Changes the "to" node to the given node.
      */
     void change(AbstractGraphNode newTo) {
-        if (b.graph != newTo.graph) {
-            throw new IllegalArgumentException("You cannot draw an edge between two different graphs.");
-        }
+        // [N7-R Bossut, M Quentin]
+        // TODO 
+        //if (b.graph != newTo.graph) {
+        //    throw new IllegalArgumentException("You cannot draw an edge between two different graphs.");
+        //}
         if (a == b) {
             a.selfs.remove(this);
         } else {
@@ -496,48 +498,48 @@ public final strictfp class GraphEdge {
      * the current zoom scale, draw the edge.
      */
     void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
-        // We don't draw the edge for the moment
-        return;
-        /**
-        if (style != DotStyle.BLANK) {
-            final int top = a.graph.getTop(), left = a.graph.getLeft();
-            gr.translate(-left, -top);
-            if (highEdge == this) {
-                gr.setColor(color);
-                gr.set(DotStyle.BOLD, scale);
-            } else if ((highEdge == null && highGroup == null) || highGroup == group) {
-                gr.setColor(color);
-                gr.set(style, scale);
-            } else {
-                gr.setColor(Color.LIGHT_GRAY);
-                gr.set(style, scale);
-            }
-            if (a == b) {
-                gr.draw(path);
-            } else {
-                // Concatenate this path and its connected segments into a single VizPath object, then draw it
-                Curve p = null;
-                GraphEdge e = this;
-                while (e.a.shape() == null) {
-                    e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
+        if (a.graph == b.graph) {
+            if (style != DotStyle.BLANK) {
+                final int top = a.graph.getTop(), left = a.graph.getLeft();
+                gr.translate(-left, -top);
+                if (highEdge == this) {
+                    gr.setColor(color);
+                    gr.set(DotStyle.BOLD, scale);
+                } else if ((highEdge == null && highGroup == null) || highGroup == group) {
+                    gr.setColor(color);
+                    gr.set(style, scale);
+                } else {
+                    gr.setColor(Color.LIGHT_GRAY);
+                    gr.set(style, scale);
                 }
-                while (true) {
-                    p = (p == null) ? e.path : p.join(e.path);
-                    if (e.b.shape() != null) {
-                        break;
+                if (a == b) {
+                    gr.draw(path);
+                } else {
+                    // Concatenate this path and its connected segments into a single VizPath object, then draw it
+                    Curve p = null;
+                    GraphEdge e = this;
+                    while (e.a.shape() == null) {
+                        e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
                     }
-                    e = e.b.outs.get(0);
+                    while (true) {
+                        p = (p == null) ? e.path : p.join(e.path);
+                        if (e.b.shape() != null) {
+                            break;
+                        }
+                        e = e.b.outs.get(0);
+                    }
+                    gr.drawSmoothly(p);
                 }
-                gr.drawSmoothly(p);
+                gr.set(DotStyle.SOLID, scale);
+                gr.translate(left, top);
+                if (highEdge == null && highGroup == null && label.length() > 0) {
+                    drawLabel(gr, color, null);
+                }
+                drawArrowhead(gr, scale, highEdge, highGroup);
             }
-            gr.set(DotStyle.SOLID, scale);
-            gr.translate(left, top);
-            if (highEdge == null && highGroup == null && label.length() > 0) {
-                drawLabel(gr, color, null);
-            }
-            drawArrowhead(gr, scale, highEdge, highGroup);
+        } else {
+            
         }
-        */ 
     }
 
     /**

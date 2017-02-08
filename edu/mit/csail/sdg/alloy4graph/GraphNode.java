@@ -593,9 +593,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
             gr.set(style, scale);
             gr.translate(x() - left, y() - top);
 
-            System.out.println(this.labels + " Updown : " + updown);
-            System.out.println(this.labels + " Side : " + side);           
-            
             imbricatedNodeBounds();
             
             gr.setColor(Color.CYAN);
@@ -603,7 +600,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
             gr.setColor(Color.BLACK);   
             gr.draw(poly, false);
             
-            subGraph.draw(gr, scale, uuid, fontBold);
+            for (GraphNode child : children)
+            System.out.println("Node: " + child.labels +" Layer: " + child.layer());
+            
+            subGraph.draw(gr, scale, uuid, true);
+            //subGraph.layoutSubGraph(leftTopX, leftTopY, rigthBottomX, leftBottomY);
             
             /**Inutile pour le moment.
             if (poly2 != null) {
@@ -1123,10 +1124,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 maxUpdown = (gn.updown > maxUpdown) ? gn.updown : maxUpdown;
                 maxSide = (gn.side > maxSide) ? gn.side : maxSide;
             }
-            
-            System.out.println(this.labels + " MaxUpdown : " + maxUpdown);
-            System.out.println(this.labels + " MaxSide : " + maxSide);
-            
+
             updown = nbChildren * maxUpdown;
             side = nbChildren * maxSide; 
      
