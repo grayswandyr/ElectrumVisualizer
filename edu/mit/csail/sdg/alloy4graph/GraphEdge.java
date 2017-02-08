@@ -522,7 +522,7 @@ public final strictfp class GraphEdge {
                         e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
                     }
                     while (true) {
-                        p = (p == null) ? e.path : p.join(e.path);
+                        p = (p == null) ? e.path() : p.join(e.path());
                         if (e.b.shape() != null) {
                             break;
                         }

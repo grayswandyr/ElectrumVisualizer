@@ -600,11 +600,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
             gr.setColor(Color.BLACK);   
             gr.draw(poly, false);
             
-            for (GraphNode child : children)
-            System.out.println("Node: " + child.labels +" Layer: " + child.layer());
-            
             subGraph.draw(gr, scale, uuid, true);
-            //subGraph.layoutSubGraph(leftTopX, leftTopY, rigthBottomX, leftBottomY);
+            subGraph.layoutSubGraph(-side - 4, -side - 4, side + 4, side + 4, this);
             
             /**Inutile pour le moment.
             if (poly2 != null) {
@@ -1128,11 +1125,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
             updown = nbChildren * maxUpdown;
             side = nbChildren * maxSide; 
      
+            //TODO
+            //Change the form of the polygon
             poly = new Polygon();
-            ((Polygon) poly).addPoint(-side - 4, -side - 4);
-            ((Polygon) poly).addPoint(side + 4, -side - 4);
-            ((Polygon) poly).addPoint(side + 4, side + 4);
-            ((Polygon) poly).addPoint(-side - 4, side + 4);
+            ((Polygon) poly).addPoint(-side - 4, -updown - 4);
+            ((Polygon) poly).addPoint(side + 4, -updown - 4);
+            ((Polygon) poly).addPoint(side + 4, updown + 4);
+            ((Polygon) poly).addPoint(-side - 4, updown + 4);
             
     }
     

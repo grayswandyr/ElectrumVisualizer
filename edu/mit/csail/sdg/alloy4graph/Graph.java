@@ -31,6 +31,8 @@ import java.util.TreeMap;
 
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Util;
+import java.awt.geom.Rectangle2D;
+import java.util.HashSet;
 
 /**
  * Mutable; represents a graph.
@@ -553,6 +555,46 @@ public final strictfp class Graph {
         }
     }
 
+    //[N7-R.Bossut, M.Quentin]
+    /**
+     * Compute the layout for the subGraph contained in a node
+     * leftTopX and lefTopY are the coordinate of the fatherNode's Top-Left corner
+     * rightBottomX and rightBottomY are the coordinates of the fatherNode's Bottom-Right corner
+     * father represents 
+     */
+    public void layoutSubGraph(int leftTopX, int leftTopY, int rightBottomX, int rightBottomY, GraphNode father) {
+        HashSet<GraphNode> children = father.getChildren();
+        
+        int height;
+        int width;
+        
+        int maxHeight=0;
+        int maxWidth=0;
+        
+        int layerDistX = 0;
+        int layerDistY = 0;
+        for (GraphNode child : children) {
+            for (GraphEdge e : child.outs) 
+                System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
+            
+            height = child.getHeight();
+            width = child.getWidth();
+            
+            maxWidth = (maxWidth < width) ? width : maxWidth;
+            maxHeight = (maxHeight < height) ? height : maxHeight;
+            
+            layerDistX += leftTopX + child.getWidth() + this.xJump;
+            layerDistY += leftTopY + child.getHeight() + this.yJump;
+            
+            //child.setX((int) Math.floor((5 + leftTopX + child.getWidth())));
+            //child.setY((int) Math.floor((5 + leftTopY + child.getHeight())));
+            
+            child.setX(layerDistX);
+            child.setY(layerDistY);
+            
+        }
+    }
+    
     /**
      * This computes the des() value as described in the paper.
      * <p>
