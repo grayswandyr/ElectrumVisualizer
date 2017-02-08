@@ -21,10 +21,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class represents the concept of port.
@@ -231,8 +228,12 @@ public class GraphPort extends AbstractGraphNode {
         }
         
         // If we need to recalc (boundaries)
-        if (this.needRecalc)
+        if (this.needRecalc){
             recalc();
+            for (GraphEdge e : this.outs){
+                e.resetPath();
+            }
+        }
         
         // Set style
         gr.set(this.getStyle(), scale);
