@@ -71,6 +71,7 @@ public final class VizState {
         fontSize = old.fontSize;
         nodePalette = old.nodePalette;
         edgePalette = old.edgePalette;
+        portPalette = old.portPalette;
         nodeColor.putAll(old.nodeColor);
         nodeStyle.putAll(old.nodeStyle);
         nodeVisible.putAll(old.nodeVisible);
@@ -114,6 +115,7 @@ public final class VizState {
         fontSize = 12;
         nodePalette = DotPalette.CLASSIC;
         edgePalette = DotPalette.CLASSIC;
+        portPalette = DotPalette.CLASSIC;
         nodeColor.clear();
         nodeColor.put(null, DotColor.WHITE);
         nodeStyle.clear();
@@ -554,6 +556,29 @@ public final class VizState {
         if (edgePalette != x && x != null) {
             change();
             edgePalette = x;
+        }
+    }
+    
+    /*============================================================================================*/
+    /**
+     * The default port palette.
+     */
+    private DotPalette portPalette;
+
+    /**
+     * Gets the default edge palette.
+     */
+    public DotPalette getPortPalette() {
+        return portPalette;
+    }
+
+    /**
+     * Sets the default edge palette.
+     */
+    public void setPortPalette(DotPalette x) {
+        if (portPalette != x && x != null) {
+            change();
+            portPalette = x;
         }
     }
 
