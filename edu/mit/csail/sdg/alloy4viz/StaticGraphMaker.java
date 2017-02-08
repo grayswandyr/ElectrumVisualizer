@@ -477,7 +477,6 @@ public final class StaticGraphMaker {
         // If the tuple's arity>2, then we append the node labels for all the intermediate nodes.
         // eg. Say a given tuple is (A,B,C,D) from the relation R.
         // An edge will be drawn from A to D, with the label "R [B, C]"
-     	  System.out.println("Creating edge"); 
 				if ((hidePrivate && tuple.getStart().getType().isPrivate)
                 || (hideMeta && tuple.getStart().getType().isMeta)
                 || !view.nodeVisible(tuple.getStart(), instance)) {
@@ -507,7 +506,6 @@ public final class StaticGraphMaker {
 
 				GraphNode start = createNode(hidePrivate, hideMeta, tuple.getStart());
         GraphNode end = createNode(hidePrivate, hideMeta, tuple.getEnd());
-        System.out.println("   start: " + start + "   end: " + end);
 				if (start == null || end == null) {
             return false;
         }
@@ -548,12 +546,9 @@ public final class StaticGraphMaker {
      */
     private int edgesAsArcs(final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, Color magicColor) {
         int count = 0;
-				System.out.println("edgesAsArcs for relation rel: " + rel);
-				System.out.println("Tuples to be printed: " + instance.relation2tuples(rel));
         if (!view.mergeArrows.resolve(rel)) {
             // If we're not merging bidirectional arrows, simply create an edge for each tuple.
             for (AlloyTuple tuple : instance.relation2tuples(rel)) {
-							System.out.println("Call to createEdge");
                 if (createEdge(hidePrivate, hideMeta, rel, tuple, false, magicColor)) {
                     count++;
                 }
