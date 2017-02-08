@@ -248,7 +248,7 @@ public final class StaticGraphMaker {
         for (AlloyRelation rel : model.getRelations()) {
             DotColor c = view.edgeColor.resolve(rel);
             Color cc = (c == DotColor.MAGIC) ? colors.get(ci) : c.getColor(view.getEdgePalette());
-            boolean isCon = !(view.subVisible.get(rel) == null); //[N7-R.Bossut,M.Quentin] If rel is a containing relation, we do not print the edge.*/
+            boolean isCon = false; // !(view.subVisible.get(rel) == null); //[N7-R.Bossut,M.Quentin] If rel is a containing relation, we do not print the edge.*/
             int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel) || isCon) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
             rels.put(rel, count);
             magicColor.put(rel, cc);
