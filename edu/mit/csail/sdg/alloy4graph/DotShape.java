@@ -185,4 +185,20 @@ public enum DotShape {
     public String toString() {
         return name;
     }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Returns the list of values that the user is allowed to select from.
+     */
+    public static Object[] valuesWithout(DotShape exclude) {
+        Object[] ans = new Object[values().length - 1];
+        int i = 0;
+        for (DotShape d : values()) {
+            if (d != exclude) {
+                ans[i++] = d;
+            }
+        }
+        return ans;
+    }
+    
 }
