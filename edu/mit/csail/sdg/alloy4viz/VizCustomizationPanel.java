@@ -595,14 +595,25 @@ public final class VizCustomizationPanel extends JPanel {
             }
             
             @Override
+            public Icon do_getIcon(Object value) {
+                if (value == null) {
+                    value = vizState.orientations.get(null);
+                }
+                return value == null ? null : ((GraphPort.Orientation) value).getIcon();
+            }
+            
+            @Override
             public void do_changed(Object value) {
                 vizState.orientations.put(rel, (GraphPort.Orientation) value);
             }
         };
         
-        final JLabel orientLabel = OurUtil.label("Orientation:");
-        JPanel orientPanel = OurUtil.makeH(orientLabel, 5, orientBox);
+        //final JLabel orientLabel = OurUtil.label("Orientation:");
+        //JPanel orientPanel = OurUtil.makeH(orientLabel, 5, orientBox);
+        JPanel orientPanel = OurUtil.makeH(orientBox);
         orientPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        orientPanel.setAlignmentY(0.5f);
+        orientPanel.setAlignmentX(0.5f);
         orientPanel.setToolTipText("Choose the orientation of the port on the node.");
         
         
@@ -614,14 +625,25 @@ public final class VizCustomizationPanel extends JPanel {
             }
             
             @Override
+            public Icon do_getIcon(Object value) {
+                if (value == null) {
+                    value = vizState.portColor.get(null);
+                }
+                return value == null ? null : ((DotColor) value).getIcon(vizState.getPortPalette());
+            }
+            
+            @Override
             public void do_changed(Object value) {
                 vizState.portColor.put(rel, (DotColor) value);
             }
         };
         
-        final JLabel colorLabel = OurUtil.label("Color:");
-        JPanel colorPanel = OurUtil.makeH(colorLabel, 5, colorBox);
+        //final JLabel colorLabel = OurUtil.label("Color:");
+        //JPanel colorPanel = OurUtil.makeH(colorLabel, 5, colorBox);
+        JPanel colorPanel = OurUtil.makeH(colorBox);
         colorPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        colorPanel.setAlignmentY(0.5f);
+        colorPanel.setAlignmentX(0.5f);
         colorPanel.setToolTipText("Choose the color of the port on the node.");
         
         
@@ -633,14 +655,25 @@ public final class VizCustomizationPanel extends JPanel {
             }
             
             @Override
+            public Icon do_getIcon(Object value) {
+                if (value == null) {
+                    value = vizState.portShape.get(null);
+                }
+                return value == null ? null : ((DotShape) value).getIcon();
+            }
+            
+            @Override
             public void do_changed(Object value) {
                 vizState.portShape.put(rel, (DotShape) value);
             }
         };
 
-        final JLabel shapeLabel = OurUtil.label("Shape:");
-        JPanel shapePanel = OurUtil.makeH(shapeLabel, 5, shapeBox);
+        //final JLabel shapeLabel = OurUtil.label("Shape:");
+        //JPanel shapePanel = OurUtil.makeH(shapeLabel, 5, shapeBox);
+        JPanel shapePanel = OurUtil.makeH(shapeBox);
         shapePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        shapePanel.setAlignmentY(0.5f);
+        shapePanel.setAlignmentX(0.5f);
         shapePanel.setToolTipText("Choose the shape of the port on the node.");
         
         
@@ -652,22 +685,38 @@ public final class VizCustomizationPanel extends JPanel {
             }
             
             @Override
+            public Icon do_getIcon(Object value) {
+                if (value == null) {
+                    value = vizState.portStyle.get(null);
+                }
+                return value == null ? null : ((DotStyle) value).getIcon();
+            }
+            
+            @Override
             public void do_changed(Object value) {
                 vizState.portStyle.put(rel, (DotStyle) value);
             }
         };
         
-        final JLabel styleLabel = OurUtil.label("Style:");
-        JPanel stylePanel = OurUtil.makeH(styleLabel, 5, styleBox);
+        //final JLabel styleLabel = OurUtil.label("Style:");
+        //JPanel stylePanel = OurUtil.makeH(styleLabel, 5, styleBox);
+        JPanel stylePanel = OurUtil.makeH(styleBox);
         stylePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        stylePanel.setAlignmentY(0.5f);
+        stylePanel.setAlignmentX(0.5f);
         stylePanel.setToolTipText("Choose the style of the port on the node.");
         
         
-        // Initialization of the comboboxes activation
+        // Checkbox to set/unset the ports labels
+        OurCheckbox label = vizState.portLabel.pick(rel, "Display label", "Set/unset the ports labels");
+        
+        
+        // Initialization of the ports settings activation
         orientBox.setEnabled(vizState.isPort.resolve(rel));
         colorBox.setEnabled(vizState.isPort.resolve(rel));
         shapeBox.setEnabled(vizState.isPort.resolve(rel));
         styleBox.setEnabled(vizState.isPort.resolve(rel));
+        label.setEnabled(vizState.isPort.resolve(rel));
         
         
         // Checkbox to define relations as ports relations
@@ -677,21 +726,27 @@ public final class VizCustomizationPanel extends JPanel {
                 colorBox.setEnabled(a);
                 shapeBox.setEnabled(a);
                 styleBox.setEnabled(a);
+                label.setEnabled(a);
             }
         });
 
         
         // Panels layout
-        JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint);
-        JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, port);
-        JPanel panelPort1 = OurUtil.makeHB(wcolor, port, orientPanel);
-        JPanel panelPort2 = OurUtil.makeHB(wcolor, colorPanel, shapePanel, stylePanel);
-        
+        JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint, port);
+        JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, label);
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
-        parent.add(OurUtil.makeHB(wcolor, 10, panelPort1, 2, null));
-        parent.add(OurUtil.makeHB(wcolor, 10, panelPort2, 2, null));
+        
+        // Layout : 2 rows
+        // 2 checkboxes
+        // 4 comboboxes
+        //JPanel panelPort1 = OurUtil.makeHB(wcolor, port, label);
+        JPanel panelPort2 = OurUtil.makeHB(wcolor, orientPanel, colorPanel, shapePanel, stylePanel);
+        //parent.add(OurUtil.makeHT(wcolor, 10, panelPort1, 2, null));
+        //parent.add(OurUtil.makeHT(wcolor, 10, panelPort2, 2, null));
+        //parent.add(OurUtil.makeVL(wcolor, panelPort1, panelPort2));
+        parent.add(OurUtil.makeVL(wcolor, panelPort2));
     }
 
    //=============================================================================================================//
