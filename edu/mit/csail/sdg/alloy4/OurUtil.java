@@ -308,6 +308,13 @@ public final class OurUtil {
       if (parent!=null) parent.add(m);
       return m;
    }
+   
+   /** Add a separator to an existing JMenu.
+    * @param menu the menu to add the separator to
+    */
+   public static void menuSeparator(JMenu parent) {
+      parent.addSeparator();
+   }
 
    /** This method minimizes the window. */
    public static void minimize(JFrame frame) { frame.setExtendedState(JFrame.ICONIFIED); }
