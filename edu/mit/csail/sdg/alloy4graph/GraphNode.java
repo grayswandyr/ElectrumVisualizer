@@ -498,21 +498,23 @@ public strictfp class GraphNode extends AbstractGraphNode {
     @Override
     void draw(Artist gr, double scale, boolean highlight) {
         
+        if (shape() == null) {
+            return;
+        } else if (updown < 0) {
+            calcBounds();
+        }
+        final int top = graph.getTop(), left = graph.getLeft();
+        gr.set(style, scale);
+        gr.translate(x() - left, y() - top);
+        gr.setFont(fontBold);
+        if (highlight) {
+            gr.setColor(COLOR_CHOSENNODE);
+        } else {
+            gr.setColor(color);
+        }
+        
         if (children.isEmpty()) { //[N7-R. Bossut, M. Quentin]
-            if (shape() == null) {
-                return;
-            } else if (updown < 0) {
-                calcBounds();
-            }
-            final int top = graph.getTop(), left = graph.getLeft();
-            gr.set(style, scale);
-            gr.translate(x() - left, y() - top);
-            gr.setFont(fontBold);
-            if (highlight) {
-                gr.setColor(COLOR_CHOSENNODE);
-            } else {
-                gr.setColor(color);
-            }
+            
             if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
                 int hw = width / 2, hh = height / 2;
                 int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
@@ -588,20 +590,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
             
         } else { // [N7-Bossut, Quentin] Draw the subGraph         
             
-            final int top = graph.getTop(), left = graph.getLeft();
-            
-            gr.set(style, scale);
-            gr.translate(x() - left, y() - top);
-
-            imbricatedNodeBounds();
+            subGraph.layoutSubGraph(-side - 4, -side - 4, this);
+            subGraph.draw(gr, scale, uuid, true);
             
             gr.setColor(Color.YELLOW);
-            gr.draw(poly, true);
+            //gr.draw(poly, true);
             gr.setColor(Color.BLACK);   
             gr.draw(poly, false);
-            
-            subGraph.draw(gr, scale, uuid, true);
-            subGraph.layoutSubGraph(-side - 4, -side - 4, this);
             
             /**Inutile pour le moment.
             if (poly2 != null) {
@@ -861,6 +856,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         updown = hh;
 
         portBounds(); // [N7-G.Dupont]
+        
+        imbricatedNodeBounds(); // [N7-M.Quentin]
 
         switch (shape()) {
             case HOUSE: {
@@ -1110,21 +1107,24 @@ public strictfp class GraphNode extends AbstractGraphNode {
 
     /**
      * [N7- R Bossut, M Quentin] Recalculate the boundaries of the imbricated nodes 
-     * given the current boundaries and its children.
+     * given the current boundaries and the ones of its children.
      */
     void imbricatedNodeBounds() {
         
-        int nbChildren = children.size();
+        if ( !children.isEmpty() ) {
+        
+            int nbChildren = children.size();
             int maxUpdown = 0;
             int maxSide = 0;
             for (GraphNode gn : children) {
+                if (gn.updown < 0) gn.calcBounds();
                 maxUpdown = (gn.updown > maxUpdown) ? gn.updown : maxUpdown;
                 maxSide = (gn.side > maxSide) ? gn.side : maxSide;
             }
 
             this.updown = nbChildren * maxUpdown;
             this.side = nbChildren * maxSide; 
-     
+
             //TODO
             //Change the form of the polygon
             poly = new Polygon();
@@ -1132,6 +1132,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
             ((Polygon) poly).addPoint(side, -updown);
             ((Polygon) poly).addPoint(side, updown);
             ((Polygon) poly).addPoint(-side, updown);
+            
+        }
             
     }
     

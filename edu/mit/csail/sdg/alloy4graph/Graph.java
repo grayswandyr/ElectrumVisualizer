@@ -566,7 +566,6 @@ public final strictfp class Graph {
         HashSet<GraphNode> children = father.getChildren();
         
         int nbChildren = children.size();
-        
         //TODO Retrieve the relations between the nodes and constructs the layers
         
         int height;
@@ -581,10 +580,10 @@ public final strictfp class Graph {
         int centerX = father.x();
         int centerY = father.y();
         for (GraphNode child : children) {
-            for (GraphEdge e : child.outs) 
-                System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
-            for (GraphEdge e : child.ins)
-                System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
+            //for (GraphEdge e : child.outs) 
+                //System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
+            //for (GraphEdge e : child.ins)
+                //System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
             
             height = child.getHeight();
             width = child.getWidth();
@@ -602,8 +601,7 @@ public final strictfp class Graph {
         int startX = centerX - layerWidth;
         for (GraphNode child : children) {
             startX += child.getWidth() + this.xJump;
-            System.out.println(startX);
-            child.setX(startX);
+            //child.setX(startX);
             //child.setY(startY);
         }
         
@@ -811,9 +809,8 @@ public final strictfp class Graph {
         for (GraphNode n : nodes) {
             if (n.getChildren().isEmpty()) {
                 n.calcBounds();
-            } else {
+            } else { //[N7-R. Bossut, M. Quentin]
                 n.imbricatedNodeBounds();
-                System.out.println("DOUUUUUUZZZEEEEEE");
             }
         }
 
