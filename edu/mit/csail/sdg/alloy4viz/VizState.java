@@ -106,6 +106,9 @@ public final class VizState {
         // Ports styles
         portStyle.putAll(old.portStyle);
         
+        // Ports labels
+        portLabel.putAll(old.portLabel);
+        
         changedSinceLastSave = false;
     }
 
@@ -168,7 +171,7 @@ public final class VizState {
         
         // Ports colors
         portColor.clear();
-        portColor.put(null, DotColor.RED);
+        portColor.put(null, DotColor.MAGIC);
         
         // Ports shapes
         portShape.clear();
@@ -177,6 +180,10 @@ public final class VizState {
         // Ports styles
         portStyle.clear();
         portStyle.put(null, DotStyle.SOLID);
+        
+        // Ports labels
+        portLabel.clear();
+        portLabel.put(null, false);
 
         
         // Provide some nice defaults for "Int" and "seq/Int" type
@@ -633,6 +640,9 @@ public final class VizState {
     // Ports styles
     public final MMap<DotStyle> portStyle = new MMap<DotStyle>();
     
+    // Ports labels
+    public final MMap<Boolean> portLabel = new MMap<Boolean>(true,false);
+    
 
     public final class MInt {
 
@@ -739,7 +749,7 @@ public final class VizState {
          * Prints the map in the console
          */
         public void printMap() {
-            System.out.println("<-START->");
+            System.out.println("--START--");
             
             Set listKeys = map.keySet();
             Iterator iter = listKeys.iterator();
@@ -749,7 +759,7 @@ public final class VizState {
             	System.out.println(key+"=>"+map.get(key));
             }
             
-            System.out.println("<-END->");
+            System.out.println("--END--");
         }
         
 
