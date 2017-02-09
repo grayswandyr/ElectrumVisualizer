@@ -282,7 +282,7 @@ public final class VizGraphPanel extends JPanel {
         graphPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent ev) {
-				// We let Ctrl+LeftClick bring up the popup menu, just like
+		// We let Ctrl+LeftClick bring up the popup menu, just like
                 // RightClick,
                 // since many Mac mouses do not have a right button.
                 if (viewer == null) {

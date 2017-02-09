@@ -128,7 +128,7 @@ public final class VizGUI implements ComponentListener {
      */
     private final JButton projectionButton, openSettingsButton, closeSettingsButton, magicLayout, loadSettingsButton,
             saveSettingsButton, saveAsSettingsButton, resetSettingsButton, updateSettingsButton, openEvaluatorButton,
-            closeEvaluatorButton, enumerateButton, vizButton, treeButton, txtButton/* , dotButton, xmlButton*/;
+            closeEvaluatorButton, enumerateButton, vizButton, treeButton, txtButton, splitButton/* , dotButton, xmlButton*/;
 
     /**
      * This list must contain all the display mode buttons (that is, vizButton,
@@ -692,6 +692,11 @@ public final class VizGUI implements ComponentListener {
                     "Save the current theme customization as a new theme file", "images/24_save.gif", doSaveThemeAs()));
             toolbar.add(resetSettingsButton = OurUtil.button("Reset", "Reset the theme customization",
                     "images/24_settings_close2.gif", doResetTheme()));
+            /**
+             * [N7] @Louis Fauvarque
+             * Adds the button to split the datas
+             */ 
+            toolbar.add(splitButton = OurUtil.button("Split","Splits the screens into two graphs","images/24_split.gif",doSplitGraph()));
             //addTemporalJPanel();//pt.uminho.haslab: the jpanel with temporal states is created
         } finally {
             wrap = false;
@@ -936,7 +941,7 @@ public final class VizGUI implements ComponentListener {
             case TEXT:
                 txtButton.setEnabled(false);
                 break;
-		// case XML: xmlButton.setEnabled(false); break;
+            // case XML: xmlButton.setEnabled(false); break;
             // case DOT: dotButton.setEnabled(false); break;
             default:
                 vizButton.setEnabled(false);
@@ -945,7 +950,7 @@ public final class VizGUI implements ComponentListener {
         vizButton.setVisible(frame != null);
         treeButton.setVisible(frame != null);
         txtButton.setVisible(frame != null);
-		// dotButton.setVisible(frame!=null);
+	// dotButton.setVisible(frame!=null);
         // xmlButton.setVisible(frame!=null);
         magicLayout.setVisible((settingsOpen == 0 || settingsOpen == 1) && currentMode == VisualizerMode.Viz);
         projectionButton.setVisible((settingsOpen == 0 || settingsOpen == 1) && currentMode == VisualizerMode.Viz);
@@ -961,7 +966,7 @@ public final class VizGUI implements ComponentListener {
         enumerateMenu.setEnabled(!isMeta && settingsOpen == 0 && enumerator != null);
         enumerateButton.setVisible(!isMeta && settingsOpen == 0 && enumerator != null);
         toolbar.setVisible(true);
-		// Now, generate the graph or tree or textarea that we want to display
+        // Now, generate the graph or tree or textarea that we want to display
         // on the right
         if (frame != null) {
             frame.setTitle(makeVizTitle());
@@ -987,7 +992,7 @@ public final class VizGUI implements ComponentListener {
                 content = getTextComponent(textualOutput);
                 break;
             }
-		// case XML: {
+            // case XML: {
             // content=getTextComponent(xmlFileName);
             // break;
             // }
@@ -1542,6 +1547,16 @@ public final class VizGUI implements ComponentListener {
         }
         Util.setCurrentDirectory(file.getParentFile());
         saveThemeFile(file.getPath());
+        return null;
+    }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Splits the graph into two;
+     * @return 
+     */
+    
+    private Runner doSplitGraph(){
         return null;
     }
 
