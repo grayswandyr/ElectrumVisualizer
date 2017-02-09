@@ -16,6 +16,7 @@
  */
 package edu.mit.csail.sdg.alloy4graph;
 
+import edu.mit.csail.sdg.alloy4.OurUtil;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.Icon;
 
 /**
  * This class represents the concept of port.
@@ -68,22 +70,29 @@ public class GraphPort extends AbstractGraphNode {
      * This assume the node's shape is not too "funky"
      */
     public enum Orientation {
-        North    ("North"),
-        NorthEast("North East"),
-        East     ("East"),
-        SouthEast("South East"),
-        South    ("South"),
-        SouthWest("South West"),
-        West     ("West"),
-        NorthWest("North West");
+        North    ("North"     , "n"),
+        NorthEast("North East", "ne"),
+        East     ("East"      , "e"),
+        SouthEast("South East", "se"),
+        South    ("South"     , "s"),
+        SouthWest("South West", "sw"),
+        West     ("West"      , "w"),
+        NorthWest("North West", "nw");
         
         private final String name;
-        private Orientation(String s) {
+        private final Icon icon;
+        
+        private Orientation(String s, String sn) {
             this.name = s;
+            this.icon = OurUtil.loadIcon("icons/OrientationIcons/arrow_" + sn + ".gif");
         }
         
         public String toString() {
             return this.name;
+        }
+        
+        public Icon getIcon() {
+            return this.icon;
         }
     }
     
