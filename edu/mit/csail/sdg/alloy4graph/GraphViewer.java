@@ -96,6 +96,11 @@ public final strictfp class GraphViewer extends JPanel {
      * is none.
      */
     private Object selected = null;
+    
+    /**
+     * [N7-G.Dupont] Hovered port.
+     */
+    private GraphPort hoveredPort = null;
 
     /**
      * The button that initialized the drag-and-drop; this value is undefined
@@ -295,11 +300,30 @@ public final strictfp class GraphViewer extends JPanel {
                 if (pop.isVisible()) {
                     return;
                 }
+                
+                // [N7-G.Dupont]
                 Object obj = alloyFind(ev.getX(), ev.getY());
+                boolean needRepaint = false;
+                
+                if (hoveredPort != null && obj != hoveredPort) {
+                    System.out.println("Port out (" + hoveredPort.getLabel() + ")");
+                    hoveredPort = null;
+                    needRepaint = true;
+                }
+                
+                if (obj instanceof GraphPort) {
+                    hoveredPort = (GraphPort)obj;
+                    System.out.println("Port in (" + hoveredPort.getLabel() + ")");
+                    needRepaint = true;
+                }
+                
                 if (highlight != obj) {
                     highlight = obj;
-                    alloyRepaint();
+                    needRepaint = true;
                 }
+                
+                if (needRepaint)
+                    alloyRepaint();
             }
 
             @Override
@@ -760,15 +784,19 @@ public final strictfp class GraphViewer extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.scale(scale, scale);
         Object sel = (selected != null ? selected : highlight);
-        GraphNode c = null;
-        if (sel instanceof GraphNode && ((GraphNode) sel).shape() == null) {
-            c = (GraphNode) sel;
+        AbstractGraphNode c = null;
+        if (sel instanceof AbstractGraphNode && ((AbstractGraphNode) sel).shape() == null) {
+            c = (AbstractGraphNode) sel;
             sel = c.ins.get(0);
         }
         graph.draw(new Artist(g2), scale, sel, true);
         if (c != null) {
             gr.setColor(((GraphEdge) sel).color());
             gr.fillArc(c.x() - 5 - graph.getLeft(), c.y() - 5 - graph.getTop(), 10, 10, 0, 360);
+        }
+        if (hoveredPort != null) {
+            g2.setTransform(oldAF);
+            hoveredPort.drawTooltip(new Artist(g2), 1.2);
         }
         g2.setTransform(oldAF);
     }

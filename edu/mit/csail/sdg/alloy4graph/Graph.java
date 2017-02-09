@@ -1117,18 +1117,18 @@ public final strictfp class Graph {
             }
         }
         for (GraphNode n : nodes) {
-            if (n.shape() == null && Math.abs(n.x() - x) < 10 && Math.abs(n.y() - y) < 10) {
-                return n;
-            }
-            if (n.contains(x, y)) {
-                return n;
-            }
-
             // [N7-G.Dupont] Added finding in the ports of each nodes
             for (GraphPort p : n.ports) {
                 if (p.contains(x, y)) {
                     return p;
                 }
+            }
+            
+            if (n.shape() == null && Math.abs(n.x() - x) < 10 && Math.abs(n.y() - y) < 10) {
+                return n;
+            }
+            if (n.contains(x, y)) {
+                return n;
             }
         }
         for (GraphEdge e : edges) {
