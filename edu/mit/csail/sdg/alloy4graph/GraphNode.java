@@ -715,6 +715,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         updown = hh;
         
         portBounds(); // [N7-G.Dupont]
+        hh = updown;
+        hw = side;
         
         switch (shape()) {
             case HOUSE: {
