@@ -21,7 +21,9 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class represents the concept of port.
@@ -66,10 +68,14 @@ public class GraphPort extends AbstractGraphNode {
      * This assume the node's shape is not too "funky"
      */
     public enum Orientation {
-        North("North"), // The node is on the top edge
-        South("South"), // The node is on the bottom edge
-        East("East"),  // The node is on the right edge
-        West("West");  // The node is on the left edge
+        North    ("North"),
+        NorthEast("North East"),
+        East     ("East"),
+        SouthEast("South East"),
+        South    ("South"),
+        SouthWest("South West"),
+        West     ("West"),
+        NorthWest("North West");
         
         private final String name;
         private Orientation(String s) {
@@ -79,6 +85,55 @@ public class GraphPort extends AbstractGraphNode {
         public String toString() {
             return this.name;
         }
+    }
+    
+    private static Orientation[] makeArray(Orientation... ors) {
+        return ors;
+    }
+    
+    public static final Map<DotShape,Orientation[]> AvailableOrientations;
+    static {
+        // These combinations are pretty common
+        final Orientation NESW[] = makeArray(Orientation.North, Orientation.South, Orientation.West, Orientation.East);
+        final Orientation Every[] = makeArray(Orientation.North, Orientation.NorthEast, Orientation.East, Orientation.SouthEast, Orientation.South, Orientation.SouthWest, Orientation.West, Orientation.NorthWest);
+        final Orientation Odds[] = makeArray(Orientation.NorthEast, Orientation.SouthEast, Orientation.SouthWest, Orientation.NorthWest);
+        final Orientation None[] = {};
+        
+        AvailableOrientations = new HashMap<>();
+        AvailableOrientations.put(DotShape.ELLIPSE       , NESW);
+        AvailableOrientations.put(DotShape.BOX           , NESW);
+        AvailableOrientations.put(DotShape.CIRCLE        , NESW);
+        AvailableOrientations.put(DotShape.EGG           , None);
+        AvailableOrientations.put(DotShape.TRIANGLE      , makeArray(Orientation.NorthEast, Orientation.NorthWest, Orientation.South));
+        AvailableOrientations.put(DotShape.DIAMOND       , Odds);
+        AvailableOrientations.put(DotShape.TRAPEZOID     , NESW);
+        AvailableOrientations.put(DotShape.PARALLELOGRAM , NESW);
+        AvailableOrientations.put(DotShape.HOUSE         , makeArray(Orientation.NorthEast, Orientation.East, Orientation.South, Orientation.West, Orientation.NorthWest));
+        AvailableOrientations.put(DotShape.HEXAGON       , makeArray(Orientation.North, Orientation.NorthEast, Orientation.SouthEast, Orientation.South, Orientation.SouthWest, Orientation.NorthWest));
+        AvailableOrientations.put(DotShape.OCTAGON       , Every);
+        AvailableOrientations.put(DotShape.DOUBLE_CIRCLE , NESW);
+        AvailableOrientations.put(DotShape.DOUBLE_OCTAGON, Every);
+        AvailableOrientations.put(DotShape.TRIPLE_OCTAGON, Every);
+        AvailableOrientations.put(DotShape.INV_TRIANGLE  , makeArray(Orientation.North, Orientation.SouthEast, Orientation.SouthWest));
+        AvailableOrientations.put(DotShape.INV_HOUSE     , makeArray(Orientation.North, Orientation.East, Orientation.SouthEast, Orientation.SouthWest, Orientation.West));
+        AvailableOrientations.put(DotShape.INV_TRAPEZOID , NESW);
+        AvailableOrientations.put(DotShape.M_DIAMOND     , Odds);
+        AvailableOrientations.put(DotShape.M_SQUARE      , NESW);
+        AvailableOrientations.put(DotShape.M_CIRCLE      , NESW);
+        AvailableOrientations.put(DotShape.DUMMY         , None);
+    }
+    
+    public static boolean IsShapeAuthorized(DotShape s) {
+        return AvailableOrientations.get(s).length > 0;
+    }
+    
+    public static boolean IsOrientationAuthorized(DotShape s, Orientation o) {
+        Orientation ors[] = AvailableOrientations.get(s);
+        for (Orientation or : ors) {
+            if (or.equals(o))
+                return true;
+        }
+        return false;
     }
     
     /**
@@ -136,6 +191,11 @@ public class GraphPort extends AbstractGraphNode {
      */
     private String label = null;
     
+    /**
+     * Determines if the port should draw its label.
+     */
+    private boolean drawLabel = true;
+    
     /// Styling ///
     /**
      * "radius" of the port.
@@ -155,8 +215,10 @@ public class GraphPort extends AbstractGraphNode {
     
     /**
      * Cstr.
-     * @param node
-     * @paramg uuid 
+     * @param node parent node for the port
+     * @param uuid uuid of the port
+     * @param label label of the port
+     * @param or side of the node on which the port will be
      */
     public GraphPort(GraphNode node, Object uuid, String label, Orientation or) {
         super(node.graph, uuid);
@@ -260,10 +322,12 @@ public class GraphPort extends AbstractGraphNode {
         }
         
         // Draw label with requested font size
-        int fontTemp = gr.getFontSize();
-        gr.setFontSize(this.getFontSize());
-        gr.drawString(this.label, this.labelX, this.labelY, this.labelTheta);
-        gr.setFontSize(fontTemp);
+        if (drawLabel) {
+            int fontTemp = gr.getFontSize();
+            gr.setFontSize(this.getFontSize());
+            gr.drawString(this.label, this.labelX, this.labelY, this.labelTheta);
+            gr.setFontSize(fontTemp);
+        }
         
         // Translate back the system where it was before (hopefully)
         gr.translate(this.node.getWidth() / 2, this.node.getHeight() / 2);
@@ -375,7 +439,7 @@ public class GraphPort extends AbstractGraphNode {
      * @return the label size
      */
     int getLabelSize() {
-        if (this.label.length() == 0)
+        if (this.label.length() == 0 || !drawLabel)
             return 0;
         
         Rectangle2D rect = Artist.getBounds(this.getFontBoldness(), this.label, this.getFontSize());
@@ -450,6 +514,14 @@ public class GraphPort extends AbstractGraphNode {
     public void setShape(DotShape shape) {
         super.setShape(shape);
         this.needRecalc = true;
+    }
+    
+    public boolean drawLabel() {
+        return drawLabel;
+    }
+    
+    public void setDrawLabel(boolean t) {
+        drawLabel = t;
     }
     
     /**
