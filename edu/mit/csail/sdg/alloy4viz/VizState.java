@@ -703,6 +703,10 @@ public final class VizState {
             changeIf(map.put(x, v), v);
         }
     }
+    
+    public interface Callback<T> {
+        void call(T a);
+    }
 
     public final class MMap<T> {
 
@@ -805,8 +809,12 @@ public final class VizState {
                 }
             };
         }
-
+        
         OurCheckbox pick(final AlloyElement obj, final String label, final String tooltip) {
+            return this.pick(obj, label, tooltip, null);
+        }
+
+        OurCheckbox pick(final AlloyElement obj, final String label, final String tooltip, Callback cb) {
             T a = get(obj), b = resolve(obj);
             Icon icon = a == null ? (Boolean.TRUE.equals(b) ? OurCheckbox.INH_ON : OurCheckbox.INH_OFF) : (Boolean.TRUE.equals(a) ? OurCheckbox.ALL_ON : OurCheckbox.ALL_OFF);
             return new OurCheckbox(label, tooltip, icon) {
@@ -822,6 +830,7 @@ public final class VizState {
                         a = null;
                     }
                     MMap.this.put(obj, a);
+                    if (cb != null) cb.call(resolve(obj));
                     return a == null ? (Boolean.TRUE.equals(resolve(obj)) ? INH_ON : INH_OFF) : (Boolean.TRUE.equals(a) ? ALL_ON : ALL_OFF);
                 }
             };
