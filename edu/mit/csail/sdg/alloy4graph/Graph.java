@@ -574,16 +574,56 @@ public final strictfp class Graph {
         int nOuts;
         int nIns;
         
-        TreeMap<Integer, GraphNode> nodaList = new TreeMap<Integer, GraphNode>();
+        TreeMap<Integer, ArrayList<GraphNode>> nodaList = new TreeMap<Integer, ArrayList<GraphNode>>();
         
-        int layerWidth = this.xJump;
-        int layerHeight = this.yJump;
+        int layerWidth = GraphNode.xJumpNode;
+        int layerHeight = GraphNode.yJumpNode;
         
         for (GraphNode child : children) {
-            nOuts = child.outs.size();
-            nIns = child.ins.size();
+            nOuts = 0;
+            nIns = 0;
+            for (GraphEdge e : child.outs) {
+                /*if (e.a() instanceof GraphNode) {
+                    if (children.contains((GraphNode) e.a())) {
+                        nOuts++;
+                    }
+                }*/
+                
+                if (e.b() instanceof GraphNode) {
+                    if (children.contains((GraphNode) e.b())) {
+                        nOuts++;
+                    }
+                }
+            }
             
-            nodaList.put(nOuts+nIns, child);
+            for (GraphEdge e : child.ins) {
+                if (e.a() instanceof GraphNode) {
+                    if (children.contains((GraphNode) e.a())) {
+                        nIns++;
+                    }
+                }
+                
+                /*if (e.b() instanceof GraphNode) {
+                    if (children.contains((GraphNode) e.b())) {
+                        nIns++;
+                    }
+                }*/
+            }
+            
+            System.out.println("Child: " + child.uuid + " nOuts: " + nOuts);
+            System.out.println("Child: " + child.uuid + " nIns: " + nIns);         
+            
+            // We construct HashMap containing the layers
+            ArrayList auxList;
+            if (nodaList.get(nOuts+nIns) == null) {
+                auxList = new ArrayList<GraphNode>();
+                auxList.add(child);
+            } else {
+                auxList = nodaList.get(nOuts+nIns);
+                auxList.add(child);
+            }
+            
+            nodaList.put(nOuts+nIns, auxList);
             
             /*
             for (GraphEdge e : child.outs) 
@@ -598,8 +638,8 @@ public final strictfp class Graph {
             //maxWidth = (maxWidth < width) ? width : maxWidth;
             //maxHeight = (maxHeight < height) ? height : maxHeight;
             
-            layerWidth  += width  + this.xJump;
-            layerHeight += height + this.yJump;
+            layerWidth  += width  + GraphNode.xJumpNode;
+            layerHeight += height + GraphNode.yJumpNode;
             
             //child.setX((int) Math.floor((5 + leftTopX + child.getWidth())));
             //child.setY((int) Math.floor((5 + leftTopY + child.getHeight())));
@@ -608,20 +648,42 @@ public final strictfp class Graph {
         
         int nbLayers = nodaList.size();
         int i = nbLayers;
-        for (GraphNode child : nodaList.values()) {
-            child.setLayer(nbLayers-(--i));
-            System.out.println("Child: " + child.uuid + " layer: " + child.layer());
+        for (ArrayList<GraphNode> childList : nodaList.values()) {
+            //System.out.println("Layer list: " + childList + " nbLayer: " + childList.get(0).layer());
+            for (GraphNode child : childList) {
+                child.setLayer(nbLayers-i);
+                //System.out.println("Child: " + child.uuid + " layer: " + child.layer());
+            }
+            i--;
         }
         
-        layerWidth += this.xJump;
-        int startX = -layerWidth/2 + this.xJump;
-        int startY = -layerHeight/2 + this.yJump;
-        for (GraphNode child : children) {
+        layerWidth += GraphNode.xJumpNode;
+        int startX;
+        int startY = layerHeight/2 - GraphNode.yJumpNode;
+        
+        int layer=0;
+        int maxHeight;
+        for (ArrayList<GraphNode> childList : nodaList.values()) {
+            startX = (childList.size() > 1) ? -layerWidth/2 + GraphNode.xJumpNode : 0;
             
-            child.setX(startX);
-            //child.setY(startY + child.layer()*this.yJump + child.getHeight()/2);
+            maxHeight = 0;
+            for (GraphNode child: childList) {
+                layer = child.layer();
+                int childHeight = child.getHeight();
+                maxHeight = (maxHeight < childHeight) ? childHeight : maxHeight;
+            }
+            startY -= (layer > 0) ? maxHeight/2 : 0;
+            //System.out.println("Layer List: " + childList + " layer: " + layer + " startY: " + startY);
             
-            startX += child.getWidth() + this.xJump;
+            for (GraphNode child : childList) {
+                
+                child.setX(startX);
+                child.setY(startY - child.getHeight()/2);
+
+                startX += child.getWidth() + GraphNode.xJumpNode;
+            }
+            
+            startY -= maxHeight/2 + GraphNode.yJumpNode;
         }
         
     }

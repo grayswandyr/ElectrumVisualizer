@@ -65,7 +65,17 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * Color to use to show a highlighted node.
      */
     private static final Color COLOR_CHOSENNODE = Color.LIGHT_GRAY;
-
+    
+    /**
+     * Minimum horizontal distance between adjacent nodes of the subGraph.
+     */
+    static final int xJumpNode = 5;
+    
+    /**
+     * Minimum horizontal distance between adjacent layers of the subGraph.
+     */
+    static final int yJumpNode = 5;
+    
     // =============================== cached for performance ===================================
     /**
      * The maximum ascent and descent. We deliberately do NOT make this field
@@ -1122,9 +1132,15 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 maxSide = (gn.side > maxSide) ? gn.side : maxSide;
             }
 
-            this.updown = nbChildren * maxUpdown;
-            this.side = nbChildren * maxSide; 
+            //this.updown = nbChildren * maxUpdown + yJumpNode * (nbChildren - 1);
+            //this.side = nbChildren * maxSide * xJumpNode * (nbChildren - 1); 
 
+            this.updown = nbChildren * maxUpdown + yJumpNode * (nbChildren - 1);
+            this.side = nbChildren * maxSide; 
+            
+            //TODO 
+            //Find the dimension of the figure
+            
             //TODO
             //Change the form of the polygon
             poly = new Polygon();
