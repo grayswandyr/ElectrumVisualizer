@@ -31,7 +31,7 @@ import java.util.TreeMap;
 
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Util;
-import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -571,19 +571,26 @@ public final strictfp class Graph {
         int height;
         int width;
         
-        int maxHeight=0;
-        int maxWidth=0;
+        int nOuts;
+        int nIns;
         
-        int layerWidth = 0;
-        int layerDistY = 0;
+        TreeMap<Integer, GraphNode> nodaList = new TreeMap<Integer, GraphNode>();
         
-        int centerX = father.x();
-        int centerY = father.y();
+        int layerWidth = this.xJump;
+        int layerHeight = this.yJump;
+        
         for (GraphNode child : children) {
-            //for (GraphEdge e : child.outs) 
-                //System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
-            //for (GraphEdge e : child.ins)
-                //System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
+            nOuts = child.outs.size();
+            nIns = child.ins.size();
+            
+            nodaList.put(nOuts+nIns, child);
+            
+            /*
+            for (GraphEdge e : child.outs) 
+                System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
+            for (GraphEdge e : child.ins)
+                System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
+            */
             
             height = child.getHeight();
             width = child.getWidth();
@@ -591,18 +598,30 @@ public final strictfp class Graph {
             //maxWidth = (maxWidth < width) ? width : maxWidth;
             //maxHeight = (maxHeight < height) ? height : maxHeight;
             
-            layerWidth += child.getWidth() + this.xJump;
-            //layerDistY += child.getHeight() + this.yJump;
+            layerWidth  += width  + this.xJump;
+            layerHeight += height + this.yJump;
             
             //child.setX((int) Math.floor((5 + leftTopX + child.getWidth())));
             //child.setY((int) Math.floor((5 + leftTopY + child.getHeight())));
             
+        }     
+        
+        int nbLayers = nodaList.size();
+        int i = nbLayers;
+        for (GraphNode child : nodaList.values()) {
+            child.setLayer(nbLayers-(--i));
+            System.out.println("Child: " + child.uuid + " layer: " + child.layer());
         }
-        int startX = centerX - layerWidth;
+        
+        layerWidth += this.xJump;
+        int startX = -layerWidth/2 + this.xJump;
+        int startY = -layerHeight/2 + this.yJump;
         for (GraphNode child : children) {
+            
+            child.setX(startX);
+            //child.setY(startY + child.layer()*this.yJump + child.getHeight()/2);
+            
             startX += child.getWidth() + this.xJump;
-            //child.setX(startX);
-            //child.setY(startY);
         }
         
     }
@@ -799,7 +818,7 @@ public final strictfp class Graph {
      * (Re-)perform the layout.
      */
     public void layout() {
-
+        
         // The rest of the code below assumes at least one node, so we return right away if nodes.size()==0
         if (nodes.size() == 0) {
             return;
@@ -807,11 +826,7 @@ public final strictfp class Graph {
 
         // Calculate each node's width and height
         for (GraphNode n : nodes) {
-            if (n.getChildren().isEmpty()) {
-                n.calcBounds();
-            } else { //[N7-R. Bossut, M. Quentin]
-                n.imbricatedNodeBounds();
-            }
+            n.calcBounds();
         }
 
         // Layout the nodes
