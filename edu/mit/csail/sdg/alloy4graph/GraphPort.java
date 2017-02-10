@@ -315,7 +315,7 @@ public class GraphPort extends AbstractGraphNode {
             gr.setColor(this.getColor());
         }
         
-        // Translate to the bottom left hand corner of the node (easier for calculi)
+        // Translate to the top left hand corner of the node (easier for calculi)
         gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
         
         // Draw port itself
@@ -331,12 +331,12 @@ public class GraphPort extends AbstractGraphNode {
         }
         
         // Draw label with requested font size
-        if (drawLabel) {
+        /*if (drawLabel) {
             int fontTemp = gr.getFontSize();
             gr.setFontSize(this.getFontSize());
             gr.drawString(this.label, this.labelX, this.labelY, this.labelTheta);
             gr.setFontSize(fontTemp);
-        }
+        }*/
         
         // Translate back the system where it was before (hopefully)
         gr.translate(this.node.getWidth() / 2, this.node.getHeight() / 2);
@@ -380,6 +380,36 @@ public class GraphPort extends AbstractGraphNode {
         gr.draw(s, false);
         // Restore system
         gr.translate(this.radius - x(), this.radius - y());
+    }
+    
+    /**
+     * Draw the port's label as a tooltip.
+     */
+    public void drawTooltip(Artist gr, double scale) {
+        Rectangle2D rect = Artist.getBounds(this.getFontBoldness(), this.label);
+        int width = (int)rect.getWidth(), height = (int)rect.getHeight();
+        
+        final int top = this.graph.getTop(), left = this.graph.getLeft();
+        gr.setColor(Color.RED);
+        gr.fillCircle(5);
+        gr.translate(-top, -left);
+        gr.setColor(Color.GREEN);
+        gr.fillCircle(5);
+        gr.translate(this.node.x(), this.node.y());
+        gr.setColor(Color.BLUE);
+        gr.fillCircle(5);
+        gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
+        gr.setColor(Color.GRAY);
+        gr.fillCircle(5);
+        gr.translate(this.x(), this.y());
+        
+        Shape s = new Rectangle(0, 0, width + 2*LabelPadding, height + 2*LabelPadding);
+        gr.setColor(Color.LIGHT_GRAY);
+        gr.draw(s, true);
+        gr.setColor(Color.BLACK);
+        gr.set(DotStyle.SOLID, scale);
+        gr.draw(s, false);
+        gr.drawString(this.label, LabelPadding, height + LabelPadding, 0);
     }
     
     /**
@@ -551,6 +581,10 @@ public class GraphPort extends AbstractGraphNode {
     public int getHeight() {
         this.height = 2*this.radius;
         return this.height;
+    }
+    
+    public String getLabel() {
+        return label;
     }
     
 }

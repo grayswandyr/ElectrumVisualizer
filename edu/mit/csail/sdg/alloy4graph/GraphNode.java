@@ -432,7 +432,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
             gr.setColor(this.getColor());
         }
         if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
-            int hw = width / 2, hh = height / 2;
+            //int hw = width / 2, hh = height / 2;
+            int hw = this.getWidth() / 2, hh = this.getHeight() / 2;
             int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
             if (shape() == DotShape.DOUBLE_CIRCLE) {
                 radius = radius + 5;
