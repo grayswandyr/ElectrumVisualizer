@@ -507,6 +507,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     @Override
     void draw(Artist gr, double scale, boolean highlight) {
+			draw(gr, scale, highlight, 1);
+		}
+
+    void draw(Artist gr, double scale, boolean highlight, int maxDepth) {
         
         if (shape() == null) {
             return;
@@ -599,9 +603,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
             gr.translate(left - x(), top - y());
             
         } else { // [N7-Bossut, Quentin] Draw the subGraph         
-            
+           if (maxDepth > 0){
+						 //We have'nt reach the depth max yet, we can draw the subgraph.
             subGraph.layoutSubGraph(-side - 4, -side - 4, this);
-            subGraph.draw(gr, scale, uuid, true);
+            subGraph.draw(gr, scale, uuid, true, (maxDepth-1));
             
             gr.setColor(Color.YELLOW);
             //gr.draw(poly, true);
@@ -652,8 +657,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }       
             
             gr.translate(left - x(), top - y());
-            
-        }
+
+					 }else{
+						 //TODO
+						 //We cannot draw the subgraph (it is too deep), we have to paint the node and a button the user have to click to see the subgraph.
+					 }
+				}
     }
 
     /**

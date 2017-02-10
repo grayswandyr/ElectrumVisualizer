@@ -573,31 +573,31 @@ public final class VizCustomizationPanel extends JPanel {
             }
         };
 
-        OurCombobox container = new OurCombobox(true, rel.getIndexedTypes().toArray(), 100, 35, vizState.subVisible.get(rel)) { 			//[N7-<Quentin>]
-            private static final long serialVersionUID = 0;                                                                            //[N7-<Quentin>]
+        OurCombobox container = new OurCombobox(true, rel.getIndexedTypes().toArray(), 100, 35, vizState.subVisible.get(rel)) { 			//[N7-M.Quentin]
+            private static final long serialVersionUID = 0;                                                                            //[N7-M.Quentin]
 
             @Override
             public String do_getText(Object value) {
                 return value == null ? "None" : ((IndexedAlloyType) value).toString();
             }
 
-            ;  //[N7-<Quentin>]
+            ;  //[N7-M.Quentin]
          @Override
             public void do_changed(Object value) {
                 vizState.subVisible.put(rel, (IndexedAlloyType) value);
             }
-        ;               //[N7-<Quentin>]
-        };                                                                                                                     				//[N7-<Quentin>]
-      JLabel containerLabel = OurUtil.label("Use as container:");                                                            				//[N7-<Quentin>]
-        JPanel containerPanel = OurUtil.makeH(containerLabel, 5, container);                                                   			 	//[N7-<Quentin>]
+        ;               //[N7-M.Quentin]
+        };                                                                                                                     				//[N7-M.Quentin]
+      JLabel containerLabel = OurUtil.label("Use as container:");                                                            				//[N7-M.Quentin]
+        JPanel containerPanel = OurUtil.makeH(containerLabel, 5, container);                                                   			 	//[N7-M.Quentin]
 
         JPanel visible = vizState.edgeVisible.pick(rel, "Show as arcs", "Show relation as arcs");
         JPanel attr = vizState.attribute.pick(rel, "Show as attribute", "Additionally display this relation as an attribute on the nodes' labels");
         JPanel back = vizState.layoutBack.pick(rel, "Layout backwards", "Layout graph as if arcs were reversed");
         JPanel merge = vizState.mergeArrows.pick(rel, "Merge arrows", "Merge opposing arrows between the same nodes as one bidirectional arrow");
         JPanel constraint = vizState.constraint.pick(rel, "Influence layout", "Whether this edge influences the graph layout");
-        JPanel panel1 = OurUtil.makeVR(wcolor, containerPanel, visible, attr); //[N7-<Quentin>]
-        JPanel panel2 = OurUtil.makeVR(wcolor, constraint, back, merge); //[N7-<Quentin>]
+        JPanel panel1 = OurUtil.makeVR(wcolor, containerPanel, visible, attr); //[N7-M.Quentin]
+        JPanel panel2 = OurUtil.makeVR(wcolor, constraint, back, merge); //[N7-M.Quentin]
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
@@ -680,12 +680,51 @@ public final class VizCustomizationPanel extends JPanel {
                 return (!x ? ON : OFF);
             }
         };
-        parent.add(makelabel(" General Graph Settings:"));
+				
+				// [N7-R.Bossut]
+				// Definition of the spinner that will be used to define the maximum depth level to be shown for the graph.
+				final JLabel depthLabel = OurUtil.label("Maximum depth level:");
+        final JSpinner depthSpinner = new JSpinner(new SpinnerNumberModel(vizState.getDepthMax(), 0, 9, 1));
+        depthSpinner.setMaximumSize(depthSpinner.getPreferredSize());
+        depthSpinner.setToolTipText("A higher maximum depth will show more level of recursive containing relations, but can cause the representation to be messy.");
+        depthSpinner.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                vizState.setDepthMax((Integer) (depthSpinner.getValue()));
+            }
+        });
+        depthSpinner.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                vizState.setDepthMax((Integer) (depthSpinner.getValue()));
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                vizState.setDepthMax((Integer) (depthSpinner.getValue()));
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                vizState.setDepthMax((Integer) (depthSpinner.getValue()));
+            }
+        });
+        depthSpinner.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                vizState.setDepthMax((Integer) (depthSpinner.getValue()));
+            }
+        });
+        JPanel depthPanel = OurUtil.makeH(depthLabel, 5, depthSpinner);
+        depthPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        depthPanel.setAlignmentY(0.5f);
+        depthPanel.setToolTipText("A higher maximum depth will show more level of recursive containing relations, but can cause the representation to be messy.");
+        
+				parent.add(makelabel(" General Graph Settings:"));
         parent.add(OurUtil.makeH(wcolor, new Dimension(6, 6)));
         parent.add(OurUtil.makeH(wcolor, 25, nLabel, 5, nodepal, 8, aLabel, 5, name, 2, null));
         parent.add(OurUtil.makeH(wcolor, 25, eLabel, 5, edgepal, 8, fLabel, 5, fontSize, 2, null));
-        parent.add(OurUtil.makeH(wcolor, 25, pLabel, 5, priv, 2, null));
-        parent.add(OurUtil.makeH(wcolor, 25, mLabel, 5, meta, 2, null));
+        parent.add(OurUtil.makeH(wcolor, 25, pLabel, 5, priv, 10, mLabel, 5, meta, 2, null));
+        parent.add(OurUtil.makeH(wcolor, 20, depthPanel, 2, null));
     }
 
    //=============================================================================================================//
