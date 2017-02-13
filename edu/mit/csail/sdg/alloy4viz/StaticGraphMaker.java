@@ -197,6 +197,16 @@ public final class StaticGraphMaker {
             for(AlloyTuple tuple : tupleSet){
                 // Create a new GraphRelation and stock it in the list
                 relList.add(new GraphRelation(rel,tuple.getEnd(),tuple.getStart()));
+                       
+                // Create a new port if necessary
+                if(isPort(portRelations,tuple.getStart())) {
+                    GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getEnd());
+                    createPort(tuple.getStart(), node, rel, tuple.getStart().toString(), GraphPort.Orientation.South);
+                }
+                if(isPort(portRelations,tuple.getEnd())) {
+                    GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getStart());
+                    createPort(tuple.getEnd(), node, rel, tuple.getEnd().toString(), GraphPort.Orientation.North);
+                }
             }
         }
         
@@ -654,8 +664,8 @@ public final class StaticGraphMaker {
     }
 
     /**
-     * [N7] Modified by @Louis Fauvarque Indicate if an atom is designed to be a
-     * port
+     * [N7] Modified by @Louis Fauvarque
+     * Indicate if an atom is designed to be a port
      *
      * @param portRelations
      * @param atom
