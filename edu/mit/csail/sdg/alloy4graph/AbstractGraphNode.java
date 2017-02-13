@@ -24,12 +24,8 @@ import java.util.LinkedList;
  * It is a super class for GraphNode and GraphPort (so that an edge can
  * connect to a port).
  */
-public abstract class AbstractGraphNode {
-    /**
-     * Graph element's object uuid.
-     * This can be null; this has not to be unique.
-     */
-    public final Object uuid;
+public abstract class AbstractGraphNode extends AbstractGraphElement {
+ 
     
     /**
      * Coordinates of the center of the element.
@@ -67,8 +63,6 @@ public abstract class AbstractGraphNode {
     Graph graph;
     
     /// Graphical attributes ///
-    private int fontSize = 12;
-    
     /**
      * The font boldness.
      * <p>
@@ -78,38 +72,21 @@ public abstract class AbstractGraphNode {
     private boolean fontBoldness = false;
     
     /**
-     * The node color; never null.
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    private Color color = Color.WHITE;
-
-    /**
-     * The line style; never null.
-     * <p>
-     * When this value changes, we should invalidate the previously computed
-     * bounds information.
-     */
-    private DotStyle style = DotStyle.SOLID;
-    
-    /**
      * Constructor.
      * @param graph the graph this element belongs to
      * @param uuid the element's uuid
      */
     public AbstractGraphNode(Graph graph, Object uuid) {
+        super(uuid);
         this.graph = graph;
-        this.uuid = uuid;
     }
     
     /**
      * Draw the element thanks to given Artist.
      * @param gr the artist with which to draw the element
      * @param scale the scale to set the artist
-     * @param highlights indicate if the element is highlighted (ie: selected/hovered)
      */
-    abstract void draw(Artist gr, double scale, boolean highlights);
+    abstract void draw(Artist gr, double scale);
     
     /**
      * Determines if coordinates are inside/on the element.
@@ -177,54 +154,6 @@ public abstract class AbstractGraphNode {
     
     public void setFondBoldness(boolean fb) {
         fontBoldness = fb;
-    }
-    
-    /**
-     * Get port color
-     * @return port colro
-     */
-    public Color getColor() {
-        return color;
-    }
-
-    /**
-     * Set port color
-     * @param color new color
-     */
-    public void setColor(Color color) {
-        this.color = color;
-    }
-
-    /**
-     * Get port line style
-     * @return the port line style
-     */
-    public DotStyle getStyle() {
-        return style;
-    }
-
-    /**
-     * Set port line style
-     * @param style new port line style
-     */
-    public void setStyle(DotStyle style) {
-        this.style = style;
-    }
-    
-    /**
-     * Get the font size
-     * @return font size
-     */
-    public int getFontSize() {
-        return fontSize;
-    }
-    
-    /**
-     * Set the font size
-     * @param fs new font size
-     */
-    public void setFontSize(int fs) {
-        this.fontSize = fs;
     }
     
     /**
