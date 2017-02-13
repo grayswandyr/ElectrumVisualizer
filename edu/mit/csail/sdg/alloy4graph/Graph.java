@@ -564,27 +564,32 @@ public final strictfp class Graph {
      * father represents 
      */
     public void layoutSubGraph(GraphNode father) {
-        HashSet<GraphNode> children = father.getChildren();
+        //================================= Creation of the subGraph layers ================================================= //
         
-        int nbChildren = children.size();
+        // This is the set containing all the children of the father node
+        HashSet<GraphNode> children = father.getChildren();
+
         //TODO Retrieve the relations between the nodes and constructs the layers
         
+        // The height and the width of the current child
         int height;
         int width;
         
+        // The number of incoming and outgoing edges within the subGraph
         int nOuts;
         int nIns;
         
+        // The map containing the layers and ordered according to the sum of nIns and nOuts
         TreeMap<Integer, ArrayList<GraphNode>> nodaList = new TreeMap<Integer, ArrayList<GraphNode>>();
         
-        //int layerWidth = GraphNode.xJumpNode;
-        //int layerHeight = GraphNode.yJumpNode;
-        
+        // We fill the Map
         for (GraphNode child : children) {
             nOuts = 0;
             nIns = 0;
+            
             for (GraphEdge e : child.outs) {
                 if (e.b() instanceof GraphNode) {
+                    // If the edge concerns two elements of the subGraph then we increment nOuts
                     if (children.contains((GraphNode) e.b())) {
                         nOuts++;
                     }
@@ -593,16 +598,14 @@ public final strictfp class Graph {
             
             for (GraphEdge e : child.ins) {
                 if (e.a() instanceof GraphNode) {
+                    // If the edge concerns two elements of the subGraph then we increment nIns
                     if (children.contains((GraphNode) e.a())) {
                         nIns++;
                     }
                 }
-            }
+            }      
             
-            System.out.println("Child: " + child.uuid + " nOuts: " + nOuts);
-            System.out.println("Child: " + child.uuid + " nIns: " + nIns);         
-            
-            // We construct HashMap containing the layers
+            // Now we can construct the layers and add them to the Map
             ArrayList<GraphNode> auxList;
             if (nodaList.get(nOuts+nIns) == null) {
                 auxList = new ArrayList<>();
@@ -614,31 +617,22 @@ public final strictfp class Graph {
             
             nodaList.put(nOuts+nIns, auxList);
             
-            /*
-            for (GraphEdge e : child.outs) 
-                System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
-            for (GraphEdge e : child.ins)
-                System.out.println("Edge: " + e.label() + " from " + e.a().uuid + " to " + e.b().uuid);
-            */
-            
             height = child.getHeight();
             width = child.getWidth();
             
-            //maxWidth = (maxWidth < width) ? width : maxWidth;
-            //maxHeight = (maxHeight < height) ? height : maxHeight;
-            
-            //layerWidth  += width  + GraphNode.xJumpNode;
-            //layerHeight += height + GraphNode.yJumpNode;
-            
         }     
+        
+        //================================= Assignment of the nodes according to the layers previously established ================================================= //
         
         int nbLayers = nodaList.size();
         
+        // The arrays containing the width and the height of each layer
         int[] layerWidth = new int[nbLayers];
-        Arrays.fill(layerWidth, GraphNode.xJumpNode);
+        Arrays.fill(layerWidth, GraphNode.xJumpNode); // We have to consider the little space between the edge of the father node and the layer
         int[] layerHeight = new int[nbLayers];
-        Arrays.fill(layerHeight, GraphNode.yJumpNode);
+        Arrays.fill(layerHeight, GraphNode.yJumpNode); // We have to consider the little space between the edge of the father node and the layer
         
+        // We fill the two list
         int childHeight;
         int maxLayerHeight=0;
         int i = nbLayers;
@@ -655,6 +649,8 @@ public final strictfp class Graph {
             i--;
         }
         
+        // This is where the assignment begin
+        // First, we have to compute the two dimensions of the father node
         int totalHeight=0;
         int totalWidth=0;
         for (int j=0; j<nbLayers; j++) {
@@ -662,6 +658,7 @@ public final strictfp class Graph {
             totalWidth += layerWidth[i];
         }
         
+        // The two integers corresponding to the coordinates wehre we start to draw each layer
         int startX;
         int startY = totalHeight/2 - GraphNode.yJumpNode;
         
@@ -671,6 +668,7 @@ public final strictfp class Graph {
             layer = childList.get(0).layer();
             startX = (childList.size() > 1) ? -layerWidth[layer]/2 + GraphNode.xJumpNode : 0;
             
+            // The height can vary from a node to an other, so we have to consider the biggest height for the layer
             maxHeight = 0;
             for (GraphNode child: childList) {
                 layer = child.layer();
@@ -691,8 +689,6 @@ public final strictfp class Graph {
             
             startY -= maxHeight/2 + GraphNode.yJumpNode;
         }
-        System.out.println(totalHeight);
-        System.out.println(totalWidth);
         father.setSubGraphHeight(totalHeight);
         father.setSubGraphWidth(totalWidth);
     }
