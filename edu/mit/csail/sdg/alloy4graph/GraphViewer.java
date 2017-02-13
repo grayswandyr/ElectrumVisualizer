@@ -401,7 +401,8 @@ public final strictfp class GraphViewer extends JPanel {
             @Override
             public void mouseExited(MouseEvent ev) {
                 if (highlight != null) {
-                    ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
+                    if (highlight instanceof AbstractGraphElement)
+                        ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = null;
                     alloyRepaint();
                 }
