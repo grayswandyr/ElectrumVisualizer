@@ -76,13 +76,6 @@ public final class StaticGraphMaker {
      * corresponds to.
      */
     private final Map<GraphNode, AlloyAtom> nodes = new LinkedHashMap<GraphNode, AlloyAtom>();
-    
-    /**
-     * [N7] @Julien Richer
-     * The map that contains all ports and what the AlloyAtom that each port
-     * corresponds to.
-     */
-    private final Map<GraphPort, AlloyAtom> ports = new LinkedHashMap<GraphPort, AlloyAtom>();
 
     /**
      * This maps each atom to the node representing it; if an atom doesn't have
@@ -95,12 +88,6 @@ public final class StaticGraphMaker {
      * This maps each port to the atom representing it
      */
     private static final Map<AlloyAtom, GraphPort> atom2port = new LinkedHashMap<AlloyAtom,GraphPort>();
-    public static void printAtom2Port() {
-        System.out.println("===");
-        for(AlloyAtom at : atom2port.keySet()) {
-            System.out.println(at.toString() + " => " + atom2port.get(at).toString());
-        }
-    }
     
     /**
      * This stores a set of additional labels we want to add to an existing
@@ -204,10 +191,6 @@ public final class StaticGraphMaker {
             for(AlloyTuple tuple : tupleSet){
                 // Create a new GraphRelation and stock it in the list
                 relList.add(new GraphRelation(rel,tuple.getEnd(),tuple.getStart()));
-                
-                // Create the port if it does not exist
-                //GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getStart());
-                //createPort(tuple.getEnd(), node, rel, tuple.getStart().toString(), GraphPort.Orientation.South);
             }
         }
         
@@ -234,18 +217,83 @@ public final class StaticGraphMaker {
                             }
                         }
                         
-                        // Create the 2 nodes and 2 ports
+                        /** 
+                         * [N7] @Julien Richer
+                         * Create the 2 nodes and the 2 ports
+                         */
+                        
                         GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                        GraphPort startPort = createPort(atomStart, startNode, relStart, tuple.getStart().toString(), GraphPort.Orientation.South);
+                        GraphPort startPort = new GraphPort(startNode, null, tuple.getStart().toString(),GraphPort.Orientation.South);
                         
                         GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
-                        GraphPort endPort = createPort(atomEnd, endNode, relEnd, tuple.getEnd().toString(), GraphPort.Orientation.North);
-
-                        // Create the edge between the 2 nodes
-                        if(startPort==null) System.out.println("<init>: port start null");
-                        if(endPort==null) System.out.println("<init>: port end null");
+                        GraphPort endPort = new GraphPort(endNode, null, tuple.getEnd().toString(),GraphPort.Orientation.North);
                         
-                        new GraphEdge(startNode, endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).set(DotStyle.BLANK);
+                        // First side
+                        
+                        // Set the port orientation
+                        GraphPort.Orientation startOrient = view.orientations.get(relStart);
+                        if(startOrient!=null) {
+                            startPort.setOrientation(startOrient);
+                        }
+                        else {
+                            startPort.setOrientation(GraphPort.Orientation.South);
+                        }
+                        
+                        // Set the port color
+                        DotColor startColor = view.portColor.resolve(relStart);
+                        if(startColor!=null) {
+                            startPort.setColor(startColor.getColor(view.getPortPalette()));
+                        }
+                        else {
+                            startPort.setColor(Color.blue);
+                        }
+                        
+                        // Set the port shape
+                        DotShape startShape = view.portShape.resolve(relStart);
+                        if(startShape!=null) {
+                            startPort.setShape(startShape);
+                        }
+                        else {
+                            startPort.setShape(DotShape.BOX);
+                        }
+                        
+                        atom2port.put(tuple.getStart(), startPort);
+                        
+                        
+                        // Second side
+                        
+                        // Set the port orientation
+                        endPort.setOrientation(GraphPort.Orientation.North);
+                        GraphPort.Orientation endOrient = view.orientations.get(relEnd);
+                        if(endOrient!=null) {
+                            endPort.setOrientation(endOrient);
+                        }
+                        else {
+                            endPort.setOrientation(GraphPort.Orientation.North);
+                        }
+                        
+                        // Set the port color
+                        DotColor endColor = view.portColor.resolve(relEnd);
+                        if(endColor!=null) {
+                            endPort.setColor(endColor.getColor(view.getPortPalette()));
+                        }
+                        else {
+                            endPort.setColor(Color.red);
+                        }
+                        
+                        // Set the port shape
+                        DotShape endShape = view.portShape.resolve(relEnd);
+                        if(endShape!=null) {
+                            endPort.setShape(endShape);
+                        }
+                        else {
+                            endPort.setShape(DotShape.BOX);
+                        }
+                        
+                        atom2port.put(tuple.getEnd(), endPort);
+                        
+                        // Create the edge between the 2 nodes connected through the 2 ports
+                        new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).set(DotStyle.BLANK);
                     }
                 }
             }
@@ -429,64 +477,6 @@ public final class StaticGraphMaker {
         edges.put(e, tuple);
         return true;
     }
-    
-    
-    /**
-     * [N7] @Julien Richer
-     * Return the port for a specific AlloyAtom (create it if it doesn't exist
-     * yet).
-     *
-     * @return null if the atom is explicitly marked as "Don't Show".
-     */
-    private GraphPort createPort(final AlloyAtom atom, final GraphNode node, final AlloyRelation rel, final String label, final GraphPort.Orientation or) {
-        
-        // Test if the port exists
-        if (atom2port.containsKey(atom)) {
-            return atom2port.get(atom);
-        }
-        
-        // Make the port
-        GraphPort port = new GraphPort(node, null, label, or);
-        
-        // Set/unset the label display
-        port.setDrawLabel(view.portLabel.resolve(rel));
-
-        // Set the port orientation
-        GraphPort.Orientation orient = view.orientations.get(rel);
-        if(orient!=null) {
-            port.setOrientation(orient);
-        }
-        else {
-            // Default orientation
-            port.setOrientation(GraphPort.Orientation.South);
-        }
-
-        // Set the port color
-        DotColor color = view.portColor.resolve(rel);
-        if(color!=null) {
-            port.setColor(color.getColor(view.getPortPalette()));
-        }
-        else {
-            // Default color
-            port.setColor(Color.blue);
-        }
-
-        // Set the port shape
-        DotShape shape = view.portShape.resolve(rel);
-        if(shape!=null) {
-            port.setShape(shape);
-        }
-        else {
-            // Default shape
-            port.setShape(DotShape.BOX);
-        }
-        
-        ports.put(port, atom);
-        atom2port.put(atom, port);
-        
-        return port;
-    }
-    
 
     /**
      * Create edges for every visible tuple in the given relation.
