@@ -119,7 +119,6 @@ public final class StaticGraphMaker {
             proj = new AlloyProjection();
         }
         Graph graph = new Graph(view.getFontSize() / 12.0D);
-        System.out.println("---------- Calling SGM ----------");
         StaticGraphMaker sgm = new StaticGraphMaker(graph, instance, view, proj);
         if (graph.nodes.size() == 0) {
             new GraphNode(graph, "", "Due to your theme settings, every atom is hidden.", "Please click Theme and adjust your settings.");
@@ -228,79 +227,12 @@ public final class StaticGraphMaker {
                          * [N7] @Julien Richer
                          * Create the 2 nodes and the 2 ports
                          */
-                        System.out.println("--- Nodes and ports creations ---");
                         GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                        //GraphPort startPort = new GraphPort(startNode, null, tuple.getStart().toString(), GraphPort.Orientation.South);
                         GraphPort startPort = createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), GraphPort.Orientation.South);
                         
                         GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
-                        //GraphPort endPort = new GraphPort(endNode, null, tuple.getEnd().toString(),GraphPort.Orientation.North);
                         GraphPort endPort = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(),GraphPort.Orientation.North);
-                        /*
-                        // First side
-                        
-                        // Set the port orientation
-                        GraphPort.Orientation startOrient = view.orientations.get(relStart);
-                        if(startOrient!=null) {
-                            startPort.setOrientation(startOrient);
-                        }
-                        else {
-                            startPort.setOrientation(GraphPort.Orientation.South);
-                        }
-                        
-                        // Set the port color
-                        DotColor startColor = view.portColor.resolve(relStart);
-                        if(startColor!=null) {
-                            startPort.setColor(startColor.getColor(view.getPortPalette()));
-                        }
-                        else {
-                            startPort.setColor(Color.blue);
-                        }
-                        
-                        // Set the port shape
-                        DotShape startShape = view.portShape.resolve(relStart);
-                        if(startShape!=null) {
-                            startPort.setShape(startShape);
-                        }
-                        else {
-                            startPort.setShape(DotShape.BOX);
-                        }
-                        
-                        atom2port.put(tuple.getStart(), startPort);
-                        
-                        
-                        // Second side
-                        
-                        // Set the port orientation
-                        endPort.setOrientation(GraphPort.Orientation.North);
-                        GraphPort.Orientation endOrient = view.orientations.get(relEnd);
-                        if(endOrient!=null) {
-                            endPort.setOrientation(endOrient);
-                        }
-                        else {
-                            endPort.setOrientation(GraphPort.Orientation.North);
-                        }
-                        
-                        // Set the port color
-                        DotColor endColor = view.portColor.resolve(relEnd);
-                        if(endColor!=null) {
-                            endPort.setColor(endColor.getColor(view.getPortPalette()));
-                        }
-                        else {
-                            endPort.setColor(Color.red);
-                        }
-                        
-                        // Set the port shape
-                        DotShape endShape = view.portShape.resolve(relEnd);
-                        if(endShape!=null) {
-                            endPort.setShape(endShape);
-                        }
-                        else {
-                            endPort.setShape(DotShape.BOX);
-                        }
-                        
-                        atom2port.put(tuple.getEnd(), endPort);
-                        */
+
                         // Create the blank edge between the 2 nodes connected through the 2 ports
                         new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).set(DotStyle.BLANK);
                     }
