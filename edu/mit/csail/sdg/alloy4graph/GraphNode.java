@@ -645,15 +645,16 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * the node arround the subgraph.
      */
     private void drawSubgraph(Artist gr, double scale, int top, int maxDepth, int left) {
-		// [N7-Bossut, Quentin] Draw the subGraph         
+        // [N7-Bossut, Quentin] Draw the subGraph         
         //We have'nt reach the depth max yet, we can draw the subgraph.
-        subGraph.layoutSubGraph(this);
-        subGraph.draw(gr, scale, uuid, true, (maxDepth - 1));
 
         gr.setColor(Color.YELLOW);
         gr.draw(poly, true);
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
+        
+        subGraph.layoutSubGraph(this);
+        subGraph.draw(gr, scale, uuid, true, (maxDepth - 1));
 
         /**
          * Inutile pour le moment. if (poly2 != null) { gr.draw(poly2, false); }
@@ -1165,34 +1166,26 @@ public strictfp class GraphNode extends AbstractGraphNode {
     void imbricatedNodeBounds() {
 
         if (!children.isEmpty()) {
-            /*
-             int nbChildren = children.size();
-             int maxUpdown = 0;
-             int maxSide = 0;
-             for (GraphNode gn : children) {
-             if (gn.updown < 0) gn.calcBounds();
-             maxUpdown = (gn.updown > maxUpdown) ? gn.updown : maxUpdown;
-             maxSide = (gn.side > maxSide) ? gn.side : maxSide;
-             }
+
+            int nbChildren = children.size();
+            int maxUpdown = 0;
+            int maxSide = 0;
+            for (GraphNode gn : children) {
+                if (gn.updown < 0) {
+                    gn.calcBounds();
+                }
+                maxUpdown = (gn.updown > maxUpdown) ? gn.updown : maxUpdown;
+                maxSide = (gn.side > maxSide) ? gn.side : maxSide;
+            }
 
              //this.updown = nbChildren * maxUpdown + yJumpNode * (nbChildren - 1);
-             //this.side = nbChildren * maxSide * xJumpNode * (nbChildren - 1); 
+            //this.side = nbChildren * maxSide * xJumpNode * (nbChildren - 1); 
+            this.updown = nbChildren * maxUpdown + yJumpNode * (nbChildren - 1);
+            this.side = nbChildren * maxSide;
 
-             this.updown = nbChildren * maxUpdown + yJumpNode * (nbChildren - 1);
-             this.side = nbChildren * maxSide; 
-             */
-
-            System.out.println("Side: " + this.getWidth() / 2);
-            System.out.println("Updown: " + this.getHeight() / 2);
-
-            this.side = subGraphWidth / 2;
-            this.updown = subGraphHeight / 2;
-
-            System.out.println("Side: " + this.getWidth() / 2);
-            System.out.println("Updown: " + this.getHeight() / 2);
             //TODO 
             //Find the dimension of the figure
-
+            
             //TODO
             //Change the form of the polygon
             poly = new Polygon();
