@@ -76,6 +76,12 @@ public final class StaticGraphMaker {
      * corresponds to.
      */
     private final Map<GraphNode, AlloyAtom> nodes = new LinkedHashMap<GraphNode, AlloyAtom>();
+    
+    /**
+     * The map that contains all nodes and what the AlloyAtom that each port
+     * corresponds to.
+     */
+    private final Map<GraphPort, AlloyAtom> ports = new LinkedHashMap<GraphPort, AlloyAtom>();
 
     /**
      * This maps each atom to the node representing it; if an atom doesn't have
@@ -87,7 +93,7 @@ public final class StaticGraphMaker {
      * [N7] @Louis Fauvarque
      * This maps each port to the atom representing it
      */
-    private static final Map<AlloyAtom, GraphPort> atom2port = new LinkedHashMap<AlloyAtom,GraphPort>();
+    private final Map<AlloyAtom, GraphPort> atom2port = new LinkedHashMap<AlloyAtom,GraphPort>();
     
     /**
      * This stores a set of additional labels we want to add to an existing
@@ -113,11 +119,12 @@ public final class StaticGraphMaker {
             proj = new AlloyProjection();
         }
         Graph graph = new Graph(view.getFontSize() / 12.0D);
-        new StaticGraphMaker(graph, instance, view, proj);
+        System.out.println("---------- Calling SGM ----------");
+        StaticGraphMaker sgm = new StaticGraphMaker(graph, instance, view, proj);
         if (graph.nodes.size() == 0) {
             new GraphNode(graph, "", "Due to your theme settings, every atom is hidden.", "Please click Theme and adjust your settings.");
         }
-        return new GraphViewer(graph,instance,view);
+        return new GraphViewer(graph,instance,view, sgm);
     }
 
     /**
@@ -221,13 +228,15 @@ public final class StaticGraphMaker {
                          * [N7] @Julien Richer
                          * Create the 2 nodes and the 2 ports
                          */
-                        
+                        System.out.println("--- Nodes and ports creations ---");
                         GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                        GraphPort startPort = new GraphPort(startNode, null, tuple.getStart().toString(),GraphPort.Orientation.South);
+                        //GraphPort startPort = new GraphPort(startNode, null, tuple.getStart().toString(), GraphPort.Orientation.South);
+                        GraphPort startPort = createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), GraphPort.Orientation.South);
                         
                         GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
-                        GraphPort endPort = new GraphPort(endNode, null, tuple.getEnd().toString(),GraphPort.Orientation.North);
-                        
+                        //GraphPort endPort = new GraphPort(endNode, null, tuple.getEnd().toString(),GraphPort.Orientation.North);
+                        GraphPort endPort = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(),GraphPort.Orientation.North);
+                        /*
                         // First side
                         
                         // Set the port orientation
@@ -291,8 +300,8 @@ public final class StaticGraphMaker {
                         }
                         
                         atom2port.put(tuple.getEnd(), endPort);
-                        
-                        // Create the edge between the 2 nodes connected through the 2 ports
+                        */
+                        // Create the blank edge between the 2 nodes connected through the 2 ports
                         new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
                     }
                 }
@@ -477,6 +486,67 @@ public final class StaticGraphMaker {
         edges.put(e, tuple);
         return true;
     }
+    
+    /**
+     * [N7] @Julien Richer BROKEN
+     * Return the port for a specific AlloyAtom (create it if it doesn't exist
+     * yet).
+     */
+    private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori) {
+        GraphPort port = atom2port.get(atom);
+        
+        // Create the port if it does not exist
+        if (port == null) {
+            // Make the port
+            port = new GraphPort(node, null, label, ori);
+            
+            // Add it to the maps
+            ports.put(port, atom);
+            atom2port.put(atom, port);
+        }
+
+        // Set the port orientation
+        GraphPort.Orientation orient = view.orientations.get(rel);
+        if(orient!=null) {
+            port.setOrientation(orient);
+        }
+        else {
+            // Default orientation
+            port.setOrientation(ori);
+        }
+        
+        // Set the port color
+        DotColor color = view.portColor.resolve(rel);
+        if(color!=null) {
+            port.setColor(color.getColor(view.getPortPalette()));
+        }
+        else {
+            // Default color
+            port.setColor(Color.red);
+        }
+        
+        // Set the port shape
+        DotShape shape = view.portShape.resolve(rel);
+        if(shape!=null) {
+            port.setShape(shape);
+        }
+        else {
+            // Default shape
+            port.setShape(DotShape.BOX);
+        }
+        
+        // Set the port style
+        DotStyle style = view.portStyle.resolve(rel);
+        if(style!=null) {
+            port.setStyle(style);
+        }
+        else {
+            // Default style
+            port.setStyle(DotStyle.SOLID);
+        }
+        
+        return port;
+    }
 
     /**
      * Create edges for every visible tuple in the given relation.
@@ -659,7 +729,7 @@ public final class StaticGraphMaker {
      * @param atom
      * @return boolean res
      */
-    public static boolean isPort(ArrayList<AlloyRelation> portRelations, AlloyAtom atom) {
+    public boolean isPort(ArrayList<AlloyRelation> portRelations, AlloyAtom atom) {
         boolean res = false;
         for (AlloyRelation eltA : portRelations) {
             if (eltA != null) {
@@ -684,7 +754,7 @@ public final class StaticGraphMaker {
         return res;
     }
     
-    public static GraphPort getPortFromAtom(AlloyAtom at){
+    public GraphPort getPortFromAtom(AlloyAtom at){
         return atom2port.get(at);
     }
 }

@@ -207,7 +207,7 @@ public final strictfp class GraphViewer extends JPanel {
      * @param instance : The instance of the model
      * @param view : The State of the model
      */
-    public GraphViewer(final Graph graph, AlloyInstance instance, VizState view) {
+    public GraphViewer(final Graph graph, AlloyInstance instance, VizState view, StaticGraphMaker sgm) {
         OurUtil.make(this, BLACK, WHITE, new EmptyBorder(0, 0, 0, 0));
         setBorder(null);
         this.scale = graph.defaultScale;
@@ -228,14 +228,8 @@ public final strictfp class GraphViewer extends JPanel {
         for(AlloyRelation rel : relations){
             tupleSet = instance.relation2tuples(rel);
             for(AlloyTuple tuple : tupleSet){
-                if(StaticGraphMaker.isPort(portRelations,tuple.getStart()) && StaticGraphMaker.isPort(portRelations,tuple.getEnd())){
-                    
-                    if(StaticGraphMaker.getPortFromAtom(tuple.getStart())==null)
-                        System.out.println("port start (" + tuple.getStart() + ") null"); 
-                    if(StaticGraphMaker.getPortFromAtom(tuple.getEnd())==null)
-                        System.out.println("port end (" + tuple.getEnd() + ") null");
-                    
-                    GraphEdge e = new GraphEdge(StaticGraphMaker.getPortFromAtom(tuple.getStart()),StaticGraphMaker.getPortFromAtom(tuple.getEnd()),null,"",null);
+                if(sgm.isPort(portRelations,tuple.getStart()) && sgm.isPort(portRelations,tuple.getEnd())){                   
+                    GraphEdge e = new GraphEdge(sgm.getPortFromAtom(tuple.getStart()),sgm.getPortFromAtom(tuple.getEnd()),null,"",null);
                     e.setStyle(DotStyle.SOLID);
                     e.resetPath();
                 }
