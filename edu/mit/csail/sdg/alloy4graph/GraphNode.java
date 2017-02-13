@@ -104,13 +104,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
 
    // =============================== these fields do not affect the computed bounds ===============================================
     /**
-     * The layer that this node is in; must stay in sync with Graph.layerlist
+     * The layer that this node is in; must stay in sync with Graph.layerlist.
      */
     private int layer = 0;
 
     /**
      * The current position of this node in the graph's node list; must stay in
-     * sync with Graph.nodelist
+     * sync with Graph.nodelist.
      */
     int pos;
     
@@ -416,7 +416,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * calcBounds() if necessary.
      */
     @Override
-    void draw(Artist gr, double scale, boolean highlight) {
+    void draw(Artist gr, double scale) {
         if (shape() == null) {
             return;
         } else if (updown < 0) {
@@ -426,7 +426,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.set(this.getStyle(), scale);
         gr.translate(x() - left, y() - top);
         gr.setFont(this.getFontBoldness());
-        if (highlight) {
+        if (this.highlight()) {
             gr.setColor(COLOR_CHOSENNODE);
         } else {
             gr.setColor(this.getColor());
@@ -500,7 +500,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         
         // [N7-G. Dupont] Draw each ports
         for (GraphPort p : this.ports) {
-            p.draw(gr, scale, false);
+            p.draw(gr, scale);
         }
         
         gr.translate(left - x(), top - y());
@@ -1062,5 +1062,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
         out.append(", style = \"filled, " + this.getStyle().getDotText() + "\"");
         out.append("]\n");
         return out.toString();
+    }
+    
+    @Override
+    public void setHighlight(boolean h) {
+        super.setHighlight(h);
+        for (GraphPort p : this.ports) {
+            p.setHighlight(h);
+        }
     }
 }

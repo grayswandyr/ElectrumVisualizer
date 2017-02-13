@@ -464,7 +464,7 @@ public final strictfp class Graph {
                 a.setLayer(tmp.layer() - 1);
                 // now we have three nodes in the vertical order of "tmp", "a", then "b"
                 e.change(a);                                                                           // let old edge go from "tmp" to "a"
-                e = new GraphEdge(a, b, e.uuid, "", e.ahead(), e.bhead(), e.style(), e.color(), e.group); // let new edge go from "a" to "b"
+                e = new GraphEdge(a, b, e.uuid, "", e.ahead(), e.bhead(), e.getStyle(), e.getColor(), e.group); // let new edge go from "a" to "b"
             }
         }
     }
@@ -1257,17 +1257,23 @@ public final strictfp class Graph {
         }
         for (GraphNode n : nodes) {
             if (highFirstNode != n && highLastNode != n) {
-                n.draw(gr, scale, n == highlight);
+                n.setHighlight(n == highlight); // [N7-G.Dupont]
+                n.draw(gr, scale);
+                n.setHighlight(false); // [N7-G.Dupont]
             }
         }
         if (highFirstNode != null) {
-            highFirstNode.draw(gr, scale, true);
+            highFirstNode.setHighlight(true); // [N7-G.Dupont]
+            highFirstNode.draw(gr, scale);
+            highFirstNode.setHighlight(false); // [N7-G.Dupont]
         }
         if (highLastNode != null && highLastNode != highFirstNode) {
-            highLastNode.draw(gr, scale, true);
+            highLastNode.setHighlight(true); // [N7-G.Dupont]
+            highLastNode.draw(gr, scale);
+            highFirstNode.setHighlight(false); // [N7-G.Dupont]
         }
         if (highFirstEdge != null) {
-            highFirstEdge.drawLabel(gr, highFirstEdge.color(), new Color(255, 255, 255, 160));
+            highFirstEdge.drawLabel(gr, highFirstEdge.getColor(), new Color(255, 255, 255, 160));
         }
         // show legends?
         if (!showLegends || legends.size() == 0) {

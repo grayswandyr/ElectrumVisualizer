@@ -46,7 +46,7 @@ public class GraphPort extends AbstractGraphNode {
     /**
      * Defines the padding added arround the label.
      */
-    static final int LabelPadding = 5;
+    static final int LabelPaddingLeft = 7, LabelPaddingTop = 5;
     
     /**
      * Defines the padding that separate a port from the center label of the node.
@@ -191,6 +191,8 @@ public class GraphPort extends AbstractGraphNode {
      */
     private int order;
     
+    private boolean hovered = false;
+    
     /// Label ///
     /**
      * The port label; if null or empty, then the node has no labels.
@@ -199,11 +201,6 @@ public class GraphPort extends AbstractGraphNode {
      * bounds information.
      */
     private String label = null;
-    
-    /**
-     * Determines if the port should draw its label.
-     */
-    private boolean drawLabel = true;
     
     /// Styling ///
     /**
@@ -215,12 +212,6 @@ public class GraphPort extends AbstractGraphNode {
      * Width and height (total) of the port.
      */
     private int width, height;
-    
-    /**
-     * Coordinates of the label.
-     */
-    private int labelX, labelY;
-    private double labelTheta;
     
     /**
      * Cstr.
@@ -283,7 +274,7 @@ public class GraphPort extends AbstractGraphNode {
      * @param highlight whether or not the node is highlighted
      */
     @Override
-    void draw(Artist gr, double scale, boolean highlight) {
+    void draw(Artist gr, double scale) {
         // Check if the requested shape is available
         boolean available = false;
         for (DotShape s : GraphPort.AvailableShapes) {
@@ -318,6 +309,9 @@ public class GraphPort extends AbstractGraphNode {
         // Translate to the top left hand corner of the node (easier for calculi)
         gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
         
+        // Then, translate to the center of the port
+        gr.translate(x(), y());
+        
         // Draw port itself
         switch (shape()) {
             case BOX:
@@ -330,16 +324,11 @@ public class GraphPort extends AbstractGraphNode {
                 // nop
         }
         
-        // Draw label with requested font size
-        /*if (drawLabel) {
-            int fontTemp = gr.getFontSize();
-            gr.setFontSize(this.getFontSize());
-            gr.drawString(this.label, this.labelX, this.labelY, this.labelTheta);
-            gr.setFontSize(fontTemp);
-        }*/
+        if (hovered)
+            drawTooltip(gr, scale);
         
         // Translate back the system where it was before (hopefully)
-        gr.translate(this.node.getWidth() / 2, this.node.getHeight() / 2);
+        gr.translate(this.node.getWidth() / 2 - x(), this.node.getHeight() / 2 - y());
     }
     
     /**
@@ -347,15 +336,11 @@ public class GraphPort extends AbstractGraphNode {
      * @param gr Artist on which to draw the port
      */
     private void drawCircle(Artist gr) {
-        // Select center
-        gr.translate(x(), y());
         // Draw a full circle of the requested radius and color
         gr.fillCircle(this.radius);
         // Draw a black hollow circle of the requested radius
         gr.setColor(Color.BLACK);
         gr.drawCircle(this.radius);
-        // Restore system
-        gr.translate(-x(), -y());
     }
     
     /**
@@ -372,14 +357,14 @@ public class GraphPort extends AbstractGraphNode {
         );
         
         // Translate to have the center of the square at (centerX,centerY)
-        gr.translate(x() - this.radius, y() - this.radius);
+        gr.translate(-this.radius, -this.radius);
         // Draw the shape filled with requested color
         gr.draw(s, true);
         // Draw the outline of the shape
         gr.setColor(Color.BLACK);
         gr.draw(s, false);
         // Restore system
-        gr.translate(this.radius - x(), this.radius - y());
+        gr.translate(this.radius, this.radius);
     }
     
     /**
@@ -389,27 +374,15 @@ public class GraphPort extends AbstractGraphNode {
         Rectangle2D rect = Artist.getBounds(this.getFontBoldness(), this.label);
         int width = (int)rect.getWidth(), height = (int)rect.getHeight();
         
-        final int top = this.graph.getTop(), left = this.graph.getLeft();
-        gr.setColor(Color.RED);
-        gr.fillCircle(5);
-        gr.translate(-top, -left);
-        gr.setColor(Color.GREEN);
-        gr.fillCircle(5);
-        gr.translate(this.node.x(), this.node.y());
-        gr.setColor(Color.BLUE);
-        gr.fillCircle(5);
-        gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
-        gr.setColor(Color.GRAY);
-        gr.fillCircle(5);
-        gr.translate(this.x(), this.y());
-        
-        Shape s = new Rectangle(0, 0, width + 2*LabelPadding, height + 2*LabelPadding);
+        Rectangle s = new Rectangle(0, 0, width + 2*LabelPaddingLeft, height + 2*LabelPaddingTop);
+        gr.translate(0, -s.height);
         gr.setColor(Color.LIGHT_GRAY);
         gr.draw(s, true);
         gr.setColor(Color.BLACK);
         gr.set(DotStyle.SOLID, scale);
         gr.draw(s, false);
-        gr.drawString(this.label, LabelPadding, height + LabelPadding, 0);
+        gr.drawString(this.label, LabelPaddingLeft, height + LabelPaddingTop, 0);
+        gr.translate(0, s.height);
     }
     
     /**
@@ -417,37 +390,24 @@ public class GraphPort extends AbstractGraphNode {
      */
     void recalc() {
         int dist = getDistance();
-        int labelWidth = getLabelSize();
         
         // Compute port and label position
         switch (this.orientation) {
             case East:
                 setX(this.node.getWidth());
                 setY(dist);
-                this.labelX = x() - this.radius - LabelPadding - labelWidth;
-                this.labelY = y() + this.radius;
-                this.labelTheta = 0.0;
                 break;
             case West:
                 setX(0);
                 setY(dist);
-                this.labelX = x() + this.radius + LabelPadding;
-                this.labelY = y() + this.radius;
-                this.labelTheta = 0.0;
                 break;
             case South:
                 setX(dist);
                 setY(this.node.getHeight());
-                this.labelX = x() + this.radius;
-                this.labelY = y() - this.radius - LabelPadding;
-                this.labelTheta = -Math.PI/2.0;
                 break;
             case North:
                 setX(dist);
                 setY(0);
-                this.labelX = x() + this.radius;
-                this.labelY = y() + this.radius + LabelPadding + labelWidth;
-                this.labelTheta = -Math.PI/2.0;
                 break;
             default:
                 // nop
@@ -474,36 +434,15 @@ public class GraphPort extends AbstractGraphNode {
     }
     
     /**
-     * Get the label width (which is a vertical distance for N/S ports and a horizontal one for E/W). 
-     * @return the label size
-     */
-    int getLabelSize() {
-        if (this.label.length() == 0 || !drawLabel)
-            return 0;
-        
-        Rectangle2D rect = Artist.getBounds(this.getFontBoldness(), this.label, this.getFontSize());
-        return (int)rect.getWidth();
-    }
-    
-    /**
-     * Get the size of the port (just the shape).
-     * This is a horizontal distance if port is E/W and a vertical one if it is N/S
-     * @return the size of the shape
-     */
-    int getPortSize() {
-        if (this.orientation.equals(Orientation.North) || this.orientation.equals(Orientation.South))
-            return getHeight();
-        else
-            return getWidth();
-    }
-    
-    /**
      * Get the full size of the port (including label and padding).
      * This is a horizontal distance if port is E/W and a vertical one if it is N/S
      * @return the full size
      */
     int getSize() {
-        return this.getLabelSize() + this.getPortSize() + LabelPadding;
+        if (this.orientation.equals(Orientation.North) || this.orientation.equals(Orientation.South))
+            return getHeight();
+        else
+            return getWidth();
     }
     
     /// Accessors/Mutators ///
@@ -555,14 +494,6 @@ public class GraphPort extends AbstractGraphNode {
         this.needRecalc = true;
     }
     
-    public boolean drawLabel() {
-        return drawLabel;
-    }
-    
-    public void setDrawLabel(boolean t) {
-        drawLabel = t;
-    }
-    
     /**
      * Retrieve port width
      * @return port width
@@ -585,6 +516,10 @@ public class GraphPort extends AbstractGraphNode {
     
     public String getLabel() {
         return label;
+    }
+    
+    public void setHovered(boolean h) {
+        this.hovered = h;
     }
     
 }
