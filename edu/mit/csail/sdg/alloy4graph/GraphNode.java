@@ -526,10 +526,30 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else {
             gr.setColor(color);
         }
-        
-        if (children.isEmpty()) { //[N7-R. Bossut, M. Quentin]
-            
-            if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
+       
+
+        if (children.isEmpty()) {
+					drawRegular(gr, scale, highlight, top, left);		 
+        } else {          
+					 // [N7-Bossut, Quentin] Draw the subGraph
+           if (maxDepth > 0){
+						 drawSubgraph(gr, scale, maxDepth, top, left);
+					 }else{
+						 //We cannot draw the subgraph (it is too deep), we have to paint the node and a button the user have to click to see the subgraph.
+					   drawContainer(gr, scale, highlight, maxDepth, top, left);
+					 }
+				}
+    }
+
+
+		/**
+		 * Draws a regular node (not a containig one).
+		 * Draws this node at its current (x, y) location; this method will call
+     * calcBounds() if necessary.
+     */
+		private void drawRegular(Artist gr, double scale, boolean highlight, int top, int left) {
+
+			if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
                 int hw = width / 2, hh = height / 2;
                 int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
                 if (shape() == DotShape.DOUBLE_CIRCLE) {
@@ -601,69 +621,81 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
 
             gr.translate(left - x(), top - y());
-            
-        } else { // [N7-Bossut, Quentin] Draw the subGraph         
-           if (maxDepth > 0){
-						 //We have'nt reach the depth max yet, we can draw the subgraph.
-            subGraph.layoutSubGraph(-side - 4, -side - 4, this);
-            subGraph.draw(gr, scale, uuid, true, (maxDepth-1));
-            
-            gr.setColor(Color.YELLOW);
-            //gr.draw(poly, true);
-            gr.setColor(Color.BLACK);   
-            gr.draw(poly, false);
-            
-            /**Inutile pour le moment.
-            if (poly2 != null) {
-                gr.draw(poly2, false);
-            }
-            if (poly3 != null) {
-                gr.draw(poly3, false);
-            }
-            if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
-                gr.set(DotStyle.SOLID, scale);
-            }
-            if (shape() == DotShape.M_DIAMOND) {
-                gr.drawLine(-side + 8, -8, -side + 8, 8);
-                gr.drawLine(-8, -side + 8, 8, -side + 8);
-                gr.drawLine(side - 8, -8, side - 8, 8);
-                gr.drawLine(-8, side - 8, 8, side - 8);
-            }
-            if (shape() == DotShape.M_SQUARE) {
-                gr.drawLine(-side, -side + 8, -side + 8, -side);
-                gr.drawLine(side, -side + 8, side - 8, -side);
-                gr.drawLine(-side, side - 8, -side + 8, side);
-                gr.drawLine(side, side - 8, side - 8, side);
-            }
-            */
-                   
-            // Draw the label into the GraphNode
-            gr.set(DotStyle.SOLID, scale);
-            int clr = color.getRGB() & 0xFFFFFF;
-            gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
-            if (labels != null && labels.size() > 0) {
-                int x = (-width / 2), y = yShift + (-labels.size() * ad / 2);
-                for (int i = 0; i < labels.size(); i++) {
-                    String t = labels.get(i);
-                    int w = ((int) (getBounds(fontBold, t).getWidth())) + 1; // Round it up
-                    if (width > w) {
-                        w = (width - w) / 2;
-                    } else {
-                        w = 0;
-                    }
-                    gr.drawString(t, x + w, y + Artist.getMaxAscent());
-                    y = y + ad;
-                }
-            }       
-            
-            gr.translate(left - x(), top - y());
+ 
+		}
 
-					 }else{
-						 //TODO
-						 //We cannot draw the subgraph (it is too deep), we have to paint the node and a button the user have to click to see the subgraph.
-					 }
+		/**
+		 * Draws a node that has children that can also be drawn (in the view of the maxDepth parameter).
+		 * Layouts the subgraph and then draws (it will calls the draw method of the sub-nodes, so it works recursively).
+		 * Then draws the node arround the subgraph.
+		 */
+
+		private void drawSubgraph(Artist gr, double scale, int top, int maxDepth, int left){
+		// [N7-Bossut, Quentin] Draw the subGraph         
+		//We have'nt reach the depth max yet, we can draw the subgraph.
+			subGraph.layoutSubGraph(-side - 4, -side - 4, this);
+			subGraph.draw(gr, scale, uuid, true, (maxDepth-1));
+      
+			gr.setColor(Color.YELLOW);
+			//gr.draw(poly, true);
+			gr.setColor(Color.BLACK);   
+			gr.draw(poly, false);
+      
+			/**Inutile pour le moment.
+				if (poly2 != null) {
+				gr.draw(poly2, false);
 				}
-    }
+				if (poly3 != null) {
+				gr.draw(poly3, false);
+				}
+				if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
+				gr.set(DotStyle.SOLID, scale);
+				}
+				if (shape() == DotShape.M_DIAMOND) {
+				gr.drawLine(-side + 8, -8, -side + 8, 8);
+				gr.drawLine(-8, -side + 8, 8, -side + 8);
+				gr.drawLine(side - 8, -8, side - 8, 8);
+				gr.drawLine(-8, side - 8, 8, side - 8);
+				}
+				if (shape() == DotShape.M_SQUARE) {
+				gr.drawLine(-side, -side + 8, -side + 8, -side);
+				gr.drawLine(side, -side + 8, side - 8, -side);
+				gr.drawLine(-side, side - 8, -side + 8, side);
+				gr.drawLine(side, side - 8, side - 8, side);
+				}
+				*/
+			// Draw the label into the GraphNode
+			gr.set(DotStyle.SOLID, scale);
+			int clr = color.getRGB() & 0xFFFFFF;
+			gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
+			if (labels != null && labels.size() > 0) {
+				int x = (-width / 2), y = yShift + (-labels.size() * ad / 2);
+				for (int i = 0; i < labels.size(); i++) {
+					String t = labels.get(i);
+					int w = ((int) (getBounds(fontBold, t).getWidth())) + 1; // Round it up
+					if (width > w) {
+						w = (width - w) / 2;
+					} else {
+						w = 0;
+					}
+					gr.drawString(t, x + w, y + Artist.getMaxAscent());
+					y = y + ad;
+				}
+			}       
+			gr.translate(left - x(), top - y());
+		}
+
+
+		/**
+		 * Draws a container when it subgraph cannot be dran because of the maximum depth level.
+		 * Draws the node as a regular one and an indicator meaning that the sugraph is hidden.
+		 */
+		private void drawContainer(Artist gr, double scale, boolean highlight, int maxDepth, int top, int left){
+			drawRegular(gr, scale, highlight, top, left);
+			//TODO Button.
+		}
+
+
 
     /**
      * Helper method that sets the Y coordinate of every node in a given layer.
