@@ -301,12 +301,15 @@ public final strictfp class GraphViewer extends JPanel {
                 alloyRepaint();
             }
 
+						long timeLastClick = 0;
+
             @Override
             public void mousePressed(MouseEvent ev) {
                 dragButton = 0;
                 int mod = ev.getModifiers();
                 if ((mod & BUTTON3_MASK) != 0) {
-                    selected = alloyFind(ev.getX(), ev.getY());
+                  //Right click  
+										selected = alloyFind(ev.getX(), ev.getY());
                     highlight = null;
                     alloyRepaint();
                     pop.show(GraphViewer.this, ev.getX(), ev.getY());
@@ -323,10 +326,21 @@ public final strictfp class GraphViewer extends JPanel {
                     highlight = null;
                     alloyRepaint();
                     if (selected instanceof GraphNode) {
-                        oldX = ((GraphNode) selected).x();
-                        oldY = ((GraphNode) selected).y();
-                    }
-                }
+											  GraphNode sel = (GraphNode) selected;
+                        oldX = sel.x();
+                        oldY = sel.y();
+                   			long currentTime = System.currentTimeMillis();
+												if (currentTime - timeLastClick < 800){
+													//Double click on a node, we have to show the subgraph if there is one.
+													System.out.println("Double clicked");
+												  if (sel.hasChild())
+														//The node double-clicked has children we have to print the subgraph in a new window.
+														//TODO
+														System.out.println("Should print the subgraph, somewhere.");
+												}
+												timeLastClick = System.currentTimeMillis();
+										}
+								}
             }
 
             @Override

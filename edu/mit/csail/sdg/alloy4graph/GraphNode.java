@@ -315,6 +315,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
         return (subGraph);
     }
 
+    public boolean hasChild() {
+			return !(children.isEmpty());
+		}
+
     /**
      * Set the children of the Node. [N7-R. Bossut, M. Quentin]
      */
@@ -545,7 +549,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             gr.setColor(color);
         }
 
-        if (children.isEmpty()) {
+        if (!hasChild()) {
             drawRegular(gr, scale, highlight, top, left);
         } else {
             // [N7-Bossut, Quentin] Draw the subGraph
@@ -1165,7 +1169,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     void imbricatedNodeBounds() {
 
-        if (!children.isEmpty()) {
+        if (hasChild()) {
 
             int nbChildren = children.size();
             int maxUpdown = 0;
