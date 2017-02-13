@@ -32,7 +32,6 @@ import java.util.TreeMap;
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Util;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -107,7 +106,7 @@ public final strictfp class Graph {
      * The total height of the graph; this value is computed by layout().
      */
     private int totalHeight = 0;
-
+  
     /**
      * The height of each layer.
      */
@@ -184,7 +183,7 @@ public final strictfp class Graph {
     public int getTotalHeight() {
         return totalHeight;
     }
-
+ 
     /**
      * Returns an unmodifiable view of the list of nodes in the given layer
      * (0..#layer-1); return an empty list if no such layer.
@@ -558,10 +557,7 @@ public final strictfp class Graph {
 
     //[N7-R.Bossut, M.Quentin]
     /**
-     * Compute the layout for the subGraph contained in a node
-     * leftTopX and lefTopY are the coordinate of the fatherNode's Top-Left corner
-     * rightBottomX and rightBottomY are the coordinates of the fatherNode's Bottom-Right corner
-     * father represents 
+     * Compute the layout for the subGraph contained in the node father 
      */
     public void layoutSubGraph(GraphNode father) {
         //================================= Creation of the subGraph layers ================================================= //
@@ -651,16 +647,16 @@ public final strictfp class Graph {
         
         // This is where the assignment begin
         // First, we have to compute the two dimensions of the father node
-        int totalHeight=0;
-        int totalWidth=0;
+        this.totalHeight=0;
+        this.totalWidth=0;
         for (int j=0; j<nbLayers; j++) {
-            totalHeight += layerHeight[i];
-            totalWidth += layerWidth[i];
+            this.totalHeight += layerHeight[i];
+            this.totalWidth += layerWidth[i];
         }
         
         // The two integers corresponding to the coordinates wehre we start to draw each layer
         int startX;
-        int startY = totalHeight/2 - GraphNode.yJumpNode;
+        int startY = this.totalHeight/2 - GraphNode.yJumpNode;
         
         int layer=0;
         int maxHeight;
@@ -689,8 +685,8 @@ public final strictfp class Graph {
             
             startY -= maxHeight/2 + GraphNode.yJumpNode;
         }
-        father.setSubGraphHeight(totalHeight);
-        father.setSubGraphWidth(totalWidth);
+        System.out.println(this.totalHeight);
+        System.out.println(this.totalWidth);
     }
     
     /**

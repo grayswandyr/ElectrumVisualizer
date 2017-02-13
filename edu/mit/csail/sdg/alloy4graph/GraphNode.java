@@ -261,16 +261,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     private Graph subGraph;
 
-    /**
-     * This field contains the Height of the node's subGraph if it exists.
-     */
-    private int subGraphHeight;
-
-    /**
-     * This field contains the Width of the node's subGraph if it exists.
-     */
-    private int subGraphWidth;
-
     //====================================================================================================
     /**
      * Create a new node with the given list of labels, then add it to the given
@@ -332,14 +322,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
     public void addChild(GraphNode gn) {
         this.children.add(gn);
         subGraph.nodelist.add(gn);
-    }
-
-    public void setSubGraphWidth(int width) {
-        this.subGraphWidth = width;
-    }
-
-    public void setSubGraphHeight(int height) {
-        this.subGraphHeight = height;
     }
 
     /**
@@ -652,12 +634,15 @@ public strictfp class GraphNode extends AbstractGraphNode {
         // [N7-Bossut, Quentin] Draw the subGraph         
         //We have'nt reach the depth max yet, we can draw the subgraph.
 
+        subGraph.layoutSubGraph(this);
+        
+        imbricatedNodeBounds();
+        
         gr.setColor(Color.YELLOW);
         gr.draw(poly, true);
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
         
-        subGraph.layoutSubGraph(this);
         subGraph.draw(gr, scale, uuid, true, (maxDepth - 1));
 
         /**
@@ -1170,7 +1155,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
     void imbricatedNodeBounds() {
 
         if (hasChild()) {
-
+            
             int nbChildren = children.size();
             int maxUpdown = 0;
             int maxSide = 0;
@@ -1182,11 +1167,15 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 maxSide = (gn.side > maxSide) ? gn.side : maxSide;
             }
 
-             //this.updown = nbChildren * maxUpdown + yJumpNode * (nbChildren - 1);
-            //this.side = nbChildren * maxSide * xJumpNode * (nbChildren - 1); 
-            this.updown = nbChildren * maxUpdown + yJumpNode * (nbChildren - 1);
-            this.side = nbChildren * maxSide;
-
+            //this.updown = nbChildren * maxUpdown + yJumpNode * (nbChildren - 1);
+            //this.side = nbChildren * maxSide;
+            
+            this.updown = subGraph.getTotalHeight()/2;
+            this.side = subGraph.getTotalWidth()/2;
+            
+            System.out.println("Up: " + this.updown);
+            System.out.println("Side: " + this.side);
+            
             //TODO 
             //Find the dimension of the figure
             
