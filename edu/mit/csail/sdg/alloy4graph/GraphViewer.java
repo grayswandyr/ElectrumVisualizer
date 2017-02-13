@@ -48,6 +48,7 @@ import javax.swing.JViewport;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.JFrame;
 
 import edu.mit.csail.sdg.alloy4.OurDialog;
 import edu.mit.csail.sdg.alloy4.OurPDFWriter;
@@ -333,10 +334,11 @@ public final strictfp class GraphViewer extends JPanel {
 												if (currentTime - timeLastClick < 800){
 													//Double click on a node, we have to show the subgraph if there is one.
 													System.out.println("Double clicked");
-												  if (sel.hasChild())
+												  if (sel.hasChild()){
 														//The node double-clicked has children we have to print the subgraph in a new window.
-														//TODO
 														System.out.println("Should print the subgraph, somewhere.");
+													  showSubgraph(sel);
+													}
 												}
 												timeLastClick = System.currentTimeMillis();
 										}
@@ -352,6 +354,23 @@ public final strictfp class GraphViewer extends JPanel {
             }
         });
     }
+
+		/** 
+		 * Displays the subgraph of the given GraphNode in a new window. 
+		 */
+		private void showSubgraph(GraphNode node){
+			JFrame windowSubgraph = new JFrame(node.uuid.toString());
+			int x = 200;
+			int y = 200;
+			Graph subGraph = node.getSubGraph();
+			subGraph.layout();
+			int width = subGraph.getTotalWidth() + 200;
+			int height = subGraph.getTotalHeight() + 200;
+			windowSubgraph.setContentPane(new GraphViewer(subGraph, maxDepth));
+			windowSubgraph.setSize(width, height);
+			windowSubgraph.setLocation(x, y);
+			windowSubgraph.setVisible(true);
+		}
 
     /**
      * This color is used as the background for a JTextField that contains bad

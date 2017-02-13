@@ -592,7 +592,8 @@ public final strictfp class Graph {
                     // If the edge concerns two elements of the subGraph then we increment nOuts
                     if (children.contains((GraphNode) e.b())) {
                         nOuts++;
-                    }
+                    		edgelist.add(e);
+										}
                 }
             }
             
@@ -601,6 +602,7 @@ public final strictfp class Graph {
                     // If the edge concerns two elements of the subGraph then we increment nIns
                     if (children.contains((GraphNode) e.a())) {
                         nIns++;
+                    		edgelist.add(e);
                     }
                 }
             }      

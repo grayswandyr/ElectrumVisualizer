@@ -495,7 +495,6 @@ public final class VizState {
      * Sets the maximum depth.
      */
     public void setDepthMax(int n) {
-			System.out.println("setDepthMax, from " + getDepthMax() + " to " + n);
         if (depthMax != n) {
             change();
             depthMax = n;
