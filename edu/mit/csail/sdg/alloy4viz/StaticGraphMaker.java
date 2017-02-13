@@ -234,7 +234,7 @@ public final class StaticGraphMaker {
                         GraphPort endPort = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(),GraphPort.Orientation.North);
 
                         // Create the blank edge between the 2 nodes connected through the 2 ports
-                        new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).set(DotStyle.BLANK);
+                        new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
                     }
                 }
             }
@@ -408,11 +408,11 @@ public final class StaticGraphMaker {
         int weight = view.weight.get(rel);
         GraphEdge e = new GraphEdge((layoutBack ? end : start), (layoutBack ? start : end), tuple, label, rel);
         if (color == DotColor.MAGIC && magicColor != null) {
-            e.set(magicColor);
+            e.setColor(magicColor);
         } else {
-            e.set(color.getColor(view.getEdgePalette()));
+            e.setColor(color.getColor(view.getEdgePalette()));
         }
-        e.set(style);
+        e.setStyle(style);
         e.set(dir != DotDirection.FORWARD, dir != DotDirection.BACK);
         e.set(weight < 1 ? 1 : (weight > 100 ? 10000 : 100 * weight));
         edges.put(e, tuple);
