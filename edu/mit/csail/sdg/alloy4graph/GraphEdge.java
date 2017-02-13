@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * <p>
  * <b>Thread Safety:</b> Can be called only by the AWT event thread.
  */
-public final strictfp class GraphEdge {
+public final strictfp class GraphEdge extends AbstractGraphElement {
 
     // =============================== adjustable options ===========================================================================
     /**
@@ -57,12 +57,6 @@ public final strictfp class GraphEdge {
     private final int ad = Artist.getMaxAscentAndDescent();
 
     // =============================== fields =======================================================================================
-    /**
-     * a user-provided annotation that will be associated with this edge (can be
-     * null) (need not be unique)
-     */
-    public final Object uuid;
-
     /**
      * a user-provided annotation that will be associated with this edge (all
      * edges with same group will be highlighted together)
@@ -98,16 +92,6 @@ public final strictfp class GraphEdge {
     private boolean bhead = true;
 
     /**
-     * The color of the edge; default is BLACK; never null.
-     */
-    private Color color = Color.BLACK;
-
-    /**
-     * The line-style of the edge; default is SOLID; never null.
-     */
-    private DotStyle style = DotStyle.SOLID;
-
-    /**
      * The edge weight; default is 1; always between 1 and 10000 inclusively.
      */
     private int weight = 1;
@@ -130,6 +114,7 @@ public final strictfp class GraphEdge {
      * then add the edge to the graph.
      */
     GraphEdge(AbstractGraphNode from, AbstractGraphNode to, Object uuid, String label, boolean drawArrowHeadOnFrom, boolean drawArrowHeadOnTo, DotStyle style, Color color, Object group) {
+        super(uuid);
         if (group instanceof GraphNode) {
             throw new IllegalArgumentException("group cannot be a GraphNode");
         }
@@ -160,16 +145,17 @@ public final strictfp class GraphEdge {
         } else if(a instanceof GraphPort && b instanceof GraphPort) {
             a.graph.portEdgeList.add(this);
         }
-        this.uuid = uuid;
         this.group = group;
         this.label = (label == null) ? "" : label;
         this.ahead = drawArrowHeadOnFrom;
         this.bhead = drawArrowHeadOnTo;
         if (style != null) {
-            this.style = style;
+            this.setStyle(style);
         }
         if (color != null) {
-            this.color = color;
+            this.setColor(color);
+        } else { //[N7-G.Dupont] Default color
+            this.setColor(Color.BLACK);
         }
         if (this.label.length() > 0) {
             Rectangle2D box = getBounds(false, label);
@@ -275,20 +261,6 @@ public final strictfp class GraphEdge {
     }
 
     /**
-     * Returns the line style; never null.
-     */
-    public DotStyle style() {
-        return style;
-    }
-
-    /**
-     * Returns the line color; never null.
-     */
-    public Color color() {
-        return color;
-    }
-
-    /**
      * Returns true if we will draw an arrow head on the "from" node.
      */
     public boolean ahead() {
@@ -330,26 +302,6 @@ public final strictfp class GraphEdge {
     public GraphEdge set(boolean from, boolean to) {
         this.ahead = from;
         this.bhead = to;
-        return this;
-    }
-
-    /**
-     * Sets the line style.
-     */
-    public GraphEdge set(DotStyle style) {
-        if (style != null) {
-            this.style = style;
-        }
-        return this;
-    }
-
-    /**
-     * Sets the line color.
-     */
-    public GraphEdge set(Color color) {
-        if (color != null) {
-            this.color = color;
-        }
         return this;
     }
 
@@ -453,7 +405,7 @@ public final strictfp class GraphEdge {
         if (label.length() == 0 || a == b) {
             return; // labels on self-edges are already re-positioned by GraphEdge.resetPath()
         }
-        final int gap = style == DotStyle.BOLD ? 4 : 2; // If the line is bold, we need to shift the label to the right a little bit
+        final int gap = this.getStyle() == DotStyle.BOLD ? 4 : 2; // If the line is bold, we need to shift the label to the right a little bit
         boolean failed = false;
         Curve p = path;
         for (AbstractGraphNode a = this.a; a.shape() == null;) {
@@ -525,18 +477,18 @@ public final strictfp class GraphEdge {
      * the current zoom scale, draw the edge.
      */
     void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
-        if (style != DotStyle.BLANK) {
+        if (this.getStyle() != DotStyle.BLANK) {
             final int top = a.graph.getTop(), left = a.graph.getLeft();
             gr.translate(-left, -top);
             if (highEdge == this) {
-                gr.setColor(color);
+                gr.setColor(this.getColor());
                 gr.set(DotStyle.BOLD, scale);
             } else if ((highEdge == null && highGroup == null) || highGroup == group) {
-                gr.setColor(color);
-                gr.set(style, scale);
+                gr.setColor(this.getColor());
+                gr.set(this.getStyle(), scale);
             } else {
                 gr.setColor(Color.LIGHT_GRAY);
-                gr.set(style, scale);
+                gr.set(this.getStyle(), scale);
             }
             if (a == b) {
                 gr.draw(path);
@@ -562,7 +514,7 @@ public final strictfp class GraphEdge {
             gr.set(DotStyle.SOLID, scale);
             gr.translate(left, top);
             if (highEdge == null && highGroup == null && label.length() > 0) {
-                drawLabel(gr, color, null);
+                drawLabel(gr, this.getColor(), null);
             }
             drawArrowhead(gr, scale, highEdge, highGroup);
         }
@@ -573,7 +525,7 @@ public final strictfp class GraphEdge {
      * the desired color, draw the edge label.
      */
     void drawLabel(Artist gr, Color color, Color erase) {
-        if (style != DotStyle.BLANK) { // Modified @Louis Fauvarque
+        if (this.getStyle() != DotStyle.BLANK) { // Modified @Louis Fauvarque
             if (label.length() > 0) {
                 final int top = a.graph.getTop(), left = a.graph.getLeft();
                 gr.translate(-left, -top);
@@ -595,21 +547,21 @@ public final strictfp class GraphEdge {
      * current zoom scale, draw the arrow heads.
      */
     private void drawArrowhead(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
-        if (style != DotStyle.BLANK) { // Modified @Louis Fauvarque
+        if (this.getStyle() != DotStyle.BLANK) { // Modified @Louis Fauvarque
             final double tipLength = ad * 0.6D;
             final int top = a.graph.getTop(), left = a.graph.getLeft();
             // Check to see if this edge is highlighted or not
-            double fan = (style == DotStyle.BOLD ? bigFan : smallFan);
+            double fan = (this.getStyle() == DotStyle.BOLD ? bigFan : smallFan);
             if (highEdge == this) {
                 fan = bigFan;
-                gr.setColor(color);
+                gr.setColor(this.getColor());
                 gr.set(DotStyle.BOLD, scale);
             } else if ((highEdge == null && highGroup == null) || highGroup == group) {
-                gr.setColor(color);
-                gr.set(style, scale);
+                gr.setColor(this.getColor());
+                gr.set(this.getStyle(), scale);
             } else {
                 gr.setColor(Color.LIGHT_GRAY);
-                gr.set(style, scale);
+                gr.set(this.getStyle(), scale);
             }
             for (GraphEdge e = this;; e = e.b.outs.get(0)) {
                 if ((e.ahead && e.a.shape() != null) || (e.bhead && e.b.shape() != null)) {
@@ -661,7 +613,7 @@ public final strictfp class GraphEdge {
         while (b.shape() == null) {
             b = b.outs.get(0).b;
         }
-        String color = Integer.toHexString(this.color.getRGB() & 0xFFFFFF);
+        String color = Integer.toHexString(this.getColor().getRGB() & 0xFFFFFF);
         while (color.length() < 6) {
             color = "0" + color;
         }
@@ -687,7 +639,7 @@ public final strictfp class GraphEdge {
         out.append("uuid = \"" + (uuid == null ? "" : esc(uuid.toString())) + "\"");
         out.append(", color = \"#" + color + "\"");
         out.append(", fontcolor = \"#" + color + "\"");
-        out.append(", style = \"" + style.getDotText() + "\"");
+        out.append(", style = \"" + this.getStyle().getDotText() + "\"");
         out.append(", label = \"" + esc(label) + "\"");
         out.append(", dir = \"" + (ahead && bhead ? "both" : (bhead ? "forward" : "back")) + "\"");
         out.append(", weight = \"" + weight + "\"");
