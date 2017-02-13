@@ -284,6 +284,7 @@ public class GraphPort extends AbstractGraphNode {
      */
     @Override
     void draw(Artist gr, double scale, boolean highlight) {
+        System.out.println("Drawing port "+label);
         // Check if the requested shape is available
         boolean available = false;
         for (DotShape s : GraphPort.AvailableShapes) {

@@ -417,6 +417,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     @Override
     void draw(Artist gr, double scale, boolean highlight) {
+        System.out.println("Drawing node");
         if (shape() == null) {
             return;
         } else if (updown < 0) {

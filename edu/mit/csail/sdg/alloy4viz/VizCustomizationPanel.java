@@ -608,8 +608,6 @@ public final class VizCustomizationPanel extends JPanel {
             }
         };
         
-        //final JLabel orientLabel = OurUtil.label("Orientation:");
-        //JPanel orientPanel = OurUtil.makeH(orientLabel, 5, orientBox);
         JPanel orientPanel = OurUtil.makeH(orientBox);
         orientPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         orientPanel.setAlignmentY(0.5f);
@@ -638,8 +636,6 @@ public final class VizCustomizationPanel extends JPanel {
             }
         };
         
-        //final JLabel colorLabel = OurUtil.label("Color:");
-        //JPanel colorPanel = OurUtil.makeH(colorLabel, 5, colorBox);
         JPanel colorPanel = OurUtil.makeH(colorBox);
         colorPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         colorPanel.setAlignmentY(0.5f);
@@ -668,8 +664,6 @@ public final class VizCustomizationPanel extends JPanel {
             }
         };
 
-        //final JLabel shapeLabel = OurUtil.label("Shape:");
-        //JPanel shapePanel = OurUtil.makeH(shapeLabel, 5, shapeBox);
         JPanel shapePanel = OurUtil.makeH(shapeBox);
         shapePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         shapePanel.setAlignmentY(0.5f);
@@ -698,8 +692,6 @@ public final class VizCustomizationPanel extends JPanel {
             }
         };
         
-        //final JLabel styleLabel = OurUtil.label("Style:");
-        //JPanel stylePanel = OurUtil.makeH(styleLabel, 5, styleBox);
         JPanel stylePanel = OurUtil.makeH(styleBox);
         stylePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         stylePanel.setAlignmentY(0.5f);
@@ -707,16 +699,11 @@ public final class VizCustomizationPanel extends JPanel {
         stylePanel.setToolTipText("Choose the style of the port on the node.");
         
         
-        // Checkbox to set/unset the ports labels
-        OurCheckbox label = vizState.portLabel.pick(rel, "Display label", "Set/unset the ports labels");
-        
-        
         // Initialization of the ports settings activation
         orientBox.setEnabled(vizState.isPort.resolve(rel));
         colorBox.setEnabled(vizState.isPort.resolve(rel));
         shapeBox.setEnabled(vizState.isPort.resolve(rel));
         styleBox.setEnabled(vizState.isPort.resolve(rel));
-        label.setEnabled(vizState.isPort.resolve(rel));
         
         
         // Checkbox to define relations as ports relations
@@ -726,27 +713,21 @@ public final class VizCustomizationPanel extends JPanel {
                 colorBox.setEnabled(a);
                 shapeBox.setEnabled(a);
                 styleBox.setEnabled(a);
-                label.setEnabled(a);
             }
         });
 
         
         // Panels layout
         JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint, port);
-        JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, label);
+        JPanel panel2 = OurUtil.makeVR(wcolor, back, merge);
+        
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
-        
-        // Layout : 2 rows
-        // 2 checkboxes
-        // 4 comboboxes
-        //JPanel panelPort1 = OurUtil.makeHB(wcolor, port, label);
-        JPanel panelPort2 = OurUtil.makeHB(wcolor, orientPanel, colorPanel, shapePanel, stylePanel);
-        //parent.add(OurUtil.makeHT(wcolor, 10, panelPort1, 2, null));
-        //parent.add(OurUtil.makeHT(wcolor, 10, panelPort2, 2, null));
-        //parent.add(OurUtil.makeVL(wcolor, panelPort1, panelPort2));
-        parent.add(OurUtil.makeVL(wcolor, panelPort2));
+
+        JPanel panelPort = OurUtil.makeHB(wcolor, orientPanel, colorPanel, shapePanel, stylePanel);
+
+        parent.add(OurUtil.makeVL(wcolor, panelPort));
     }
 
    //=============================================================================================================//
