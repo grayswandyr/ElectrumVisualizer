@@ -69,12 +69,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
     /**
      * Minimum horizontal distance between adjacent nodes of the subGraph.
      */
-    static final int xJumpNode = 5;
+    static final int xJumpNode = 20;
     
     /**
      * Minimum horizontal distance between adjacent layers of the subGraph.
      */
-    static final int yJumpNode = 5;
+    static final int yJumpNode = 20;
     
     // =============================== cached for performance ===================================
     /**
@@ -259,6 +259,16 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * This field contains the subGraph of the node if it exists. [N7-R.Bossut, M. Quentin]
      */
     private Graph subGraph;
+    
+    /**
+     * This field contains the Height of the node's subGraph if it exists.
+     */
+    private int subGraphHeight;
+    
+    /**
+     * This field contains the Width of the node's subGraph if it exists.
+     */
+    private int subGraphWidth;
 
     //====================================================================================================
     
@@ -318,6 +328,14 @@ public strictfp class GraphNode extends AbstractGraphNode {
     public void addChild(GraphNode gn) {
         this.children.add(gn);
         subGraph.nodelist.add(gn);
+    }
+    
+    public void setSubGraphWidth(int width) {
+        this.subGraphWidth = width;
+    }
+    
+    public void setSubGraphHeight(int height) {
+        this.subGraphHeight = height;
     }
     
     /**
@@ -604,12 +622,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
             
         } else { // [N7-Bossut, Quentin] Draw the subGraph         
            if (maxDepth > 0){
-						 //We have'nt reach the depth max yet, we can draw the subgraph.
-            subGraph.layoutSubGraph(-side - 4, -side - 4, this);
+	    //We have'nt reach the depth max yet, we can draw the subgraph.
+            subGraph.layoutSubGraph(this);
             subGraph.draw(gr, scale, uuid, true, (maxDepth-1));
             
             gr.setColor(Color.YELLOW);
-            //gr.draw(poly, true);
+            gr.draw(poly, true);
             gr.setColor(Color.BLACK);   
             gr.draw(poly, false);
             
@@ -1131,7 +1149,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
     void imbricatedNodeBounds() {
         
         if ( !children.isEmpty() ) {
-        
+            /*
             int nbChildren = children.size();
             int maxUpdown = 0;
             int maxSide = 0;
@@ -1146,7 +1164,16 @@ public strictfp class GraphNode extends AbstractGraphNode {
 
             this.updown = nbChildren * maxUpdown + yJumpNode * (nbChildren - 1);
             this.side = nbChildren * maxSide; 
+            */
             
+            System.out.println("Side: " + this.getWidth()/2);
+            System.out.println("Updown: " + this.getHeight()/2); 
+            
+            this.side = subGraphWidth/2;
+            this.updown = subGraphHeight/2;
+            
+            System.out.println("Side: " + this.getWidth()/2);
+            System.out.println("Updown: " + this.getHeight()/2);            
             //TODO 
             //Find the dimension of the figure
             

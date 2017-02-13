@@ -31,6 +31,7 @@ import java.util.TreeMap;
 
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Util;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -562,7 +563,7 @@ public final strictfp class Graph {
      * rightBottomX and rightBottomY are the coordinates of the fatherNode's Bottom-Right corner
      * father represents 
      */
-    public void layoutSubGraph(int leftTopX, int leftTopY, GraphNode father) {
+    public void layoutSubGraph(GraphNode father) {
         HashSet<GraphNode> children = father.getChildren();
         
         int nbChildren = children.size();
@@ -576,19 +577,13 @@ public final strictfp class Graph {
         
         TreeMap<Integer, ArrayList<GraphNode>> nodaList = new TreeMap<Integer, ArrayList<GraphNode>>();
         
-        int layerWidth = GraphNode.xJumpNode;
-        int layerHeight = GraphNode.yJumpNode;
+        //int layerWidth = GraphNode.xJumpNode;
+        //int layerHeight = GraphNode.yJumpNode;
         
         for (GraphNode child : children) {
             nOuts = 0;
             nIns = 0;
             for (GraphEdge e : child.outs) {
-                /*if (e.a() instanceof GraphNode) {
-                    if (children.contains((GraphNode) e.a())) {
-                        nOuts++;
-                    }
-                }*/
-                
                 if (e.b() instanceof GraphNode) {
                     if (children.contains((GraphNode) e.b())) {
                         nOuts++;
@@ -602,21 +597,15 @@ public final strictfp class Graph {
                         nIns++;
                     }
                 }
-                
-                /*if (e.b() instanceof GraphNode) {
-                    if (children.contains((GraphNode) e.b())) {
-                        nIns++;
-                    }
-                }*/
             }
             
             System.out.println("Child: " + child.uuid + " nOuts: " + nOuts);
             System.out.println("Child: " + child.uuid + " nIns: " + nIns);         
             
             // We construct HashMap containing the layers
-            ArrayList auxList;
+            ArrayList<GraphNode> auxList;
             if (nodaList.get(nOuts+nIns) == null) {
-                auxList = new ArrayList<GraphNode>();
+                auxList = new ArrayList<>();
                 auxList.add(child);
             } else {
                 auxList = nodaList.get(nOuts+nIns);
@@ -638,54 +627,74 @@ public final strictfp class Graph {
             //maxWidth = (maxWidth < width) ? width : maxWidth;
             //maxHeight = (maxHeight < height) ? height : maxHeight;
             
-            layerWidth  += width  + GraphNode.xJumpNode;
-            layerHeight += height + GraphNode.yJumpNode;
-            
-            //child.setX((int) Math.floor((5 + leftTopX + child.getWidth())));
-            //child.setY((int) Math.floor((5 + leftTopY + child.getHeight())));
+            //layerWidth  += width  + GraphNode.xJumpNode;
+            //layerHeight += height + GraphNode.yJumpNode;
             
         }     
         
         int nbLayers = nodaList.size();
+        
+        int[] layerWidth = new int[nbLayers];
+        Arrays.fill(layerWidth, GraphNode.xJumpNode);
+        int[] layerHeight = new int[nbLayers];
+        Arrays.fill(layerHeight, GraphNode.yJumpNode);
+        
+        int childHeight;
+        int maxLayerHeight=0;
         int i = nbLayers;
         for (ArrayList<GraphNode> childList : nodaList.values()) {
-            //System.out.println("Layer list: " + childList + " nbLayer: " + childList.get(0).layer());
             for (GraphNode child : childList) {
                 child.setLayer(nbLayers-i);
-                //System.out.println("Child: " + child.uuid + " layer: " + child.layer());
+                
+                childHeight = child.getHeight();
+                maxLayerHeight = (maxLayerHeight < childHeight) ? childHeight : maxLayerHeight;
+                
+                layerWidth[nbLayers-i] += child.getWidth() + GraphNode.xJumpNode;
             }
+            layerHeight[nbLayers-i] += maxLayerHeight + GraphNode.yJumpNode;
             i--;
         }
         
-        layerWidth += GraphNode.xJumpNode;
+        int totalHeight=0;
+        int totalWidth=0;
+        for (int j=0; j<nbLayers; j++) {
+            totalHeight += layerHeight[i];
+            totalWidth += layerWidth[i];
+        }
+        
         int startX;
-        int startY = layerHeight/2 - GraphNode.yJumpNode;
+        int startY = totalHeight/2 - GraphNode.yJumpNode;
         
         int layer=0;
         int maxHeight;
         for (ArrayList<GraphNode> childList : nodaList.values()) {
-            startX = (childList.size() > 1) ? -layerWidth/2 + GraphNode.xJumpNode : 0;
+            layer = childList.get(0).layer();
+            startX = (childList.size() > 1) ? -layerWidth[layer]/2 + GraphNode.xJumpNode : 0;
             
             maxHeight = 0;
             for (GraphNode child: childList) {
                 layer = child.layer();
-                int childHeight = child.getHeight();
+                childHeight = child.getHeight();
                 maxHeight = (maxHeight < childHeight) ? childHeight : maxHeight;
             }
             startY -= (layer > 0) ? maxHeight/2 : 0;
-            //System.out.println("Layer List: " + childList + " layer: " + layer + " startY: " + startY);
             
             for (GraphNode child : childList) {
+                
+                startX += (childList.size() > 1) ? child.getWidth()/2 : 0;
                 
                 child.setX(startX);
                 child.setY(startY - child.getHeight()/2);
 
-                startX += child.getWidth() + GraphNode.xJumpNode;
+                startX += (childList.size() > 1) ? child.getWidth()/2 + GraphNode.xJumpNode : 0;
             }
             
             startY -= maxHeight/2 + GraphNode.yJumpNode;
         }
-        
+        System.out.println(totalHeight);
+        System.out.println(totalWidth);
+        father.setSubGraphHeight(totalHeight);
+        father.setSubGraphWidth(totalWidth);
     }
     
     /**
