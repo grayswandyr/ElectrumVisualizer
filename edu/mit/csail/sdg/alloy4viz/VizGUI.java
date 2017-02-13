@@ -193,6 +193,12 @@ public final class VizGUI implements ComponentListener {
     private VizGraphPanel myGraphPanel = null;
 
     /**
+     * [N7] @Louis Fauvarque
+     */
+    
+    private VizGraphPanel mySplitGraphPanel = null;
+    
+    /**
      * The splitpane between the customization panel and the graph panel.
      */
     private final JSplitPane splitpane;
@@ -1003,8 +1009,24 @@ public final class VizGUI implements ComponentListener {
                     myGraphPanel.seeDot(false);
                     myGraphPanel.remakeAll();
                 }
+                /**
+                 * [N7] @Louis Fauvarque
+                 * Creates the second panel if needed
+                 */
+                if (myState.splitPanel) {
+                    if (mySplitGraphPanel == null) {
+                        mySplitGraphPanel = new VizGraphPanel(myState, false);
+                    } else {
+                        mySplitGraphPanel.seeDot(false);
+                        mySplitGraphPanel.remakeAll();
+                    }
+                }
             }
-            content = myGraphPanel;
+            if(!myState.splitPanel){
+                content = myGraphPanel;
+            } else {
+                content = OurUtil.makeH(myGraphPanel,mySplitGraphPanel);
+            }
         }
         // Now that we've re-constructed "content", let's set its font size
         if (currentMode != VisualizerMode.Tree) {
@@ -1308,6 +1330,13 @@ public final class VizGUI implements ComponentListener {
         if (myGraphPanel != null) {
             myGraphPanel.remakeAll();
         }
+        /**
+         * [N7] @Louis Fauvarque
+         * Resets the split Panel
+         */
+        if (myState.splitPanel && mySplitGraphPanel != null){
+            mySplitGraphPanel.remakeAll();
+        }
         addThemeHistory(filename);
         thmFileName = filename;
         updateDisplay();
@@ -1557,6 +1586,14 @@ public final class VizGUI implements ComponentListener {
      */
     
     private Runner doSplitGraph(){
+        if(wrap){
+            return wrapMe();
+        }
+        if(myState == null){
+            return null;
+        }
+        myState.splitPanel = !myState.splitPanel;
+        updateDisplay();
         return null;
     }
 

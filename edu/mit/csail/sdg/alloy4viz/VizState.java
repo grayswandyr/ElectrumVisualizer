@@ -84,6 +84,7 @@ public final class VizState {
         edgeColor.putAll(old.edgeColor);
         edgeStyle.putAll(old.edgeStyle);
         edgeVisible.putAll(old.edgeVisible);
+        splitPanel = false;
         changedSinceLastSave = false;
     }
 
@@ -160,6 +161,7 @@ public final class VizState {
         // Done
         cache.clear();
         changedSinceLastSave = false;
+        splitPanel = false;
     }
 
     /**
@@ -537,6 +539,7 @@ public final class VizState {
     public final MMap<Boolean> hideUnconnected = new MMap<Boolean>(true, false);
     public final MMap<Boolean> showAsAttr = new MMap<Boolean>(true, false);
     public final MMap<Boolean> showAsLabel = new MMap<Boolean>(true, false);
+    public boolean splitPanel = false;
 
     public final class MInt {
 
