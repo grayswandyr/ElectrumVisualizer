@@ -943,14 +943,17 @@ public final class VizGUI implements ComponentListener {
         switch (currentMode) {
             case Tree:
                 treeButton.setEnabled(false);
+                splitButton.setEnabled(false);
                 break;
             case TEXT:
                 txtButton.setEnabled(false);
+                splitButton.setEnabled(false);
                 break;
             // case XML: xmlButton.setEnabled(false); break;
             // case DOT: dotButton.setEnabled(false); break;
             default:
                 vizButton.setEnabled(false);
+                splitButton.setEnabled(true);
         }
         final boolean isMeta = myState.getOriginalInstance().isMetamodel;
         vizButton.setVisible(frame != null);
@@ -1592,7 +1595,7 @@ public final class VizGUI implements ComponentListener {
         if(myState == null){
             return null;
         }
-        myState.splitPanel = !myState.splitPanel;
+        myState.splitPanel = !myState.splitPanel && myState.getProjectedTypes().size() > 0;
         updateDisplay();
         return null;
     }
