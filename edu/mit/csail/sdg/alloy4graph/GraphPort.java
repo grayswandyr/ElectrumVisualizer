@@ -760,21 +760,21 @@ public class GraphPort extends AbstractGraphNode {
             int numsides = polyx.length;
             Point a = new Point(), b = new Point();
             
-            System.out.println("[Port.recalc] Polygon with " + numsides + " sides");
-            
-            int i = -1;
-            do {
-                i++;
+            int i = 0;
+            while (i < ors.length) {
                 a.x = polyx[i]; a.y = polyy[i];
                 b.x = polyx[(i+1)%numsides]; b.y = polyy[(i+1)%numsides];
-            } while (i < ors.length && !ors[i].equals(this.orientation));
+                
+                if (ors[i].equals(this.orientation))
+                    break;
+                
+                i++;
+            }
             
             if (i >= ors.length) { // have not found the orientation in the authorized one... oops ?
                 System.err.println("Error: this port is not on a valid orientation");
                 return;
             }
-            
-            System.out.println("[Port.recalc] Side #" + i + " [(" + a.x + "," + a.y + ")-(" + b.x + "," + b.y + ")]");
             
             // Now, [a,b] is the side corresponding to the requested orientation
             // Just have to apply the magic barycenter function !
