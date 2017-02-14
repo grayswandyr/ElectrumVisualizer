@@ -372,23 +372,26 @@ public final strictfp class GraphViewer extends JPanel {
                 dragButton = 0;
                 int mod = ev.getModifiers();
                 if ((mod & BUTTON3_MASK) != 0) {
+                    // Right button clicked
                     selected = alloyFind(ev.getX(), ev.getY());
-                    ((AbstractGraphNode)highlight).setHighlight(false); //[N7-G.Dupont]
+                    if (highlight instanceof AbstractGraphElement) ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = null;
                     alloyRepaint();
                     pop.show(GraphViewer.this, ev.getX(), ev.getY());
                 } else if ((mod & BUTTON1_MASK) != 0 && (mod & CTRL_MASK) != 0) {
-                  // This lets Ctrl+LeftClick bring up the popup menu, just like RightClick,
+                    // Left button clicked + Ctrl key modifier
+                    // This lets Ctrl+LeftClick bring up the popup menu, just like RightClick,
                     // since many Mac mouses do not have a right button.
                     selected = alloyFind(ev.getX(), ev.getY());
-                    ((AbstractGraphNode)highlight).setHighlight(false); //[N7-G.Dupont]
+                    if (highlight instanceof AbstractGraphElement)  ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = null;
                     alloyRepaint();
                     pop.show(GraphViewer.this, ev.getX(), ev.getY());
                 } else if ((mod & BUTTON1_MASK) != 0) {
+                    // Left button clicked
                     dragButton = 1;
                     selected = alloyFind(oldMouseX = ev.getX(), oldMouseY = ev.getY());
-                    ((AbstractGraphNode)highlight).setHighlight(false); //[N7-G.Dupont]
+                    if (highlight instanceof AbstractGraphElement)  ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = null;
                     alloyRepaint();
                     if (selected instanceof AbstractGraphNode) {

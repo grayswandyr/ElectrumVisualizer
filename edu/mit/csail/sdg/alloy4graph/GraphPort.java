@@ -74,14 +74,15 @@ public class GraphPort extends AbstractGraphNode {
      * This assume the node's shape is not too "funky"
      */
     public enum Orientation {
+        NorthWest("North West", "nw"),
         North    ("North"     , "n"),
         NorthEast("North East", "ne"),
         East     ("East"      , "e"),
         SouthEast("South East", "se"),
         South    ("South"     , "s"),
         SouthWest("South West", "sw"),
-        West     ("West"      , "w"),
-        NorthWest("North West", "nw");
+        West     ("West"      , "w");
+        
         
         private final String name;
         private final Icon icon;
@@ -104,12 +105,17 @@ public class GraphPort extends AbstractGraphNode {
         return ors;
     }
     
+    /**
+     * Remark : orientation are always given CLOCKWISE and starting from NORTHWEST.
+     * This is very important if we want to correctly guess the good side of the
+     * poly where to place the port.
+     */
     public static final Map<DotShape,Orientation[]> AvailableOrientations;
     static {
         // These combinations are pretty common
         final Orientation NESW[] = makeArray(Orientation.North, Orientation.South, Orientation.West, Orientation.East);
-        final Orientation Every[] = makeArray(Orientation.North, Orientation.NorthEast, Orientation.East, Orientation.SouthEast, Orientation.South, Orientation.SouthWest, Orientation.West, Orientation.NorthWest);
-        final Orientation Odds[] = makeArray(Orientation.NorthEast, Orientation.SouthEast, Orientation.SouthWest, Orientation.NorthWest);
+        final Orientation Every[] = makeArray(Orientation.NorthWest, Orientation.North, Orientation.NorthEast, Orientation.East, Orientation.SouthEast, Orientation.South, Orientation.SouthWest, Orientation.West);
+        final Orientation Odds[] = makeArray(Orientation.NorthWest, Orientation.NorthEast, Orientation.SouthEast, Orientation.SouthWest);
         final Orientation None[] = {};
         
         AvailableOrientations = new HashMap<>();
@@ -117,12 +123,12 @@ public class GraphPort extends AbstractGraphNode {
         AvailableOrientations.put(DotShape.BOX           , NESW);
         AvailableOrientations.put(DotShape.CIRCLE        , NESW);
         AvailableOrientations.put(DotShape.EGG           , None);
-        AvailableOrientations.put(DotShape.TRIANGLE      , makeArray(Orientation.NorthEast, Orientation.NorthWest, Orientation.South));
+        AvailableOrientations.put(DotShape.TRIANGLE      , makeArray(Orientation.NorthWest, Orientation.NorthEast, Orientation.South));
         AvailableOrientations.put(DotShape.DIAMOND       , Odds);
         AvailableOrientations.put(DotShape.TRAPEZOID     , NESW);
         AvailableOrientations.put(DotShape.PARALLELOGRAM , NESW);
-        AvailableOrientations.put(DotShape.HOUSE         , makeArray(Orientation.NorthEast, Orientation.East, Orientation.South, Orientation.West, Orientation.NorthWest));
-        AvailableOrientations.put(DotShape.HEXAGON       , makeArray(Orientation.North, Orientation.NorthEast, Orientation.SouthEast, Orientation.South, Orientation.SouthWest, Orientation.NorthWest));
+        AvailableOrientations.put(DotShape.HOUSE         , makeArray(Orientation.NorthWest, Orientation.NorthEast, Orientation.East, Orientation.South, Orientation.West));
+        AvailableOrientations.put(DotShape.HEXAGON       , makeArray(Orientation.NorthWest, Orientation.North, Orientation.NorthEast, Orientation.SouthEast, Orientation.South, Orientation.SouthWest));
         AvailableOrientations.put(DotShape.OCTAGON       , Every);
         AvailableOrientations.put(DotShape.DOUBLE_CIRCLE , NESW);
         AvailableOrientations.put(DotShape.DOUBLE_OCTAGON, Every);
@@ -181,14 +187,104 @@ public class GraphPort extends AbstractGraphNode {
         return result;
     }
     
+    /**
+     * Return the postion of the point on the line (a,b) that is the kth
+     * of n evenly spaced points.
+     * E.g. : (with 3 points)
+     *    A                   B
+     *    +----+----+----+----+
+     *         ^    ^    ^
+     *         0    1    2
+     * @param k number of the point
+     * @param n number of points on the line
+     * @param a first point of the line
+     * @param b second point of the line
+     * @return the cartesian coordinates of the requested point
+     */
     static Point bar(int k, int n, Point a, Point b) {
-        double coeff = (double)k/(double)n;
+        double coeff = (double)(k+1)/(double)(n+1);
         Point r = new Point();
         r.setLocation(
             coeff*(b.getX() - a.getX()) + a.getX(),
             coeff*(b.getY() - a.getY()) + a.getY()
         );
         return r;
+    }
+    
+    /**
+     * Get the cartesian coordinates of a point (M) on an ellipse (charaterized by
+     * its demi axis a and b) from an angular measure.
+     * @param theta angle between the abscisse (Ox) and the requeted point (OM)
+     * @param a semiaxis major
+     * @param b semiaxis minor
+     * @return the coordinated of M
+     */
+    static Point angular(double theta, double a, double b) {
+        Point r = new Point();
+        r.setLocation(
+            a*Math.cos(theta),
+            b*Math.sin(theta)
+        );
+        return r;
+    }
+    
+    /**
+     * Retrieve the angular offset given by an orientation (that is, the angle
+     * between the abscisse line Ox and what is considered to be the beginning
+     * of the arc corresponding to the requested orientation).
+     * @param or requested orientation
+     * @param a semiaxis major of the ellipse
+     * @param b semiaxis minor of the ellipse
+     * @return angular offset corresponding to the orientation
+     * Remark: as a and b are divided, they can also be the axis major and axis
+     * minor
+     */
+    static double orientAngle(Orientation or, double a, double b) {
+        double r = 0.0;
+        double th = Math.atan(b/a);
+        switch (or) {
+            case North:
+                r += th;
+                break;
+            case East:
+                r -= th;
+                break;
+            case South:
+                r += Math.PI + th;
+                break;
+            case West:
+                r += Math.PI - th;
+                break;
+            default:
+                // this function will not be called with other orientations
+                // so it is fine to stick with result = 0.0
+        }
+        return r;
+    }
+    
+    /**
+     * Return the angle between what is considered as the beginning of the arc
+     * on target orientation and the kth point among n point evenly distributed
+     * (that is, separated with the same angle) on an ellipse of semiaxis a and b.
+     * @param k number of the point
+     * @param n number of point on this arc
+     * @param or requested orientation
+     * @param a semiaxis major
+     * @param b semiaxis minor
+     * @return the angle of the requested point
+     * Remark: as a and b are divided, they can also be the axis major and axis
+     * minor
+     */
+    static double angularBarycenter(int k, int n, Orientation or, double a, double b) {
+        double alpha = 0.0;
+        double coeff = (double)(k+1)/(double)(n+1);
+        if (or.equals(Orientation.North) || or.equals(Orientation.South)) {
+            alpha = 2*Math.atan(a/b);
+        } else if (or.equals(Orientation.East) || or.equals(Orientation.West)) {
+            alpha = 2*Math.atan(b/a);
+        }
+        
+        return alpha * coeff;
     }
     
     /** Attributes **/
@@ -335,7 +431,7 @@ public class GraphPort extends AbstractGraphNode {
         }
         
         // Translate to the top left hand corner of the node (easier for calculi)
-        gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
+        //gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
         
         // Then, translate to the center of the port
         gr.translate(x(), y());
@@ -387,9 +483,6 @@ public class GraphPort extends AbstractGraphNode {
         
         if (hovered)
             drawTooltip(gr, scale);
-        
-        // Translate back the system where it was before (hopefully)
-        gr.translate(this.node.getWidth() / 2 - x(), this.node.getHeight() / 2 - y());
     }
     
     /**
@@ -616,12 +709,14 @@ public class GraphPort extends AbstractGraphNode {
         
         Rectangle s = new Rectangle(0, 0, width + 2*LabelPaddingLeft, height + 2*LabelPaddingTop);
         gr.translate(0, -s.height);
+        gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
         gr.setColor(Color.LIGHT_GRAY);
         gr.draw(s, true);
         gr.setColor(Color.BLACK);
         gr.set(DotStyle.SOLID, scale);
         gr.draw(s, false);
         gr.drawString(this.label, LabelPaddingLeft, height + LabelPaddingTop, 0);
+        gr.translate(this.node.getWidth() / 2, this.node.getHeight() / 2);
         gr.translate(0, s.height);
     }
     
@@ -629,30 +724,71 @@ public class GraphPort extends AbstractGraphNode {
      * Recalculate position of the port according to data in the parent node.
      */
     void recalc() {
-        int dist = getDistance();
+        int numports = this.node.numPorts.get(this.orientation);
+        int x = 0, y = 0;
         
-        // Compute port and label position
-        switch (this.orientation) {
-            case East:
-                setX(this.node.getWidth());
-                setY(dist);
-                break;
-            case West:
-                setX(0);
-                setY(dist);
-                break;
-            case South:
-                setX(dist);
-                setY(this.node.getHeight());
-                break;
-            case North:
-                setX(dist);
-                setY(0);
-                break;
-            default:
-                // nop
+        if (this.node.shape().equals(DotShape.ELLIPSE) || this.node.shape().equals(DotShape.CIRCLE)) {
+            double a = this.node.getWidth(), b = this.node.getHeight(); // In any case, we will divide this by 2
+            
+            if (this.node.shape().equals(DotShape.CIRCLE)) {
+                // With the circle shape, the "bounding box" given is actually the insquare
+                // of the circle, so we have 2*R = sqrt(w*w + h*h) (if w is the width of the
+                // bounding box and h is its height)
+                a = Math.sqrt(a*a + b*b);
+                b = a;
+            }
+            a /= 2.0; // semiaxis major
+            b /= 2.0; // semiaxis minor
+            
+            double offset = GraphPort.orientAngle(this.orientation, a, b);
+            double angbar = GraphPort.angularBarycenter(this.order, numports, this.orientation, a, b);
+            Point pt = GraphPort.angular(offset + angbar, a, b);
+            x = pt.x;
+            y = pt.y;
+        } else {
+            if (!(this.node.poly() instanceof Polygon))
+                return;
+            
+            /*
+             * We know that north xor northwest is always the first side of the polygon, and
+             * that every polygon is formed so that the first side is the north xor northwest one
+             * and with its sides put clockwise.
+             * 
+             * Our goal is to get the two adjacent points forming the side of the requested
+             * orientation so that we can apply the barycenter to them.
+             * 
+             * So the principle is to guess the side number based on the available orientations
+             * for this node shape, and then get the two adjacent points of this shape corresponding
+             * to this side "number" (we factorize code by going through these points and these
+             * orientations).
+             */
+            Orientation ors[] = GraphPort.AvailableOrientations.get(this.node.shape());
+            int polyx[] = ((Polygon)this.node.poly()).xpoints;
+            int polyy[] = ((Polygon)this.node.poly()).ypoints;
+            int numsides = polyx.length;
+            Point a = new Point(), b = new Point();
+            
+            int i = 0;
+            while (i < ors.length && ors[i].equals(this.orientation)) {
+                a.x = polyx[i]; a.y = polyy[i];
+                b.x = polyx[(i+1)%numsides]; b.y = polyy[(i+1)%numsides];
+                i++;
+            }
+            
+            if (i >= ors.length) { // have not found the orientation in the authorized one... oops ?
+                System.err.println("Error: this port is not on a valid orientation");
+                return;
+            }
+            
+            // Now, [a,b] is the side corresponding to the requested orientation
+            // Just have to apply the magic barycenter function !
+            Point g = GraphPort.bar(this.order, numports, a, b);
+            x = g.x;
+            y = g.y;
         }
         
+        this.setX(x);
+        this.setY(y);
         this.needRecalc = false;
     }
     

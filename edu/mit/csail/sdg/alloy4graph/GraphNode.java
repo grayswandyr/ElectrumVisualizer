@@ -24,6 +24,7 @@ import static java.lang.StrictMath.sqrt;
 
 import java.awt.Color;
 import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
@@ -198,6 +199,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * not null, it must be either a GeneralPath or a Polygon.
      */
     private Shape poly = null;
+    Shape poly() { return poly; }
 
     /**
      * If (updown>=0 and shape!=null and poly2!=null), then poly2 will also be
@@ -757,14 +759,14 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 updown += dy / 2;
                 if (shape() == DotShape.TRIANGLE) {
                     yShift = dy / 2;
+                    poly.addPoint(-hw - dx, updown);
                     poly.addPoint(0, -updown);
                     poly.addPoint(hw + dx, updown);
-                    poly.addPoint(-hw - dx, updown);
                 } else {
                     yShift = -dy / 2;
-                    poly.addPoint(0, updown);
-                    poly.addPoint(hw + dx, -updown);
                     poly.addPoint(-hw - dx, -updown);
+                    poly.addPoint(hw + dx, -updown);
+                    poly.addPoint(0, updown);
                 }
                 break;
             }
