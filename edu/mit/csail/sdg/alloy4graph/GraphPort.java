@@ -22,6 +22,7 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -160,7 +161,13 @@ public class GraphPort extends AbstractGraphNode {
      */
     public static final DotShape AvailableShapes[] = {
         DotShape.BOX,
-        DotShape.CIRCLE
+        DotShape.CIRCLE,
+        DotShape.DIAMOND,
+        DotShape.ELLIPSE,
+        DotShape.TRIANGLE,
+        DotShape.INV_TRIANGLE,
+        DotShape.TRAPEZOID,
+        DotShape.INV_TRAPEZOID
     };
     
     /**
@@ -370,6 +377,9 @@ public class GraphPort extends AbstractGraphNode {
                         Math.sqrt(dx*dx + dy*dy) < this.radius
                 ;
                 break;
+            /*case DIAMOND:
+                
+                break;*/
             default:
                 // nop
         }
@@ -429,6 +439,24 @@ public class GraphPort extends AbstractGraphNode {
             case CIRCLE:
                 drawCircle(gr);
                 break;
+            case DIAMOND:
+                drawDiamond(gr);
+                break;
+            case ELLIPSE:
+                drawEllipse(gr);
+                break;
+            case TRIANGLE:
+                drawTriangle(gr, false);
+                break;
+            case INV_TRIANGLE:
+                drawTriangle(gr, true);
+                break;
+            case TRAPEZOID:
+                drawTrapezoid(gr, false);
+                break;
+            case INV_TRAPEZOID:
+                drawTrapezoid(gr, true);
+                break;
             default:
                 // nop
         }
@@ -447,6 +475,102 @@ public class GraphPort extends AbstractGraphNode {
         // Draw a black hollow circle of the requested radius
         gr.setColor(Color.BLACK);
         gr.drawCircle(this.radius);
+    }
+    
+    /**
+     * [N7] @Julien Richer
+     * Draw the port as a diamond
+     * @param gr Artist on which to draw the port
+     */
+    private void drawDiamond(Artist gr) {
+        // Create the diamond
+        Polygon poly = new Polygon();
+        poly.addPoint(-this.radius, 0);
+        poly.addPoint(0, -this.radius);
+        poly.addPoint(this.radius, 0);
+        poly.addPoint(0, this.radius);
+        // Draw a full diamond of the requested radius and color
+        gr.draw(poly, true);
+        // Draw a black hollow diamond of the requested radius
+        gr.setColor(Color.BLACK);
+        gr.draw(poly, false);
+    }
+    
+    /**
+     * [N7] @Julien Richer
+     * Draw the port as an ellipse
+     * @param gr Artist on which to draw the port
+     */
+    private void drawEllipse(Artist gr) {
+        // Create the ellipse
+        double side = this.radius;
+        double updown = this.radius/1.5;
+        GeneralPath path = new GeneralPath();
+        path.moveTo(-side, 0);
+        path.quadTo(-side, -updown, 0, -updown);
+        path.quadTo(side, -updown, side, 0);
+        path.quadTo(side, updown, 0, updown);
+        path.quadTo(-side, updown, -side, 0);
+        path.closePath();
+        Shape ellipse = path;
+        // Draw a full ellipse of the requested radius and color
+        gr.draw(ellipse, true);
+        // Draw a black hollow ellipse of the requested radius
+        gr.setColor(Color.BLACK);
+        gr.draw(ellipse, false);
+    }
+    
+    /**
+     * [N7] @Julien Richer
+     * Draw the port as a triangle
+     * @param gr Artist on which to draw the port
+     */
+    private void drawTriangle(Artist gr, boolean inv) {
+        // Create the triangle
+        Polygon poly = new Polygon();
+        if(inv) {
+            poly.addPoint(0, this.radius);
+            poly.addPoint(this.radius, -this.radius);
+            poly.addPoint(-this.radius, -this.radius);
+        }
+        else {
+            poly.addPoint(0, -this.radius);
+            poly.addPoint(this.radius, this.radius);
+            poly.addPoint(-this.radius, this.radius);
+        }
+        // Draw a full triangle of the requested radius and color
+        gr.draw(poly, true);
+        // Draw a black hollow triangle of the requested radius
+        gr.setColor(Color.BLACK);
+        gr.draw(poly, false);
+    }
+    
+    /**
+     * [N7] @Julien Richer
+     * Draw the port as a trapezoid
+     * @param gr Artist on which to draw the port
+     */
+    private void drawTrapezoid(Artist gr, boolean inv) {
+        // Create the trapezoid
+        int w = this.radius-2;
+        Polygon poly = new Polygon();
+        if(inv) {
+            poly.addPoint(w, this.radius);
+            poly.addPoint(this.radius, -this.radius);
+            poly.addPoint(-this.radius, -this.radius);
+            poly.addPoint(-w, this.radius);
+        }
+        else {
+            poly.addPoint(w, -this.radius);
+            poly.addPoint(this.radius, this.radius);
+            poly.addPoint(-this.radius, this.radius);
+            poly.addPoint(-w, -this.radius);
+        }
+        // Draw a full trapezoid of the requested radius and color
+        gr.draw(poly, true);
+        // Draw a black hollow trapezoid of the requested radius
+        gr.setColor(Color.BLACK);
+        gr.draw(poly, false);
     }
     
     /**
