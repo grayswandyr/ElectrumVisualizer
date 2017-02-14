@@ -620,6 +620,9 @@ public final strictfp class Graph {
             
         }     
         
+        // We see if each layers respect the established rules
+        //layout_decideLayerSubGraph(nodaList);
+        
         //================================= Assignment of the nodes according to the layers previously established ================================================= //
         
         int nbLayers = nodaList.size();
@@ -633,7 +636,7 @@ public final strictfp class Graph {
         // We fill the two list
         int childHeight;
         int i = nbLayers;
-        for (ArrayList<GraphNode> childList : nodaList.values()) {
+        for (ArrayList<GraphNode> childList : nodaList.values()) { //for (List<GraphNode> childList : layerlist)
             int maxLayerHeight = 0;
             for (GraphNode child : childList) {
                 child.setLayer(nbLayers-i);
@@ -686,6 +689,42 @@ public final strictfp class Graph {
             }
             
             startY -= maxHeight/2 + GraphNode.yJumpNode;
+        }
+    }
+    
+    /**
+     * This decides the layers of the subgraph.
+     */
+    private void layout_decideLayerSubGraph(TreeMap<Integer, ArrayList<GraphNode>> nodaList ) {
+        List<List<GraphNode>> tempList = new ArrayList<>();
+        
+        for (ArrayList<GraphNode> list : nodaList.values()) {
+            tempList.add(list);
+        }
+        
+        nodaList.clear();
+        
+        int i=0;
+        for (List<GraphNode> list : tempList) {
+            for (GraphNode gn : list) {
+                for (GraphEdge e : gn.outs) {
+                    if (e.b() instanceof GraphNode) {
+                        if (list.contains(((GraphNode) e.b()))) {
+                            list.remove(gn);
+                            if (i+1 >= tempList.size()) {
+                                List<GraphNode> auxList = new ArrayList<GraphNode>();
+                                auxList.add(gn);
+                                //tempList.add(i+1,auxList);
+                                nodaList.put(i+1, (ArrayList) auxList);
+                            } else {
+                                nodaList.get(i+1).add(gn);
+                            }
+                        }
+                    }
+                }
+            }
+            i++;
+            System.out.println("i: " + i);
         }
     }
     
