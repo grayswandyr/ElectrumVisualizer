@@ -608,7 +608,7 @@ public final class VizCustomizationPanel extends JPanel {
             }
         };
         
-        JPanel orientPanel = OurUtil.makeH(orientBox);
+        JPanel orientPanel = OurUtil.makeH(wcolor, orientBox);
         orientPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         orientPanel.setAlignmentY(0.5f);
         orientPanel.setAlignmentX(0.5f);
@@ -636,7 +636,7 @@ public final class VizCustomizationPanel extends JPanel {
             }
         };
         
-        JPanel colorPanel = OurUtil.makeH(colorBox);
+        JPanel colorPanel = OurUtil.makeH(wcolor, colorBox);
         colorPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         colorPanel.setAlignmentY(0.5f);
         colorPanel.setAlignmentX(0.5f);
@@ -664,7 +664,7 @@ public final class VizCustomizationPanel extends JPanel {
             }
         };
 
-        JPanel shapePanel = OurUtil.makeH(shapeBox);
+        JPanel shapePanel = OurUtil.makeH(wcolor, shapeBox);
         shapePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         shapePanel.setAlignmentY(0.5f);
         shapePanel.setAlignmentX(0.5f);
@@ -692,7 +692,7 @@ public final class VizCustomizationPanel extends JPanel {
             }
         };
         
-        JPanel stylePanel = OurUtil.makeH(styleBox);
+        JPanel stylePanel = OurUtil.makeH(wcolor, styleBox);
         stylePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         stylePanel.setAlignmentY(0.5f);
         stylePanel.setAlignmentX(0.5f);
@@ -725,7 +725,7 @@ public final class VizCustomizationPanel extends JPanel {
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
 
-        JPanel panelPort = OurUtil.makeHB(wcolor, orientPanel, colorPanel, shapePanel, stylePanel);
+        JPanel panelPort = OurUtil.makeHB(wcolor, orientPanel, colorPanel, stylePanel, shapePanel);
 
         parent.add(OurUtil.makeVL(wcolor, panelPort));
     }
