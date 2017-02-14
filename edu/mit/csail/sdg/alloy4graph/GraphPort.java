@@ -161,7 +161,12 @@ public class GraphPort extends AbstractGraphNode {
         DotShape.TRIANGLE,
         DotShape.INV_TRIANGLE,
         DotShape.TRAPEZOID,
-        DotShape.INV_TRAPEZOID
+        DotShape.INV_TRAPEZOID,
+        DotShape.PARALLELOGRAM,
+        DotShape.HOUSE,
+        DotShape.INV_HOUSE,
+        DotShape.HEXAGON,
+        DotShape.OCTAGON
     };
     
     /**
@@ -361,6 +366,21 @@ public class GraphPort extends AbstractGraphNode {
             case INV_TRAPEZOID:
                 drawTrapezoid(gr, true);
                 break;
+            case PARALLELOGRAM:
+                drawParallelogram(gr);
+                break;
+            case HOUSE:
+                drawHouse(gr, false);
+                break;
+            case INV_HOUSE:
+                drawHouse(gr, true);
+                break;
+            case HEXAGON:
+                drawHexagon(gr);
+                break;
+            case OCTAGON:
+                drawOctagon(gr);
+                break;
             default:
                 // nop
         }
@@ -459,7 +479,7 @@ public class GraphPort extends AbstractGraphNode {
      */
     private void drawTrapezoid(Artist gr, boolean inv) {
         // Create the trapezoid
-        int w = this.radius-2;
+        int w = (int)((double)this.radius/1.5);
         Polygon poly = new Polygon();
         if(inv) {
             poly.addPoint(w, this.radius);
@@ -476,6 +496,89 @@ public class GraphPort extends AbstractGraphNode {
         // Draw a full trapezoid of the requested radius and color
         gr.draw(poly, true);
         // Draw a black hollow trapezoid of the requested radius
+        gr.setColor(Color.BLACK);
+        gr.draw(poly, false);
+    }
+    
+    /**
+     * [N7] @Julien Richer
+     * Draw the port as a parallelogram
+     * @param gr Artist on which to draw the port
+     */
+    private void drawParallelogram(Artist gr) {
+        // Create the parallelogram
+        int w = (int)((double)this.radius/1.5);
+        Polygon poly = new Polygon();
+        poly.addPoint(-this.radius, -this.radius);
+        poly.addPoint(-w, this.radius);
+        poly.addPoint(this.radius, this.radius);
+        poly.addPoint(w, -this.radius);
+        // Draw a full parallelogram of the requested radius and color
+        gr.draw(poly, true);
+        // Draw a black hollow parallelogram of the requested radius
+        gr.setColor(Color.BLACK);
+        gr.draw(poly, false);
+    }
+    
+    /**
+     * [N7] @Julien Richer
+     * Draw the port as a house
+     * @param gr Artist on which to draw the port
+     */
+    private void drawHouse(Artist gr, boolean inv) {
+        // Create the house
+        Polygon poly = new Polygon();
+        if(inv) {
+            poly.addPoint(-this.radius, -this.radius);
+            poly.addPoint(-this.radius, this.radius);
+            poly.addPoint(0, 2*this.radius);
+            poly.addPoint(this.radius, this.radius);
+            poly.addPoint(this.radius, -this.radius);
+        }
+        else {
+            poly.addPoint(-this.radius, -this.radius);
+            poly.addPoint(-this.radius, this.radius);
+            poly.addPoint(this.radius, this.radius);
+            poly.addPoint(this.radius, -this.radius);
+            poly.addPoint(0, -2*this.radius);
+        }
+        // Draw a full house of the requested radius and color
+        gr.draw(poly, true);
+        // Draw a black hollow house of the requested radius
+        gr.setColor(Color.BLACK);
+        gr.draw(poly, false);
+    }
+    
+    /**
+     * Draw the port as a hexagon
+     * @param gr Artist on which to draw the port
+     */
+    private void drawHexagon(Artist gr) {
+        // Create the hexagon
+        Polygon poly = new Polygon();
+        for(int i=0; i<6; i++) {
+            poly.addPoint((int) ((double) this.radius*Math.cos(i*Math.PI/3)), (int) ((double) this.radius*Math.sin(i*Math.PI/3)));
+        }
+        // Draw a full hexagon of the requested radius and color
+        gr.draw(poly, true);
+        // Draw a black hollow hexagon of the requested radius
+        gr.setColor(Color.BLACK);
+        gr.draw(poly, false);
+    }
+    
+    /**
+     * Draw the port as a octagon
+     * @param gr Artist on which to draw the port
+     */
+    private void drawOctagon(Artist gr) {
+        // Create the octagon
+        Polygon poly = new Polygon();
+        for(int i=0; i<8; i++) {
+            poly.addPoint((int) ((double) this.radius*Math.cos(i*Math.PI/4)), (int) ((double) this.radius*Math.sin(i*Math.PI/4)));
+        }
+        // Draw a full octagon of the requested radius and color
+        gr.draw(poly, true);
+        // Draw a black hollow octagon of the requested radius
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
     }
