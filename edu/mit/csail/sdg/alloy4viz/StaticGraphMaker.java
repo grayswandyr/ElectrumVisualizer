@@ -345,6 +345,7 @@ public final class StaticGraphMaker {
         node.setShape(shape);
         node.setColor(color.getColor(view.getNodePalette()));
         node.setStyle(style);
+        
         // Get the label based on the sets and relations
         String setsLabel = "";
         boolean showLabelByDefault = view.showAsLabel.get(null);
@@ -439,6 +440,27 @@ public final class StaticGraphMaker {
         
         // Create the port if it does not exist
         if (port == null) {
+            // Get the label based on the sets and relations
+            String setsLabel = "";
+            boolean showLabelByDefault = view.showAsLabel.get(null);
+            for (AlloySet set : instance.atom2sets(atom)) {
+                String x = view.label.get(set);
+                if (x.length() == 0) {
+                    continue;
+                }
+                Boolean showLabel = view.showAsLabel.get(set);
+                if ((showLabel == null && showLabelByDefault) || (showLabel != null && showLabel.booleanValue())) {
+                    setsLabel += ((setsLabel.length() > 0 ? ", " : "") + x);
+                }
+            }
+            if (setsLabel.length() > 0) {
+                Set<String> list = attribs.get(node);
+                if (list == null) {
+                    attribs.put(node, list = new TreeSet<String>());
+                }
+                list.add("(" + setsLabel + ")");
+            }
+            
             // Make the port
             port = new GraphPort(node, null, label, ori);
             

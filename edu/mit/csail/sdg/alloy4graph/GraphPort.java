@@ -18,10 +18,12 @@ package edu.mit.csail.sdg.alloy4graph;
 
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -172,6 +174,16 @@ public class GraphPort extends AbstractGraphNode {
             result.add(s.toString());
         }
         return result;
+    }
+    
+    static Point bar(int k, int n, Point a, Point b) {
+        double coeff = (double)k/(double)n;
+        Point r = new Point();
+        r.setLocation(
+            coeff*(b.getX() - a.getX()) + a.getX(),
+            coeff*(b.getY() - a.getY()) + a.getY()
+        );
+        return r;
     }
     
     /** Attributes **/
