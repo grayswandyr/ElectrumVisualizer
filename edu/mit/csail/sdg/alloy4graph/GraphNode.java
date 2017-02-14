@@ -505,7 +505,15 @@ public strictfp class GraphNode extends AbstractGraphNode {
         return poly.contains(x - x(), y - y());
     }
 
-    /**
+		/**
+		 * Returns true if the GraphNode is in the given Graph.
+		 * @param graph the graph in which we want to know if the GraphNode is.
+		 */
+		public boolean isInGraph(Graph g){
+			return (this.graph == g);
+		}
+		
+		/**
      * Draws this node at its current (x, y) location; this method will call
      * calcBounds() if necessary.
      */
@@ -685,7 +693,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     private void drawContainer(Artist gr, double scale, boolean highlight, int maxDepth, int top, int left) {
         drawRegular(gr, scale, highlight, top, left);
-        //TODO Button.
+        //TODO draw an indicator.
     }
 
     /**
@@ -701,19 +709,21 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * Helper method that shifts a node up.
      */
     private void shiftUp(int y) {
-        final int[] ph = graph.layerPH;
+				final int[] ph = graph.layerPH;
         final int yJump = Graph.yJump / 6;
         int i = layer();
-        setY(i, y);
+				setY(i, y);
         y = y - ph[i] / 2; // y is now the top-most edge of this layer
-        for (i++; i < graph.layers(); i++) {
+				for (i++; i < graph.layers(); i++) {
             List<GraphNode> list = graph.layer(i);
-            GraphNode first = list.get(0);
+			if (!list.isEmpty()){ //TODO: corrects a bug when displaying a subgraph in a new window, maybe we could find a may to do without si test.
+						GraphNode first = list.get(0);
             if (first.y() + ph[i] / 2 + yJump > y) {
                 setY(i, y - ph[i] / 2 - yJump);
             }
             y = first.y() - ph[i] / 2;
-        }
+      }
+				}
         graph.relayout_edges(false);
     }
 
