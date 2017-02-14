@@ -657,12 +657,16 @@ public class GraphPort extends AbstractGraphNode {
             int numsides = polyx.length;
             Point a = new Point(), b = new Point();
             
-            int i = -1;
-            do {
-                i++;
+            int i = 0;
+            while (i < ors.length) {
                 a.x = polyx[i]; a.y = polyy[i];
                 b.x = polyx[(i+1)%numsides]; b.y = polyy[(i+1)%numsides];
-            } while (i < ors.length && !ors[i].equals(this.orientation));
+                
+                if (ors[i].equals(this.orientation))
+                    break;
+                
+                i++;
+            }
             
             if (i >= ors.length) { // have not found the orientation in the authorized one... oops ?
                 System.err.println("Error: this port is not on a valid orientation");
