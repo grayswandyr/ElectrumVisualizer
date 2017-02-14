@@ -111,6 +111,13 @@ public final class VizGraphPanel extends JPanel {
      * This is the list of TypePanel(s) we've already constructed.
      */
     private final Map<AlloyType, TypePanel> type2panel = new TreeMap<AlloyType, TypePanel>();
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Indicates if the panel is the primary panel or the secondeary one
+     */
+    
+    private final boolean isSplit;
 
     /**
      * Inner class that displays a combo box of possible projection atom
@@ -269,7 +276,8 @@ public final class VizGraphPanel extends JPanel {
      * @param seeDot - true if we want to see the DOT source code, false if we
      * want it rendered as a graph
      */
-    public VizGraphPanel(VizState vizState, boolean seeDot) {
+    public VizGraphPanel(VizState vizState, boolean seeDot, boolean isSplit) {
+        this.isSplit = isSplit;
         Border b = new EmptyBorder(0, 0, 0, 0);
         OurUtil.make(this, Color.BLACK, Color.WHITE, b);
         this.seeDot = seeDot;
@@ -342,7 +350,7 @@ public final class VizGraphPanel extends JPanel {
             map.put(tp.getAlloyType(), tp.getAlloyAtom());
         }
         currentProjection = new AlloyProjection(map);
-        JPanel graph = vizState.getGraph(currentProjection);
+        JPanel graph = vizState.getGraph(currentProjection,isSplit);
         if (seeDot && (graph instanceof GraphViewer)) {
             viewer = null;
             JTextArea txt = OurUtil.textarea(graph.toString(), 10, 10, false, true, getFont());
@@ -385,7 +393,16 @@ public final class VizGraphPanel extends JPanel {
     }
 
     public String toDot() {
-        return vizState.getGraph(currentProjection).toString();
+        return vizState.getGraph(currentProjection,isSplit).toString();
+    }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Returns if the panel is the original or the split one
+     */
+    
+    public boolean isSplit(){
+        return isSplit;
     }
 
     /**

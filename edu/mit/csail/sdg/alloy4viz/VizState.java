@@ -209,18 +209,33 @@ public final class VizState {
     private LinkedHashMap<AlloyProjection, JPanel> cache = new LinkedHashMap<AlloyProjection, JPanel>();
 
     /**
+     * [N7] @Louis Fauvarque
+     * Caches previously generated graphs for the split panel.
+     */
+    private LinkedHashMap<AlloyProjection, JPanel> cacheSplit = new LinkedHashMap<AlloyProjection, JPanel>();
+    
+    /**
      * Generate a VizGraphPanel for a given projection choice, using the current
      * settings.
      */
-    public JPanel getGraph(AlloyProjection projectionChoice) {
-        JPanel ans = cache.get(projectionChoice);
+    public JPanel getGraph(AlloyProjection projectionChoice, boolean isSplit) {
+        JPanel ans = null;
+        if(isSplit){
+            ans = cacheSplit.get(projectionChoice);
+        } else {
+            ans = cache.get(projectionChoice);
+        }
         if (ans != null) {
             return ans;
         }
         AlloyInstance inst = originalInstance;
         try {
             ans = StaticGraphMaker.produceGraph(inst, this, projectionChoice);
-            cache.put(projectionChoice, ans);
+            if(isSplit){
+                cacheSplit.put(projectionChoice, ans);
+            } else {
+                cache.put(projectionChoice, ans);
+            }
         } catch (Throwable ex) {
             String msg = "An error has occurred: " + ex + "\n\nStackTrace:\n" + MailBug.dump(ex) + "\n";
             JScrollPane scroll = OurUtil.scrollpane(OurUtil.textarea(msg, 0, 0, false, false));

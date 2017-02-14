@@ -1007,7 +1007,7 @@ public final class VizGUI implements ComponentListener {
             // }
             default: {
                 if (myGraphPanel == null) {
-                    myGraphPanel = new VizGraphPanel(myState, false);
+                    myGraphPanel = new VizGraphPanel(myState, false, false);
                 } else {
                     myGraphPanel.seeDot(false);
                     myGraphPanel.remakeAll();
@@ -1018,7 +1018,7 @@ public final class VizGUI implements ComponentListener {
                  */
                 if (myState.splitPanel) {
                     if (mySplitGraphPanel == null) {
-                        mySplitGraphPanel = new VizGraphPanel(myState, false);
+                        mySplitGraphPanel = new VizGraphPanel(myState, false, true);
                     } else {
                         mySplitGraphPanel.seeDot(false);
                         mySplitGraphPanel.remakeAll();
