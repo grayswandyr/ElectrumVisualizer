@@ -641,9 +641,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private void drawSubgraph(Artist gr, double scale, int top, int maxDepth, int left) {
         // [N7-Bossut, Quentin] Draw the subGraph         
         //We have'nt reach the depth max yet, we can draw the subgraph.
-
-        subGraph.layoutSubGraph(this);
         
+        // It is not supposed to be here, but it does not work without it
         imbricatedNodeBounds();
         
         gr.setColor(Color.YELLOW);
@@ -1166,36 +1165,27 @@ public strictfp class GraphNode extends AbstractGraphNode {
 
         if (hasChild()) {
             
-            int nbChildren = children.size();
-            int maxUpdown = 0;
-            int maxSide = 0;
             for (GraphNode gn : children) {
                 if (gn.updown < 0) {
                     gn.calcBounds();
                 }
-                maxUpdown = (gn.updown > maxUpdown) ? gn.updown : maxUpdown;
-                maxSide = (gn.side > maxSide) ? gn.side : maxSide;
             }
-
-            //this.updown = nbChildren * maxUpdown + yJumpNode * (nbChildren - 1);
-            //this.side = nbChildren * maxSide;
             
+            subGraph.layoutSubGraph(this);
             this.updown = subGraph.getTotalHeight()/2;
             this.side = subGraph.getTotalWidth()/2;
-            
-            System.out.println("Up: " + this.updown);
-            System.out.println("Side: " + this.side);
             
             //TODO 
             //Find the dimension of the figure
             
             //TODO
             //Change the form of the polygon
-            poly = new Polygon();
-            ((Polygon) poly).addPoint(-side, -updown);
-            ((Polygon) poly).addPoint(side, -updown);
-            ((Polygon) poly).addPoint(side, updown);
-            ((Polygon) poly).addPoint(-side, updown);
+            Polygon p = new Polygon();
+            p.addPoint(-side, -updown);
+            p.addPoint(side, -updown);
+            p.addPoint(side, updown);
+            p.addPoint(-side, updown);
+            this.poly = p;
 
         }
 
