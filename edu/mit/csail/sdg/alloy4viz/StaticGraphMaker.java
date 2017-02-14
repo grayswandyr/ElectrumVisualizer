@@ -71,7 +71,7 @@ public final class StaticGraphMaker {
      * The map that contains all nodes and what the AlloyAtom that each node
      * corresponds to.
      */
-    private final Map<GraphNode, AlloyAtom> nodes = new LinkedHashMap<GraphNode, AlloyAtom>();
+    private static final Map<GraphNode, AlloyAtom> nodes = new LinkedHashMap<GraphNode, AlloyAtom>();
 
     /**
      * This maps each atom to the node representing it; if an atom doesn't have
@@ -472,5 +472,9 @@ public final class StaticGraphMaker {
             out.append(c);
         }
         return out.toString();
+    }
+    
+    public static AlloyAtom getAtomFromNode(GraphNode n){
+        return nodes.get(n);
     }
 }

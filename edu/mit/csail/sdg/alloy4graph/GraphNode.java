@@ -248,6 +248,13 @@ public strictfp class GraphNode {
      * GeneralPath or a Polygon.
      */
     private Shape poly3 = null;
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Indicates if this node needs to be highlighted (for comparative views 
+     * only)
+     */
+    private boolean needHighlight;
 
    //===================================================================================================
     /**
@@ -500,7 +507,7 @@ public strictfp class GraphNode {
         gr.set(style, scale);
         gr.translate(centerX - left, centerY - top);
         gr.setFont(fontBold);
-        if (highlight) {
+        if (highlight || needHighlight) {
             gr.setColor(COLOR_CHOSENNODE);
         } else {
             gr.setColor(color);
@@ -1064,5 +1071,18 @@ public strictfp class GraphNode {
         out.append(", style = \"filled, " + style.getDotText() + "\"");
         out.append("]\n");
         return out.toString();
+    }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Getter and Setter for needHighlight
+     */
+    
+    public void setHighlight(boolean newval){
+        needHighlight = newval;
+    }
+    
+    public boolean getHighlight(){
+        return needHighlight;
     }
 }

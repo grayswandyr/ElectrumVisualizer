@@ -217,6 +217,8 @@ public final class VizState {
     /**
      * Generate a VizGraphPanel for a given projection choice, using the current
      * settings.
+     * 
+     * TODO : stocker les graphes en eux mêmes, mettre des getters pour les obtenir puis instancier (ailleurs) le GraphComparer, et l'utiliser !!! Ouais trop bien
      */
     public JPanel getGraph(AlloyProjection projectionChoice, boolean isSplit) {
         JPanel ans = null;
