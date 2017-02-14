@@ -588,7 +588,12 @@ public final class VizCustomizationPanel extends JPanel {
          */
         
         // Combobox to define the orientation of a port
-        OurCombobox orientBox = new OurCombobox(true, GraphPort.Orientation.values(), 105, 35, vizState.orientations.get(rel)) {
+        
+        // Get the shape of the node linked to the port
+        AlloyType type = rel.getTypes().get(0);
+        DotShape nodeShape = vizState.shape.resolve(type);
+        
+        OurCombobox orientBox = new OurCombobox(true, GraphPort.AvailableOrientations.get(nodeShape), 105, 35, vizState.orientations.get(rel)) {
             @Override
             public String do_getText(Object value) {
                 return value == null ? "Inherit" : ((GraphPort.Orientation) value).toString();
