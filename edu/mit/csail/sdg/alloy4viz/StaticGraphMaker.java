@@ -69,6 +69,7 @@ public final class StaticGraphMaker {
      */
     private final Map<GraphEdge, AlloyTuple> edges = new LinkedHashMap<GraphEdge, AlloyTuple>();
 
+		//Not used for the moment...
     /**
      * The map that contains all nodes and what the AlloyAtom that each node
      * corresponds to.
@@ -216,14 +217,7 @@ public final class StaticGraphMaker {
                         containedIn = new TreeSet<AlloyAtom>();
                     }
                     containedInMap.put(a, containedIn);
-
-                    //VERBOSE
-                    //System.out.println("Added: " + a + "=" + atoms);
-                    //System.out.println("Get("+a+")="+containmentTuples.get(a));
                 }
-                //VERBOSE
-                //System.out.println("containmentTuples: " + containmentTuples);
-                //System.out.println("containedInMap: " + containedInMap);
             }
         }
 
@@ -258,18 +252,21 @@ public final class StaticGraphMaker {
 
         //Iteration over the atoms of the instance:
         // Creates unconnected nodes that are visibles and not hidden-when-unconnected.
-        for (AlloyAtom atom : instance.getAllAtoms()) {
+        for (AlloyAtom atom : instance.getAllAtoms()) {		
+					if (atom2node.get(atom) == null){
             List<AlloySet> sets = instance.atom2sets(atom); //Gets a sorted list of AlloySets containing atom.
             if (sets.size() > 0) {
                 for (AlloySet s : sets) {
                     if (view.nodeVisible.resolve(s) && !view.hideUnconnected.resolve(s)) {
-                        createNode(hidePrivate, hideMeta, atom);
-                        break;
+                        //We now have to check if the node we are creating does not exist in any graph.
+													createNode(hidePrivate, hideMeta, atom);
+                        	break;
                     }
                 }
             } else if (view.nodeVisible.resolve(atom.getType()) && !view.hideUnconnected.resolve(atom.getType())) {
                 createNode(hidePrivate, hideMeta, atom);
-            }
+						}
+					}
         }
         //Iteration over relations of the model to handle those that have to be shown as an attribute
         for (AlloyRelation rel : model.getRelations()) {
