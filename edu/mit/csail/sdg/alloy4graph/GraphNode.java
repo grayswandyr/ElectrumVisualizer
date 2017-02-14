@@ -238,7 +238,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
         // [N7-G. Dupont] Instanciate map port
         this.numPorts = new HashMap<GraphPort.Orientation, Integer>();
         this.numPorts.put(GraphPort.Orientation.North, 0);
+        this.numPorts.put(GraphPort.Orientation.NorthEast, 0);
+        this.numPorts.put(GraphPort.Orientation.NorthWest, 0);
         this.numPorts.put(GraphPort.Orientation.South, 0);
+        this.numPorts.put(GraphPort.Orientation.SouthEast, 0);
+        this.numPorts.put(GraphPort.Orientation.SouthWest, 0);
         this.numPorts.put(GraphPort.Orientation.East, 0);
         this.numPorts.put(GraphPort.Orientation.West, 0);
     }
@@ -934,6 +938,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 path.quadTo(-side, updown, -side, d);
                 path.closePath();
                 this.poly = path;
+                break;
             }
             default: { // BOX
                 if (shape() != DotShape.BOX) {
@@ -973,6 +978,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     private void portBounds() {
         int vPort = 0, hPort = 0;
+        
+        // Padding due to port and label
         int maxVport = -1, maxHport = -1;
         for (GraphPort port : this.ports) {
             switch (port.getOrientation()) {
@@ -997,10 +1004,50 @@ public strictfp class GraphNode extends AbstractGraphNode {
                         maxVport = port.getHeight();
             }
         }
+       
+        int paddedSide = this.side + hPort * maxHport;
+        int paddedUpdown = this.updown + vPort * maxVport;
         
-        // Decide between the two values (the bigger, the easier to read)
-        this.side += hPort * maxHport;
-        this.updown += vPort * maxVport;
+        // Padding due to port spacing
+        // To simplify, we will say that we count the port as they would be on a
+        // rectangle, with nortwest counting for both north and west
+        int numN = 0, numE = 0, numS = 0, numW = 0;
+        for (GraphPort port : this.ports) {
+            switch (port.getOrientation()) {
+                case North:
+                    numN++;
+                    break;
+                case East:
+                    numE++;
+                    break;
+                case South:
+                    numS++;
+                    break;
+                case West:
+                    numW++;
+                    break;
+                case NorthEast:
+                    numN++; numE++;
+                    break;
+                case NorthWest:
+                    numN++; numW++;
+                    break;
+                case SouthEast:
+                    numS++; numE++;
+                    break;
+                case SouthWest:
+                    numS++; numW++;
+                    break;
+                default:
+                    //nop
+            }
+        }
+        
+        int minSide = this.side + (Math.max(numE, numW)+1)*GraphPort.PortDistance;
+        int minUpdown = this.updown + (Math.max(numN, numS)+1)*GraphPort.PortDistance;
+        
+        this.side = Math.max(paddedSide, minSide);
+        this.updown = Math.max(paddedUpdown, minUpdown);
     }
 
    //===================================================================================================

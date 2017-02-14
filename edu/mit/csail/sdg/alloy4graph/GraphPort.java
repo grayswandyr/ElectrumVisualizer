@@ -113,7 +113,7 @@ public class GraphPort extends AbstractGraphNode {
     public static final Map<DotShape,Orientation[]> AvailableOrientations;
     static {
         // These combinations are pretty common
-        final Orientation NESW[] = makeArray(Orientation.North, Orientation.South, Orientation.West, Orientation.East);
+        final Orientation NESW[] = makeArray(Orientation.North, Orientation.East, Orientation.South, Orientation.West);
         final Orientation Every[] = makeArray(Orientation.NorthWest, Orientation.North, Orientation.NorthEast, Orientation.East, Orientation.SouthEast, Orientation.South, Orientation.SouthWest, Orientation.West);
         final Orientation Odds[] = makeArray(Orientation.NorthWest, Orientation.NorthEast, Orientation.SouthEast, Orientation.SouthWest);
         final Orientation None[] = {};
@@ -223,7 +223,7 @@ public class GraphPort extends AbstractGraphNode {
         Point r = new Point();
         r.setLocation(
             a*Math.cos(theta),
-            b*Math.sin(theta)
+            -b*Math.sin(theta)
         );
         return r;
     }
@@ -366,15 +366,9 @@ public class GraphPort extends AbstractGraphNode {
             return false;
         
         boolean result = false;
-        int absoluteX = this.node.x() - this.node.getWidth() / 2 + this.x(),
-            absoluteY = this.node.y() - this.node.getHeight() / 2 + this.y();
+        int absoluteX = this.node.x() + this.x(),
+            absoluteY = this.node.y() + this.y();
         switch(this.shape()) {
-            case BOX:
-                result =
-                        (absoluteX - this.radius <= x && x <= absoluteX + this.radius) &&
-                        (absoluteY - this.radius <= y && y <= absoluteY + this.radius)
-                ;
-                break;
             case CIRCLE:
                 double dx = (x - (double)absoluteX),
                        dy = (y - (double)absoluteY);
@@ -382,11 +376,11 @@ public class GraphPort extends AbstractGraphNode {
                         Math.sqrt(dx*dx + dy*dy) < this.radius
                 ;
                 break;
-            /*case DIAMOND:
-                
-                break;*/
-            default:
-                // nop
+            default: // simple shape ~ box
+                result =
+                        (absoluteX - this.radius <= x && x <= absoluteX + this.radius) &&
+                        (absoluteY - this.radius <= y && y <= absoluteY + this.radius)
+                ;
         }
         return result;
     }
@@ -483,6 +477,8 @@ public class GraphPort extends AbstractGraphNode {
         
         if (hovered)
             drawTooltip(gr, scale);
+        
+        gr.translate(-x(), -y());
     }
     
     /**
@@ -709,21 +705,20 @@ public class GraphPort extends AbstractGraphNode {
         
         Rectangle s = new Rectangle(0, 0, width + 2*LabelPaddingLeft, height + 2*LabelPaddingTop);
         gr.translate(0, -s.height);
-        gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
         gr.setColor(Color.LIGHT_GRAY);
         gr.draw(s, true);
         gr.setColor(Color.BLACK);
         gr.set(DotStyle.SOLID, scale);
         gr.draw(s, false);
         gr.drawString(this.label, LabelPaddingLeft, height + LabelPaddingTop, 0);
-        gr.translate(this.node.getWidth() / 2, this.node.getHeight() / 2);
         gr.translate(0, s.height);
     }
     
     /**
      * Recalculate position of the port according to data in the parent node.
      */
-    void recalc() {
+    private void recalc() {
+        this.node.getWidth(); // Cause recalc
         int numports = this.node.numPorts.get(this.orientation);
         int x = 0, y = 0;
         
@@ -745,10 +740,7 @@ public class GraphPort extends AbstractGraphNode {
             Point pt = GraphPort.angular(offset + angbar, a, b);
             x = pt.x;
             y = pt.y;
-        } else {
-            if (!(this.node.poly() instanceof Polygon))
-                return;
-            
+        } else if (this.node.poly() instanceof Polygon) {
             /*
              * We know that north xor northwest is always the first side of the polygon, and
              * that every polygon is formed so that the first side is the north xor northwest one
@@ -768,45 +760,35 @@ public class GraphPort extends AbstractGraphNode {
             int numsides = polyx.length;
             Point a = new Point(), b = new Point();
             
-            int i = 0;
-            while (i < ors.length && ors[i].equals(this.orientation)) {
+            System.out.println("[Port.recalc] Polygon with " + numsides + " sides");
+            
+            int i = -1;
+            do {
+                i++;
                 a.x = polyx[i]; a.y = polyy[i];
                 b.x = polyx[(i+1)%numsides]; b.y = polyy[(i+1)%numsides];
-                i++;
-            }
+            } while (i < ors.length && !ors[i].equals(this.orientation));
             
             if (i >= ors.length) { // have not found the orientation in the authorized one... oops ?
                 System.err.println("Error: this port is not on a valid orientation");
                 return;
             }
             
+            System.out.println("[Port.recalc] Side #" + i + " [(" + a.x + "," + a.y + ")-(" + b.x + "," + b.y + ")]");
+            
             // Now, [a,b] is the side corresponding to the requested orientation
             // Just have to apply the magic barycenter function !
             Point g = GraphPort.bar(this.order, numports, a, b);
             x = g.x;
             y = g.y;
+        } else {
+            System.err.println("Error: cannot recalc port position because parent node is neither an ellipse/circle nor a standard polygon");
+            return;
         }
         
         this.setX(x);
         this.setY(y);
         this.needRecalc = false;
-    }
-    
-    /**
-     * Get the vertical (E/W) or horizontal (N/S) distance between the center of the port
-     * and the origin of the node
-     * @return the requested distance
-     */
-    private int getDistance() {
-        int length;
-        if (this.orientation == Orientation.North || this.orientation == Orientation.South)
-            length = this.node.getWidth();
-        else
-            length = this.node.getHeight();
-        
-        int numports = this.node.numPorts.get(this.orientation);
-        
-        return length*(this.order+1)/(numports+1); // Simple barycenter calculus
     }
     
     /**
