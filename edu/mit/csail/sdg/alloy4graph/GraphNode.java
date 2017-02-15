@@ -331,18 +331,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     /**
-     * Set the children of the Node. [N7-R. Bossut, M. Quentin]
-     */
-    public void setChildren(HashSet<GraphNode> children) {
-        this.children = children;
-    }
-
-    /**
      * Add a child to the family of the Node. [N7-R. Bossut, M. Quentin]
      */
     public void addChild(GraphNode gn) {
         this.children.add(gn);
-        subGraph.nodelist.add(gn);
+				if(!(subGraph.nodelist.contains(gn)))
+					subGraph.nodelist.add(gn);
     }
 
     /**
@@ -661,10 +655,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * the node arround the subgraph.
      */
     private void drawSubgraph(Artist gr, double scale, int top, int maxDepth, int left, boolean highlight) {
-        // [N7-Bossut, Quentin] Draw the subGraph         
-        //We have'nt reach the depth max yet, we can draw the subgraph.
+        // [N7-Bossut, Quentin] Draws the subGraph.         
+        // We have'nt reach the depth max yet, we can draw the subgraph.
 
-        // It is not supposed to be here, but it does not work without it
+        // It is not supposed to be here, but it does not work without it.
         imbricatedNodeBounds();
 
         if (highlight) {
@@ -1216,6 +1210,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
                     gn.calcBounds();
                 }
             }
+
+						System.out.println("childrens: " + children);
+						System.out.println("subGraph: " + subGraph);
+						System.out.println("this: " + this);
 
             subGraph.layoutSubGraph(this);
             this.updown = subGraph.getTotalHeight() / 2;
