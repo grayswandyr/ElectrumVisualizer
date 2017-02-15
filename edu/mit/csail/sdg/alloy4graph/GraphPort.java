@@ -55,7 +55,7 @@ public class GraphPort extends AbstractGraphNode {
     /**
      * Defines the padding that separate a port from the center label of the node.
      */
-    static final int PortPadding = 10;
+    static final int PortPadding = 2;
     
     /**
      * Defines the minimal distance between two adjacent ports or from a port and
@@ -63,6 +63,11 @@ public class GraphPort extends AbstractGraphNode {
      * (From center)
      */
     static final int PortDistance = 10;
+    
+    /**
+     * Defines a small offset for the tooltip (to avoid ugly superposition).
+     */
+    static final int TooltipOffset = 2;
     
     /**
      * Defines the color for representing a selected port.
@@ -424,9 +429,6 @@ public class GraphPort extends AbstractGraphNode {
             gr.setColor(this.getColor());
         }
         
-        // Translate to the top left hand corner of the node (easier for calculi)
-        //gr.translate(-this.node.getWidth() / 2, -this.node.getHeight() / 2);
-        
         // Then, translate to the center of the port
         gr.translate(x(), y());
         
@@ -475,10 +477,21 @@ public class GraphPort extends AbstractGraphNode {
                 // nop
         }
         
+        //drawDebug(gr);
+        
         if (hovered)
-            drawTooltip(gr, scale);
+            drawTooltip(gr, 0.5);
         
         gr.translate(-x(), -y());
+    }
+    
+    /**
+     * (debug) Draw debug informations on the port.
+     */
+    private void drawDebug(Artist gr) {
+        gr.setColor(Color.RED);
+        gr.fillCircle(2);
+        gr.drawString("(" + this.x() + "," + this.y() + ")", 2, 2);
     }
     
     /**
@@ -704,14 +717,14 @@ public class GraphPort extends AbstractGraphNode {
         int width = (int)rect.getWidth(), height = (int)rect.getHeight();
         
         Rectangle s = new Rectangle(0, 0, width + 2*LabelPaddingLeft, height + 2*LabelPaddingTop);
-        gr.translate(0, -s.height);
-        gr.setColor(Color.LIGHT_GRAY);
+        gr.translate(0, -s.height - TooltipOffset);
+        gr.setColor(new Color(0.9f,0.9f,0.9f));
         gr.draw(s, true);
         gr.setColor(Color.BLACK);
         gr.set(DotStyle.SOLID, scale);
         gr.draw(s, false);
         gr.drawString(this.label, LabelPaddingLeft, height + LabelPaddingTop, 0);
-        gr.translate(0, s.height);
+        gr.translate(0, s.height - TooltipOffset);
     }
     
     /**
@@ -755,9 +768,10 @@ public class GraphPort extends AbstractGraphNode {
              * orientations).
              */
             Orientation ors[] = GraphPort.AvailableOrientations.get(this.node.shape());
-            int polyx[] = ((Polygon)this.node.poly()).xpoints;
-            int polyy[] = ((Polygon)this.node.poly()).ypoints;
-            int numsides = polyx.length;
+            Polygon poly = (Polygon)this.node.poly();
+            int polyx[] = poly.xpoints;
+            int polyy[] = poly.ypoints;
+            int numsides = poly.npoints;
             Point a = new Point(), b = new Point();
             
             int i = 0;

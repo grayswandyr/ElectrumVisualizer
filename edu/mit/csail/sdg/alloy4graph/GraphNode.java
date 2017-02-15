@@ -504,12 +504,37 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
         
+        // [DEBUG]
+        //drawDebug(gr);
+        
         // [N7-G. Dupont] Draw each ports
         for (GraphPort p : this.ports) {
             p.draw(gr, scale);
         }
         
         gr.translate(left - x(), top - y());
+    }
+    
+    /**
+     * [N7-G.Dupont] (debug) Print bounding box, center and points of the polygon.
+     */
+    private void drawDebug(Artist gr) {
+        // Print bounding box and center
+        gr.setColor(Color.RED);
+        gr.draw(new Rectangle(-this.side, -this.updown, 2*this.side, 2*this.updown), false);
+        gr.fillCircle(3);
+        
+        // Print each point of the polygon
+        if (this.poly instanceof Polygon) {
+            int xp[] = ((Polygon)this.poly).xpoints;
+            int yp[] = ((Polygon)this.poly).ypoints;
+            for (int i = 0; i < ((Polygon)this.poly).npoints; i++) {
+                gr.translate(xp[i], yp[i]);
+                gr.fillCircle(2);
+                gr.drawString("M" + i + "(" + xp[i] + "," + yp[i] + ")", 3, -3);
+                gr.translate(-xp[i], -yp[i]);
+            }
+        }
     }
 
     /**
@@ -696,7 +721,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         if (shape() == null) {
             return;
         }
-        Polygon poly = new Polygon();
+        
         if (labels != null) {
             for (int i = 0; i < labels.size(); i++) {
                 String t = labels.get(i);
@@ -725,25 +750,26 @@ public strictfp class GraphNode extends AbstractGraphNode {
         hh = updown;
         hw = side;
         
+        Polygon newPoly = new Polygon();
         switch (shape()) {
             case HOUSE: {
                 yShift = ad / 2;
                 updown = updown + yShift;
-                poly.addPoint(-hw, yShift - hh);
-                poly.addPoint(0, -updown);
-                poly.addPoint(hw, yShift - hh);
-                poly.addPoint(hw, yShift + hh);
-                poly.addPoint(-hw, yShift + hh);
+                newPoly.addPoint(-hw, yShift - hh);
+                newPoly.addPoint(0, -updown);
+                newPoly.addPoint(hw, yShift - hh);
+                newPoly.addPoint(hw, yShift + hh);
+                newPoly.addPoint(-hw, yShift + hh);
                 break;
             }
             case INV_HOUSE: {
                 yShift = -ad / 2;
                 updown = updown - yShift;
-                poly.addPoint(-hw, yShift - hh);
-                poly.addPoint(hw, yShift - hh);
-                poly.addPoint(hw, yShift + hh);
-                poly.addPoint(0, updown);
-                poly.addPoint(-hw, yShift + hh);
+                newPoly.addPoint(-hw, yShift - hh);
+                newPoly.addPoint(hw, yShift - hh);
+                newPoly.addPoint(hw, yShift + hh);
+                newPoly.addPoint(0, updown);
+                newPoly.addPoint(-hw, yShift + hh);
                 break;
             }
             case TRIANGLE:
@@ -763,49 +789,49 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 updown += dy / 2;
                 if (shape() == DotShape.TRIANGLE) {
                     yShift = dy / 2;
-                    poly.addPoint(-hw - dx, updown);
-                    poly.addPoint(0, -updown);
-                    poly.addPoint(hw + dx, updown);
+                    newPoly.addPoint(-hw - dx, updown);
+                    newPoly.addPoint(0, -updown);
+                    newPoly.addPoint(hw + dx, updown);
                 } else {
                     yShift = -dy / 2;
-                    poly.addPoint(-hw - dx, -updown);
-                    poly.addPoint(hw + dx, -updown);
-                    poly.addPoint(0, updown);
+                    newPoly.addPoint(-hw - dx, -updown);
+                    newPoly.addPoint(hw + dx, -updown);
+                    newPoly.addPoint(0, updown);
                 }
                 break;
             }
             case HEXAGON: {
                 side += ad;
-                poly.addPoint(-hw - ad, 0);
-                poly.addPoint(-hw, -hh);
-                poly.addPoint(hw, -hh);
-                poly.addPoint(hw + ad, 0);
-                poly.addPoint(hw, hh);
-                poly.addPoint(-hw, hh);
+                newPoly.addPoint(-hw - ad, 0);
+                newPoly.addPoint(-hw, -hh);
+                newPoly.addPoint(hw, -hh);
+                newPoly.addPoint(hw + ad, 0);
+                newPoly.addPoint(hw, hh);
+                newPoly.addPoint(-hw, hh);
                 break;
             }
             case TRAPEZOID: {
                 side += ad;
-                poly.addPoint(-hw, -hh);
-                poly.addPoint(hw, -hh);
-                poly.addPoint(hw + ad, hh);
-                poly.addPoint(-hw - ad, hh);
+                newPoly.addPoint(-hw, -hh);
+                newPoly.addPoint(hw, -hh);
+                newPoly.addPoint(hw + ad, hh);
+                newPoly.addPoint(-hw - ad, hh);
                 break;
             }
             case INV_TRAPEZOID: {
                 side += ad;
-                poly.addPoint(-hw - ad, -hh);
-                poly.addPoint(hw + ad, -hh);
-                poly.addPoint(hw, hh);
-                poly.addPoint(-hw, hh);
+                newPoly.addPoint(-hw - ad, -hh);
+                newPoly.addPoint(hw + ad, -hh);
+                newPoly.addPoint(hw, hh);
+                newPoly.addPoint(-hw, hh);
                 break;
             }
             case PARALLELOGRAM: {
                 side += ad;
-                poly.addPoint(-hw, -hh);
-                poly.addPoint(hw + ad, -hh);
-                poly.addPoint(hw, hh);
-                poly.addPoint(-hw - ad, hh);
+                newPoly.addPoint(-hw, -hh);
+                newPoly.addPoint(hw + ad, -hh);
+                newPoly.addPoint(hw, hh);
+                newPoly.addPoint(-hw - ad, hh);
                 break;
             }
             case M_DIAMOND:
@@ -824,10 +850,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 }
                 updown += hw;
                 side += hh;
-                poly.addPoint(-hw - hh, 0);
-                poly.addPoint(0, -hh - hw);
-                poly.addPoint(hw + hh, 0);
-                poly.addPoint(0, hh + hw);
+                newPoly.addPoint(-hw - hh, 0);
+                newPoly.addPoint(0, -hh - hw);
+                newPoly.addPoint(hw + hh, 0);
+                newPoly.addPoint(0, hh + hw);
                 break;
             }
             case M_SQUARE: {
@@ -846,10 +872,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 this.updown = hh;
                 side += 4;
                 updown += 4;
-                poly.addPoint(-hw - 4, -hh - 4);
-                poly.addPoint(hw + 4, -hh - 4);
-                poly.addPoint(hw + 4, hh + 4);
-                poly.addPoint(-hw - 4, hh + 4);
+                newPoly.addPoint(-hw - 4, -hh - 4);
+                newPoly.addPoint(hw + 4, -hh - 4);
+                newPoly.addPoint(hw + 4, hh + 4);
+                newPoly.addPoint(-hw - 4, hh + 4);
                 break;
             }
             case OCTAGON:
@@ -857,14 +883,14 @@ public strictfp class GraphNode extends AbstractGraphNode {
             case TRIPLE_OCTAGON: {
                 int dx = (width) / 3, dy = ad;
                 updown += dy;
-                poly.addPoint(-hw, -hh);
-                poly.addPoint(-hw + dx, -hh - dy);
-                poly.addPoint(hw - dx, -hh - dy);
-                poly.addPoint(hw, -hh);
-                poly.addPoint(hw, hh);
-                poly.addPoint(hw - dx, hh + dy);
-                poly.addPoint(-hw + dx, hh + dy);
-                poly.addPoint(-hw, hh);
+                newPoly.addPoint(-hw, -hh);
+                newPoly.addPoint(-hw + dx, -hh - dy);
+                newPoly.addPoint(hw - dx, -hh - dy);
+                newPoly.addPoint(hw, -hh);
+                newPoly.addPoint(hw, hh);
+                newPoly.addPoint(hw - dx, hh + dy);
+                newPoly.addPoint(-hw + dx, hh + dy);
+                newPoly.addPoint(-hw, hh);
                 if (shape() == DotShape.OCTAGON) {
                     break;
                 }
@@ -873,33 +899,33 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 int x1 = (int) (round(dx1)), y1 = (int) (round(dy1));
                 updown += 5;
                 side += 5;
-                poly2 = poly;
-                poly = new Polygon();
-                poly.addPoint(-hw - 5, -hh - y1);
-                poly.addPoint(-hw + dx - x1, -hh - dy - 5);
-                poly.addPoint(hw - dx + x1, -hh - dy - 5);
-                poly.addPoint(hw + 5, -hh - y1);
-                poly.addPoint(hw + 5, hh + y1);
-                poly.addPoint(hw - dx + x1, hh + dy + 5);
-                poly.addPoint(-hw + dx - x1, hh + dy + 5);
-                poly.addPoint(-hw - 5, hh + y1);
+                poly2 = newPoly;
+                newPoly = new Polygon();
+                newPoly.addPoint(-hw - 5, -hh - y1);
+                newPoly.addPoint(-hw + dx - x1, -hh - dy - 5);
+                newPoly.addPoint(hw - dx + x1, -hh - dy - 5);
+                newPoly.addPoint(hw + 5, -hh - y1);
+                newPoly.addPoint(hw + 5, hh + y1);
+                newPoly.addPoint(hw - dx + x1, hh + dy + 5);
+                newPoly.addPoint(-hw + dx - x1, hh + dy + 5);
+                newPoly.addPoint(-hw - 5, hh + y1);
                 if (shape() == DotShape.DOUBLE_OCTAGON) {
                     break;
                 }
                 updown += 5;
                 side += 5;
-                poly3 = poly;
-                poly = new Polygon();
+                poly3 = newPoly;
+                newPoly = new Polygon();
                 x1 = (int) (round(dx1 * 2));
                 y1 = (int) (round(dy1 * 2));
-                poly.addPoint(-hw - 10, -hh - y1);
-                poly.addPoint(-hw + dx - x1, -hh - dy - 10);
-                poly.addPoint(hw - dx + x1, -hh - dy - 10);
-                poly.addPoint(hw + 10, -hh - y1);
-                poly.addPoint(hw + 10, hh + y1);
-                poly.addPoint(hw - dx + x1, hh + dy + 10);
-                poly.addPoint(-hw + dx - x1, hh + dy + 10);
-                poly.addPoint(-hw - 10, hh + y1);
+                newPoly.addPoint(-hw - 10, -hh - y1);
+                newPoly.addPoint(-hw + dx - x1, -hh - dy - 10);
+                newPoly.addPoint(hw - dx + x1, -hh - dy - 10);
+                newPoly.addPoint(hw + 10, -hh - y1);
+                newPoly.addPoint(hw + 10, hh + y1);
+                newPoly.addPoint(hw - dx + x1, hh + dy + 10);
+                newPoly.addPoint(-hw + dx - x1, hh + dy + 10);
+                newPoly.addPoint(-hw - 10, hh + y1);
                 break;
             }
             case M_CIRCLE:
@@ -910,16 +936,16 @@ public strictfp class GraphNode extends AbstractGraphNode {
                     radius = radius + 5;
                 }
                 int L = ((int) (radius / cos18)) + 2, a = (int) (L * sin36), b = (int) (L * cos36), c = (int) (radius * tan18);
-                poly.addPoint(-L, 0);
-                poly.addPoint(-b, a);
-                poly.addPoint(-c, L);
-                poly.addPoint(c, L);
-                poly.addPoint(b, a);
-                poly.addPoint(L, 0);
-                poly.addPoint(b, -a);
-                poly.addPoint(c, -L);
-                poly.addPoint(-c, -L);
-                poly.addPoint(-b, -a);
+                newPoly.addPoint(-L, 0);
+                newPoly.addPoint(-b, a);
+                newPoly.addPoint(-c, L);
+                newPoly.addPoint(c, L);
+                newPoly.addPoint(b, a);
+                newPoly.addPoint(L, 0);
+                newPoly.addPoint(b, -a);
+                newPoly.addPoint(c, -L);
+                newPoly.addPoint(-c, -L);
+                newPoly.addPoint(-b, -a);
                 updown = L;
                 side = L;
                 break;
@@ -949,14 +975,15 @@ public strictfp class GraphNode extends AbstractGraphNode {
                     updown = hh;
                 }
                 // [N7-G.Dupont] Using side and updown to get the job
-                poly.addPoint(-this.side, -this.updown);
-                poly.addPoint( this.side, -this.updown);
-                poly.addPoint( this.side,  this.updown);
-                poly.addPoint(-this.side,  this.updown);
+                newPoly.addPoint(-this.side, -this.updown);
+                newPoly.addPoint( this.side, -this.updown);
+                newPoly.addPoint( this.side,  this.updown);
+                newPoly.addPoint(-this.side,  this.updown);
             }
         }
         if (shape() != DotShape.EGG && shape() != DotShape.ELLIPSE) {
-            this.poly = poly;
+            System.out.println("Added thye polygon " + shape() + " with " + ((Polygon)newPoly).npoints + " points");
+            this.poly = newPoly;
         }
         for (int i = 0; i < selfs.size(); i++) {
             if (i == 0) {
