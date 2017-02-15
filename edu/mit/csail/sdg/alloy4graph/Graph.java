@@ -621,7 +621,7 @@ public final strictfp class Graph {
         }     
         
         // We see if each layers respect the established rules
-        //layout_decideLayerSubGraph(nodaList);
+        layout_decideLayerSubGraph(nodaList);
         
         //================================= Assignment of the nodes according to the layers previously established ================================================= //
         
@@ -705,26 +705,31 @@ public final strictfp class Graph {
         nodaList.clear();
         
         int i=0;
-        for (List<GraphNode> list : tempList) {
-            for (GraphNode gn : list) {
+        int listSize = tempList.size();
+        for (int k = 0; k < listSize; k++) {
+            List<GraphNode> list = tempList.get(k);
+            int cpt = list.size();
+            for (int j = 0; j < cpt; j++) { 
+                GraphNode gn = list.get(j);
                 for (GraphEdge e : gn.outs) {
                     if (e.b() instanceof GraphNode) {
                         if (list.contains(((GraphNode) e.b()))) {
                             list.remove(gn);
+                            cpt--;
                             if (i+1 >= tempList.size()) {
                                 List<GraphNode> auxList = new ArrayList<GraphNode>();
                                 auxList.add(gn);
-                                //tempList.add(i+1,auxList);
-                                nodaList.put(i+1, (ArrayList) auxList);
+                                tempList.add(i+1,auxList);
+                                listSize++;
                             } else {
-                                nodaList.get(i+1).add(gn);
+                                tempList.get(i+1).add(gn);
                             }
                         }
                     }
                 }
             }
+            nodaList.put(i, (ArrayList) list);
             i++;
-            System.out.println("i: " + i);
         }
     }
     

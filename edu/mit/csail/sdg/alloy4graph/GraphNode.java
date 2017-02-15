@@ -565,7 +565,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else {
             // [N7-Bossut, Quentin] Draw the subGraph
             if (maxDepth > 0) {
-                drawSubgraph(gr, scale, maxDepth, top, left);
+                drawSubgraph(gr, scale, maxDepth, top, left, highlight);
             } else {
                 //We cannot draw the subgraph (it is too deep), we have to paint the node and a button the user have to click to see the subgraph.
                 drawContainer(gr, scale, highlight, maxDepth, top, left);
@@ -659,14 +659,19 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * the draw method of the sub-nodes, so it works recursively). Then draws
      * the node arround the subgraph.
      */
-    private void drawSubgraph(Artist gr, double scale, int top, int maxDepth, int left) {
+    private void drawSubgraph(Artist gr, double scale, int top, int maxDepth, int left, boolean highlight) {
         // [N7-Bossut, Quentin] Draw the subGraph         
         //We have'nt reach the depth max yet, we can draw the subgraph.
         
         // It is not supposed to be here, but it does not work without it
         imbricatedNodeBounds();
         
-        gr.setColor(Color.YELLOW);
+        if (highlight) {
+            gr.setColor(COLOR_CHOSENNODE);
+        } else {
+            gr.setColor(Color.YELLOW);
+        }
+        
         gr.draw(poly, true);
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
@@ -690,7 +695,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         int clr = color.getRGB() & 0xFFFFFF;
         gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
         if (labels != null && labels.size() > 0) {
-            int x = (-width / 2), y = yShift + (-labels.size() * ad / 2);
+            //int x = (-width / 2), y = yShift + (-labels.size() * ad / 2);
+            int x = (-side), y = (-updown) + (labels.size() * ad / 3);
             for (int i = 0; i < labels.size(); i++) {
                 String t = labels.get(i);
                 int w = ((int) (getBounds(fontBold, t).getWidth())) + 1; // Round it up
