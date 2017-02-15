@@ -90,10 +90,12 @@ public class GraphPort extends AbstractGraphNode {
         
         
         private final String name;
+        private final String shortName;
         private final Icon icon;
         
         private Orientation(String s, String sn) {
             this.name = s;
+            this.shortName = sn;
             this.icon = OurUtil.loadIcon("icons/OrientationIcons/arrow_" + sn + ".gif");
         }
         
@@ -101,8 +103,20 @@ public class GraphPort extends AbstractGraphNode {
             return this.name;
         }
         
+        public String shortName() {
+            return this.shortName;
+        }
+        
         public Icon getIcon() {
             return this.icon;
+        }
+        
+        static public Orientation parse(String s) {
+            for (Orientation o : Orientation.values()) {
+                if (o.shortName.equals(s))
+                    return o;
+            }
+            return null;
         }
     }
     

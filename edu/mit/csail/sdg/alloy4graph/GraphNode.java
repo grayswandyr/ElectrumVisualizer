@@ -982,7 +982,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
         if (shape() != DotShape.EGG && shape() != DotShape.ELLIPSE) {
-            System.out.println("Added thye polygon " + shape() + " with " + ((Polygon)newPoly).npoints + " points");
             this.poly = newPoly;
         }
         for (int i = 0; i < selfs.size(); i++) {
