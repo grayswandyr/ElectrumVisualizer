@@ -694,21 +694,25 @@ public final strictfp class Graph {
     
     /**
      * This decides the layers of the subgraph.
+     * The method takes the nodaList as the entry and computes the good layers in
+     * order to respect the fact that two linked nodes can be in the same layer.
      */
     private void layout_decideLayerSubGraph(TreeMap<Integer, ArrayList<GraphNode>> nodaList ) {
+        // The temporary list used to do the calculations
         List<List<GraphNode>> tempList = new ArrayList<>();
         
+        // We fill the list using the nodaLIst data
         for (ArrayList<GraphNode> list : nodaList.values()) {
             tempList.add(list);
         }
         
+        // Then, wa can clear the nodaList
         nodaList.clear();
         
-        int i=0;
-        int listSize = tempList.size();
+        int listSize = tempList.size(); // This integer is used to cumpute dynamically the size of the tempList
         for (int k = 0; k < listSize; k++) {
             List<GraphNode> list = tempList.get(k);
-            int cpt = list.size();
+            int cpt = list.size(); //This integer is used to compute dynamically the size of the list
             for (int j = 0; j < cpt; j++) { 
                 GraphNode gn = list.get(j);
                 for (GraphEdge e : gn.outs) {
@@ -716,20 +720,19 @@ public final strictfp class Graph {
                         if (list.contains(((GraphNode) e.b()))) {
                             list.remove(gn);
                             cpt--;
-                            if (i+1 >= tempList.size()) {
+                            if (k+1 >= tempList.size()) {
                                 List<GraphNode> auxList = new ArrayList<GraphNode>();
                                 auxList.add(gn);
-                                tempList.add(i+1,auxList);
+                                tempList.add(k+1,auxList);
                                 listSize++;
                             } else {
-                                tempList.get(i+1).add(gn);
+                                tempList.get(k+1).add(gn);
                             }
                         }
                     }
                 }
             }
-            nodaList.put(i, (ArrayList) list);
-            i++;
+            nodaList.put(k, (ArrayList) list);
         }
     }
     
