@@ -232,7 +232,7 @@ public final class StaticGraphMaker {
         for (AlloyAtom atom : containedInMap.keySet()) {
             if (containedInMap.get(atom).isEmpty()) //The atom is not contained in any other atom.
             {
-                createContainingNode(hidePrivate, hideMeta, atom, containmentTuples.get(atom), null);
+                createContainingNode(hidePrivate, hideMeta, atom, containmentTuples.get(atom), null, 0);
             }
         }
 
@@ -309,7 +309,7 @@ public final class StaticGraphMaker {
      * @return null if the atom is explicitly marked as "Don't Show".
      */
     private GraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom) {
-			return createNode(hidePrivate, hideMeta, atom, graph);
+			return createNode(hidePrivate, hideMeta, atom, graph, 0);
 		}
     
    /**
@@ -318,7 +318,7 @@ public final class StaticGraphMaker {
      *
      * @return null if the atom is explicitly marked as "Don't Show".
      */
-    private GraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom, Graph g) {
+    private GraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom, Graph g, int maxDepth) {
         List<GraphNode> nodesAtom = atom2node.get(atom);
         if (nodesAtom != null) {
 					//If there are nodes for this atom, we check if there is one with the same graph. 
@@ -338,7 +338,7 @@ public final class StaticGraphMaker {
         DotStyle style = view.nodeStyle(atom, instance);
         DotShape shape = view.shape(atom, instance);
         String label = atomname(atom, false);
-        GraphNode node = new GraphNode(g, atom, label).set(shape).set(color.getColor(view.getNodePalette())).set(style);
+        GraphNode node = new GraphNode(g, atom, maxDepth, label).set(shape).set(color.getColor(view.getNodePalette())).set(style);
         // Get the label based on the sets and relations
         String setsLabel = "";
         boolean showLabelByDefault = view.showAsLabel.get(null);
@@ -407,30 +407,30 @@ public final class StaticGraphMaker {
     /**
      * Create the node for a specific AlloyAtom and each of his children, and
      * their childrens, and so on.
-     *
+     * @param containedInGraph the graph in which the node that has to be created is. If null, then the node is in the global graph directly.
+		 * @param maxDepth the maximum depth level of representation of the subGraph of the created node.
      * @return the englobing AlloyNode created, null if marked as "Don't Show".
      */
-    private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds, Graph containedGraph) {
-        GraphNode fatherNode;
-        if (containedGraph == null){
-            fatherNode = createNode(hidePrivate, hideMeta, father);
+    private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds, Graph containedInGraph, int maxDepth) {
+        GraphNode containingNode;
+        if (containedInGraph == null){
+            containingNode = createNode(hidePrivate, hideMeta, father);
         }else{
-            fatherNode = createNode(hidePrivate, hideMeta, father, containedGraph);
+            containingNode = createNode(hidePrivate, hideMeta, father, containedInGraph, maxDepth);
         }
         if (!(directChilds == null)) { //If the given atom has childrens, we have to create corresponding node.
-            Graph subGraph = fatherNode.getSubGraph();
             for (List<AlloyAtom> childs : directChilds) {
                 for (AlloyAtom child : childs) {
-                    //We use a recursiv call because the childrens can also be father.
-                    GraphNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child), subGraph);
-                    if (!(fatherNode == null || childNode == null)) //We add the created child to the father childs.
+                    //We use a recursive call because the childrens can also be father.
+                    GraphNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child), containingNode.getSubGraph(), maxDepth-1);
+                    if (!(containingNode == null || childNode == null)) //We add the created child to the father childs.
                     {
-                        fatherNode.addChild(childNode);
+                        containingNode.addChild(childNode);
                     }
                 }
             }
         }
-        return fatherNode;
+        return containingNode;
     }
 
     /**
@@ -473,7 +473,7 @@ public final class StaticGraphMaker {
 						return 0;
 				}
 
-				//If no node corresponding to atom has already been created, we create it here.
+				//If no node corresponding to the atom has already been created, we create it here.
 				List<GraphNode> starts = atom2node.get(atomStart);
 				List<GraphNode> ends = atom2node.get(atomEnd);
 				if (starts == null){

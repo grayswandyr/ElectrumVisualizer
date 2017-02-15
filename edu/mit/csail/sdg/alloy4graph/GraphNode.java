@@ -256,10 +256,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private HashSet<GraphNode> children;
 
     /**
-     * This field contains the subGraph of the node if it exists. [N7-R.Bossut,
-     * M. Quentin]
+     * This field contains the subGraph of the node if it exists. [N7-R. Bossut, M. Quentin]
      */
     private Graph subGraph;
+		/**
+		 * The integer representing the maximum depth level of representation of subgraphs of this GraphNode. [N7-R. Bossut, M. Quentin]
+		 */
+		private int maxDepth;
 
     //====================================================================================================
     /**
@@ -282,6 +285,9 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
 
+//TODO change this?
+				this.maxDepth = 1;
+
         // [N7-G. Dupont] Instanciate map port
         this.numPorts = new HashMap<GraphPort.Orientation, Integer>();
         this.numPorts.put(GraphPort.Orientation.North, 0);
@@ -290,6 +296,32 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.numPorts.put(GraphPort.Orientation.West, 0);
     }
 
+		//[N7-R.Bossut, M.Quentin]
+		// Adds an integer parameter the maximum depth level in this node.
+		public GraphNode(Graph graph, Object uuid, int maxDepth, String... labels) {
+        super(graph, uuid);
+        this.pos = graph.nodelist.size();
+        this.children = new HashSet<>(); //[N7-R. Bossut, M. Quentin]
+				this.maxDepth = maxDepth;
+        graph.nodelist.add(this);
+        if (graph.layerlist.size() == 0) {
+            graph.layerlist.add(new ArrayList<GraphNode>());
+        }
+        graph.layerlist.get(0).add(this);
+        if (labels != null && labels.length > 0) {
+            this.labels = new ArrayList<String>(labels.length);
+            for (int i = 0; i < labels.length; i++) {
+                this.labels.add(labels[i]);
+            }
+        }
+
+        // [N7-G. Dupont] Instanciate map port
+        this.numPorts = new HashMap<GraphPort.Orientation, Integer>();
+        this.numPorts.put(GraphPort.Orientation.North, 0);
+        this.numPorts.put(GraphPort.Orientation.South, 0);
+        this.numPorts.put(GraphPort.Orientation.East, 0);
+        this.numPorts.put(GraphPort.Orientation.West, 0);
+    }
 		/**
 		 * Duplicate the given GraphNode, only changing the graph in which it is.
 		 */
@@ -301,6 +333,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
 			this.fontBold = toBeCopied.fontBold;
 			this.style = toBeCopied.style;
 			this.set(toBeCopied.shape());
+//TODO verify the correctness of this.
+			this.maxDepth = toBeCopied.maxDepth;
 			graph.nodelist.add(this);
 			if (graph.layerlist.size() == 0) {
 				graph.layerlist.add(new ArrayList<GraphNode>());
@@ -338,6 +372,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
 				if(!(subGraph.nodelist.contains(gn)))
 					subGraph.nodelist.add(gn);
     }
+
+		/** 
+		 * Gets the depth level of the node. [N7-R.Bossut, M.Quentin]
+		 */
+		public int getMaxDepth(){
+			return maxDepth;
+		}
 
     /**
      * Changes the layer that this node is in; the new layer must be 0 or
@@ -1203,7 +1244,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     void imbricatedNodeBounds() {
 
-        if (hasChild()) {
+        if (hasChild() && (maxDepth>=0)) {
 
             for (GraphNode gn : children) {
                 if (gn.updown < 0) {
