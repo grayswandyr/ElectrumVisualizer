@@ -327,8 +327,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     public boolean hasChild() {
-			return !(children.isEmpty());
-		}
+        return !(children.isEmpty());
+    }
 
     /**
      * Set the children of the Node. [N7-R. Bossut, M. Quentin]
@@ -526,15 +526,16 @@ public strictfp class GraphNode extends AbstractGraphNode {
         return poly.contains(x - x(), y - y());
     }
 
-		/**
-		 * Returns true if the GraphNode is in the given Graph.
-		 * @param graph the graph in which we want to know if the GraphNode is.
-		 */
-		public boolean isInGraph(Graph g){
-			return (this.graph == g);
-		}
-		
-		/**
+    /**
+     * Returns true if the GraphNode is in the given Graph.
+     *
+     * @param graph the graph in which we want to know if the GraphNode is.
+     */
+    public boolean isInGraph(Graph g) {
+        return (this.graph == g);
+    }
+
+    /**
      * Draws this node at its current (x, y) location; this method will call
      * calcBounds() if necessary.
      */
@@ -662,34 +663,52 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private void drawSubgraph(Artist gr, double scale, int top, int maxDepth, int left, boolean highlight) {
         // [N7-Bossut, Quentin] Draw the subGraph         
         //We have'nt reach the depth max yet, we can draw the subgraph.
-        
+
         // It is not supposed to be here, but it does not work without it
         imbricatedNodeBounds();
-        
+
         if (highlight) {
             gr.setColor(COLOR_CHOSENNODE);
         } else {
             gr.setColor(Color.YELLOW);
         }
-        
+
         gr.draw(poly, true);
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
-        
+
         subGraph.draw(gr, scale, uuid, true, (maxDepth - 1));
 
-        /**
-         * Inutile pour le moment. if (poly2 != null) { gr.draw(poly2, false); }
-         * if (poly3 != null) { gr.draw(poly3, false); } if (style ==
-         * DotStyle.DOTTED || style == DotStyle.DASHED) { gr.set(DotStyle.SOLID,
-         * scale); } if (shape() == DotShape.M_DIAMOND) { gr.drawLine(-side + 8,
-         * -8, -side + 8, 8); gr.drawLine(-8, -side + 8, 8, -side + 8);
-         * gr.drawLine(side - 8, -8, side - 8, 8); gr.drawLine(-8, side - 8, 8,
-         * side - 8); } if (shape() == DotShape.M_SQUARE) { gr.drawLine(-side,
-         * -side + 8, -side + 8, -side); gr.drawLine(side, -side + 8, side - 8,
-         * -side); gr.drawLine(-side, side - 8, -side + 8, side);
-         * gr.drawLine(side, side - 8, side - 8, side); }
-         */
+        /*
+        if (poly2 != null) {
+            gr.draw(poly2, false);
+        }
+        if (poly3 != null) {
+            gr.draw(poly3, false);
+        }
+        if (style
+                == DotStyle.DOTTED || style == DotStyle.DASHED) {
+            gr.set(DotStyle.SOLID,
+                    scale);
+        }
+        if (shape() == DotShape.M_DIAMOND) {
+            gr.drawLine(-side + 8,
+                    -8, -side + 8, 8);
+            gr.drawLine(-8, -side + 8, 8, -side + 8);
+            gr.drawLine(side - 8, -8, side - 8, 8);
+            gr.drawLine(-8, side - 8, 8,
+                    side - 8);
+        }
+        if (shape() == DotShape.M_SQUARE) {
+            gr.drawLine(-side,
+                    -side + 8, -side + 8, -side);
+            gr.drawLine(side, -side + 8, side - 8,
+                    -side);
+            gr.drawLine(-side, side - 8, -side + 8, side);
+            gr.drawLine(side, side - 8, side - 8, side);
+        }
+        */
+        
         // Draw the label into the GraphNode
         gr.set(DotStyle.SOLID, scale);
         int clr = color.getRGB() & 0xFFFFFF;
@@ -736,21 +755,21 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * Helper method that shifts a node up.
      */
     private void shiftUp(int y) {
-				final int[] ph = graph.layerPH;
+        final int[] ph = graph.layerPH;
         final int yJump = Graph.yJump / 6;
         int i = layer();
-				setY(i, y);
+        setY(i, y);
         y = y - ph[i] / 2; // y is now the top-most edge of this layer
-				for (i++; i < graph.layers(); i++) {
+        for (i++; i < graph.layers(); i++) {
             List<GraphNode> list = graph.layer(i);
-			if (!list.isEmpty()){ //TODO: corrects a bug when displaying a subgraph in a new window, maybe we could find a may to do without si test.
-						GraphNode first = list.get(0);
-            if (first.y() + ph[i] / 2 + yJump > y) {
-                setY(i, y - ph[i] / 2 - yJump);
+            if (!list.isEmpty()) { //TODO: corrects a bug when displaying a subgraph in a new window, maybe we could find a may to do without si test.
+                GraphNode first = list.get(0);
+                if (first.y() + ph[i] / 2 + yJump > y) {
+                    setY(i, y - ph[i] / 2 - yJump);
+                }
+                y = first.y() - ph[i] / 2;
             }
-            y = first.y() - ph[i] / 2;
-      }
-				}
+        }
         graph.relayout_edges(false);
     }
 
@@ -1191,20 +1210,19 @@ public strictfp class GraphNode extends AbstractGraphNode {
     void imbricatedNodeBounds() {
 
         if (hasChild()) {
-            
+
             for (GraphNode gn : children) {
                 if (gn.updown < 0) {
                     gn.calcBounds();
                 }
             }
-            
+
             subGraph.layoutSubGraph(this);
-            this.updown = subGraph.getTotalHeight()/2;
-            this.side = subGraph.getTotalWidth()/2;
-            
+            this.updown = subGraph.getTotalHeight() / 2;
+            this.side = subGraph.getTotalWidth() / 2;
+
             //TODO 
             //Find the dimension of the figure
-            
             //TODO
             //Change the form of the polygon
             Polygon p = new Polygon();
