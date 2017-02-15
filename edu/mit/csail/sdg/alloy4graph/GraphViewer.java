@@ -333,10 +333,8 @@ public final strictfp class GraphViewer extends JPanel {
                    			long currentTime = System.currentTimeMillis();
 												if (currentTime - timeLastClick < 800){
 													//Double click on a node, we have to show the subgraph if there is one.
-													System.out.println("Double clicked");
 												  if (sel.hasChild()){
 														//The node double-clicked has children we have to print the subgraph in a new window.
-														System.out.println("Should print the subgraph, somewhere.");
 													  showSubgraph(sel);
 													}
 												}
@@ -362,11 +360,18 @@ public final strictfp class GraphViewer extends JPanel {
 			JFrame windowSubgraph = new JFrame(node.uuid.toString());
 			int x = 200;
 			int y = 200;
-			Graph subGraph = node.getSubGraph();
-			subGraph.layout();
-			int width = subGraph.getTotalWidth() + 200;
-			int height = subGraph.getTotalHeight() + 200;
-			windowSubgraph.setContentPane(new GraphViewer(subGraph, maxDepth));
+			//We have to duplicate the subgraph (each node and edge) so moving nodes in the window won't move those of the main graph.
+		  Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale);
+			for (GraphNode n : node.getChildren()){
+				//System.out.println("Duplicating " + n);
+				//System.out.println("  result : " + (new GraphNode(n, toBeShownGraph)));
+				new GraphNode(n, toBeShownGraph);
+			}
+			toBeShownGraph.layout();
+			int width = toBeShownGraph.getTotalWidth();
+			int height = toBeShownGraph.getTotalHeight() + 100;
+			windowSubgraph.setContentPane(new GraphViewer(toBeShownGraph, maxDepth));
+			windowSubgraph.setBackground(Color.WHITE);
 			windowSubgraph.setSize(width, height);
 			windowSubgraph.setLocation(x, y);
 			windowSubgraph.setVisible(true);

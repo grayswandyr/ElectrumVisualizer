@@ -290,6 +290,27 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.numPorts.put(GraphPort.Orientation.West, 0);
     }
 
+		/**
+		 * Duplicate the given GraphNode, only changing the graph in which it is.
+		 */
+		public GraphNode(GraphNode toBeCopied, Graph graph){
+			super(graph, toBeCopied.uuid);
+			this.pos = graph.nodelist.size(); 
+			this.children = toBeCopied.children;
+			this.color = toBeCopied.color;
+			this.fontBold = toBeCopied.fontBold;
+			this.style = toBeCopied.style;
+			this.set(toBeCopied.shape());
+			graph.nodelist.add(this);
+			if (graph.layerlist.size() == 0) {
+				graph.layerlist.add(new ArrayList<GraphNode>());
+			}
+			graph.layerlist.get(0).add(this);
+			this.labels = toBeCopied.labels;
+			this.numPorts = toBeCopied.numPorts;
+ 	}
+
+
     /**
      * Get the children of the Node. [N7-R. Bossut, M. Quentin]
      */
