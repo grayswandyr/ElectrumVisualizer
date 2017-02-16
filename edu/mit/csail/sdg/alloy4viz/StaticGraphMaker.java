@@ -121,8 +121,8 @@ public final class StaticGraphMaker {
         if (graph.nodes.size() == 0) {
             new GraphNode(graph, "", "Due to your theme settings, every atom is hidden.", "Please click Theme and adjust your settings.");
         }
-        return new GraphViewer(graph, view.getDepthMax()); //view.getDepthMax is the maximum depth to be shown, choosed  by the user [N7-R.Bossut].
-    }
+        return new GraphViewer(graph);
+		}
 
     /**
      * The list of colors, in order, to assign each legend.
@@ -232,7 +232,7 @@ public final class StaticGraphMaker {
         for (AlloyAtom atom : containedInMap.keySet()) {
             if (containedInMap.get(atom).isEmpty()) //The atom is not contained in any other atom.
             {
-                createContainingNode(hidePrivate, hideMeta, atom, containmentTuples.get(atom), null, 0);
+                createContainingNode(hidePrivate, hideMeta, atom, containmentTuples.get(atom), null, view.getDepthMax());
             }
         }
 
@@ -414,7 +414,7 @@ public final class StaticGraphMaker {
     private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds, Graph containedInGraph, int maxDepth) {
         GraphNode containingNode;
         if (containedInGraph == null){
-            containingNode = createNode(hidePrivate, hideMeta, father);
+            containingNode = createNode(hidePrivate, hideMeta, father, graph, maxDepth);
         }else{
             containingNode = createNode(hidePrivate, hideMeta, father, containedInGraph, maxDepth);
         }

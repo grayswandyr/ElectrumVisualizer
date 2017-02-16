@@ -333,8 +333,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
 			this.fontBold = toBeCopied.fontBold;
 			this.style = toBeCopied.style;
 			this.set(toBeCopied.shape());
-//TODO verify the correctness of this.
-			this.maxDepth = toBeCopied.maxDepth;
+			this.subGraph = toBeCopied.subGraph;
+			this.maxDepth = toBeCopied.maxDepth + 1; //We do not show the "upper depth" of the graph, we can show one level deeper.
 			graph.nodelist.add(this);
 			if (graph.layerlist.size() == 0) {
 				graph.layerlist.add(new ArrayList<GraphNode>());
@@ -576,10 +576,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     @Override
     void draw(Artist gr, double scale, boolean highlight) {
-        draw(gr, scale, highlight, 1);
-    }
-
-    void draw(Artist gr, double scale, boolean highlight, int maxDepth) {
 
         if (shape() == null) {
             return;
@@ -601,10 +597,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else {
             // [N7-Bossut, Quentin] Draw the subGraph
             if (maxDepth > 0) {
-                drawSubgraph(gr, scale, maxDepth, top, left, highlight);
+                drawSubgraph(gr, scale, top, left, highlight);
             } else {
                 //We cannot draw the subgraph (it is too deep), we have to paint the node and a button the user have to click to see the subgraph.
-                drawContainer(gr, scale, highlight, maxDepth, top, left);
+                drawHidder(gr, scale, highlight, top, left);
             }
         }
     }
@@ -691,11 +687,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
 
     /**
      * Draws a node that has children that can also be drawn (in the view of the
-     * maxDepth parameter). Layouts the subgraph and then draws (it will calls
+     * maxDepth attribute). Layouts the subgraph and then draws (it will calls
      * the draw method of the sub-nodes, so it works recursively). Then draws
      * the node arround the subgraph.
      */
-    private void drawSubgraph(Artist gr, double scale, int top, int maxDepth, int left, boolean highlight) {
+    private void drawSubgraph(Artist gr, double scale, int top, int left, boolean highlight) {
         // [N7-Bossut, Quentin] Draws the subGraph.         
         // We have'nt reach the depth max yet, we can draw the subgraph.
 
@@ -712,7 +708,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
 
-        subGraph.draw(gr, scale, uuid, true, (maxDepth - 1));
+        subGraph.draw(gr, scale, uuid, true);
 
         /*
         if (poly2 != null) {
@@ -772,7 +768,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * depth level. Draws the node as a regular one and an indicator meaning
      * that the sugraph is hidden.
      */
-    private void drawContainer(Artist gr, double scale, boolean highlight, int maxDepth, int top, int left) {
+    private void drawHidder(Artist gr, double scale, boolean highlight, int top, int left) {
         drawRegular(gr, scale, highlight, top, left);
         //TODO draw an indicator.
     }
@@ -1244,19 +1240,15 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     void imbricatedNodeBounds() {
 
-        if (hasChild() && (maxDepth>=0)) {
+        if (hasChild() && (maxDepth>0)) {
 
             for (GraphNode gn : children) {
                 if (gn.updown < 0) {
                     gn.calcBounds();
                 }
             }
-
-						System.out.println("childrens: " + children);
-						System.out.println("subGraph: " + subGraph);
-						System.out.println("this: " + this);
-
-            subGraph.layoutSubGraph(this);
+           
+						subGraph.layoutSubGraph(this);
             this.updown = subGraph.getTotalHeight() / 2;
             this.side = subGraph.getTotalWidth() / 2;
 
@@ -1375,7 +1367,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         out.append(", fontcolor = \"#" + text + "\"");
         out.append(", shape = \"" + shape().getDotText() + "\"");
         out.append(", style = \"filled, " + style.getDotText() + "\"");
-        out.append("]\n");
+        out.append(", maxDepth = " + maxDepth); 
+				out.append("]\n");
         return out.toString();
     }
 }
