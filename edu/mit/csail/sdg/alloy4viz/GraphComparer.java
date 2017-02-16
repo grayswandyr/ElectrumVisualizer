@@ -34,20 +34,20 @@ public class GraphComparer {
     public void compare() {
         graph1 = vgp1.getGraph();
         graph2 = vgp2.getGraph();
-        System.out.println("Chaussette");
+        //System.out.println("Chaussette");
         if (graph1 != null && graph2 != null) {
             for (GraphNode n : graph1.nodes) {
                 n.setHighlight(false);
             }
             for (GraphNode n : graph2.nodes) {
-                n.setHighlight(false);
+                n.setHighlight(true);
             }
             for (GraphNode n1 : graph1.nodes) {
-                AlloyAtom at1 = StaticGraphMaker.getAtomFromNode(n1);
+                //AlloyAtom at1 = StaticGraphMaker.getAtomFromNode(n1);
                 boolean found = false;
                 for (GraphNode n2 : graph2.nodes) {
-                    AlloyAtom at2 = StaticGraphMaker.getAtomFromNode(n2);
-                    if (at1 != null && at2 != null && at1.equals(at2) && !setStringCompare(n1.getLabels(),n2.getLabels())) {
+                    //AlloyAtom at2 = StaticGraphMaker.getAtomFromNode(n2);
+                    if (setStringCompare(n1.getLabels(),n2.getLabels())) {
                         found = true;
                         n2.setHighlight(false);
                         break;

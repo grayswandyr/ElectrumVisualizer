@@ -246,6 +246,7 @@ public final class VizGraphPanel extends JPanel {
                     if(graphc == null){
                         remakeAll();
                     } else {
+                        regenerateProjection();
                         graphc.compare();
                     }
                     VizGraphPanel.this.getParent().invalidate();
@@ -341,9 +342,11 @@ public final class VizGraphPanel extends JPanel {
     }
 
     /**
-     * Regenerate the comboboxes and the graph.
+     * [N7] @Louis Fauvarque
+     * Regenerates the projection and the navpanel
      */
-    public void remakeAll() {
+    
+    public void regenerateProjection(){
         Map<AlloyType, AlloyAtom> map = new LinkedHashMap<AlloyType, AlloyAtom>();
         navPanel.removeAll();
         for (AlloyType type : vizState.getProjectedTypes()) {
@@ -365,6 +368,15 @@ public final class VizGraphPanel extends JPanel {
             map.put(tp.getAlloyType(), tp.getAlloyAtom());
         }
         currentProjection = new AlloyProjection(map);
+    }
+    
+    /**
+     * Regenerate the comboboxes and the graph.
+     */
+    public void remakeAll() {
+        if(graphc == null){
+            regenerateProjection();
+        }
         JPanel graph = vizState.getGraph(currentProjection,isSplit);
         if (seeDot && (graph instanceof GraphViewer)) {
             viewer = null;
