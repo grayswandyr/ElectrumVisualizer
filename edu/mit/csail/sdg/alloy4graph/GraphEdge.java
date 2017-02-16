@@ -170,6 +170,7 @@ public final strictfp class GraphEdge {
         } else {
             labelbox = new AvailableSpace.Box(0, 0, 0, 0);
         }
+        System.out.println("Edge: " + this.label + " from: " + this.a + " to: " + this.b + " of the " + this.group + " family ");
     }
 
     /**
@@ -536,11 +537,12 @@ public final strictfp class GraphEdge {
      * the current zoom scale, draw the edge.
      */
     void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
+        // If the edge is between two nodes of the same Graph
         if (a.graph == b.graph) {
             if (style != DotStyle.BLANK) {
                 final int top = a.graph.getTop(), left = a.graph.getLeft();
                 gr.translate(-left, -top);
-                if (highEdge == this) {
+                if (highEdge == this) { // Change the color of the selected edge and turn it into a bold edge
                     gr.setColor(color);
                     gr.set(DotStyle.BOLD, scale);
                 } else if ((highEdge == null && highGroup == null) || highGroup == group) {
@@ -575,8 +577,53 @@ public final strictfp class GraphEdge {
                 }
                 drawArrowhead(gr, scale, highEdge, highGroup);
             }
+        // If we are drawing an edge between a node from the graph, and a node from one of its subgraph
         } else {
-            
+            /**
+            if (style != DotStyle.BLANK) {
+                GraphNode aaux = ((GraphNode) a).getFather();
+                GraphNode baux = ((GraphNode) b).getFather();
+                final int top = aaux.graph.getTop(), left = aaux.graph.getLeft();
+                //final int top = a.graph.getTop(), left = a.graph.getLeft();
+                gr.translate(-left, -top);
+                if (highEdge == this) { // Change the color of the selected edge and turn it into a bold edge
+                    gr.setColor(color);
+                    gr.set(DotStyle.BOLD, scale);
+                } else if ((highEdge == null && highGroup == null) || highGroup == group) {
+                    gr.setColor(color);
+                    gr.set(style, scale);
+                } else {
+                    gr.setColor(Color.LIGHT_GRAY);
+                    gr.set(style, scale);
+                }
+                if (a == b) {
+                    gr.draw(path);
+                } else {
+                    // Concatenate this path and its connected segments into a single VizPath object, then draw it
+                    Curve p = null;
+                    GraphEdge e = this;
+                    while (((GraphNode) e.a).getFather().shape() == null) {
+                        e = aaux.ins.get(0);
+                        //e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
+                    }
+                    while (true) {
+                        p = (p == null) ? e.path() : p.join(e.path());
+                        if (((GraphNode) e.b).getFather().shape() != null) {
+                            break;
+                        }
+                        e = baux.outs.get(0);
+                        //e = e.b.outs.get(0);
+                    }
+                    gr.drawSmoothly(p);
+                }
+                gr.set(DotStyle.SOLID, scale);
+                gr.translate(left, top);
+                if (highEdge == null && highGroup == null && label.length() > 0) {
+                    drawLabel(gr, color, null);
+                }
+                drawArrowhead(gr, scale, highEdge, highGroup);
+            }
+            */
         }
     }
 

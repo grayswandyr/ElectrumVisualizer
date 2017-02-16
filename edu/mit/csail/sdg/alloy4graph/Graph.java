@@ -692,7 +692,8 @@ public final strictfp class Graph {
         }
     }
     
-    /**
+    /** 
+     * [N7-M Quentin, R Bossut]
      * This decides the layers of the subgraph.
      * The method takes the nodaList as the entry and computes the good layers in
      * order to respect the fact that two linked nodes can be in the same layer.
@@ -1324,6 +1325,7 @@ public final strictfp class Graph {
         }
       // Since drawing an edge will automatically draw all segments if they're connected via dummy nodes,
         // we must make sure we only draw out edges from non-dummy-nodes
+        // Draws the unselected edges
         int maxAscent = Artist.getMaxAscent();
         for (GraphNode n : nodes) {
             if (n.shape() != null) {
@@ -1339,6 +1341,7 @@ public final strictfp class Graph {
                 }
             }
         }
+        // Draws all the edges of the selected edge family
         if (group != null) {
             for (GraphNode n : nodes) {
                 if (n.shape() != null) {
@@ -1354,6 +1357,7 @@ public final strictfp class Graph {
                     }
                 }
             }
+            // Draws the selected edge
             if (highFirstEdge != null) {
                 highFirstEdge.draw(gr, scale, highFirstEdge, group);
             }
