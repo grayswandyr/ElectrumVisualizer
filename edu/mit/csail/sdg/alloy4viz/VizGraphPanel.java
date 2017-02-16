@@ -51,6 +51,7 @@ import edu.mit.csail.sdg.alloy4.OurBorder;
 import edu.mit.csail.sdg.alloy4.OurCombobox;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4graph.Graph;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 
 /**
@@ -116,8 +117,17 @@ public final class VizGraphPanel extends JPanel {
      * [N7] @Louis Fauvarque
      * Indicates if the panel is the primary panel or the secondeary one
      */
-    
     private final boolean isSplit;
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Allows to compare the graphs in split mode
+     */
+    private GraphComparer graphc;
+
+    void setGraphc(GraphComparer graphc) {
+        this.graphc = graphc;
+    }
 
     /**
      * Inner class that displays a combo box of possible projection atom
@@ -176,7 +186,7 @@ public final class VizGraphPanel extends JPanel {
          */
         private TypePanel(AlloyType type, List<AlloyAtom> atoms, AlloyAtom initialValue) {
             super();
-            System.out.println("Combo atoms: " + atoms);
+            //System.out.println("Combo atoms: " + atoms);
             final JButton left, right;
             int initialIndex = 0;
             this.type = type;
@@ -233,7 +243,11 @@ public final class VizGraphPanel extends JPanel {
                 public final void actionPerformed(ActionEvent e) {
                     left.setEnabled(atomCombo.getSelectedIndex() > 0);
                     right.setEnabled(atomCombo.getSelectedIndex() < atomnames.length - 1);
-                    remakeAll();
+                    if(graphc == null){
+                        remakeAll();
+                    } else {
+                        graphc.compare();
+                    }
                     VizGraphPanel.this.getParent().invalidate();
                     VizGraphPanel.this.getParent().repaint();
                 }
@@ -276,8 +290,9 @@ public final class VizGraphPanel extends JPanel {
      * @param seeDot - true if we want to see the DOT source code, false if we
      * want it rendered as a graph
      */
-    public VizGraphPanel(VizState vizState, boolean seeDot, boolean isSplit) {
+    public VizGraphPanel(VizState vizState, boolean seeDot, boolean isSplit, GraphComparer graphc) {
         this.isSplit = isSplit;
+        this.graphc = graphc;
         Border b = new EmptyBorder(0, 0, 0, 0);
         OurUtil.make(this, Color.BLACK, Color.WHITE, b);
         this.seeDot = seeDot;
@@ -370,6 +385,14 @@ public final class VizGraphPanel extends JPanel {
         }
     }
 
+    /**
+     * [N7] @Louis Fauvarque
+     * Returns the diplayed graph
+     */
+    public Graph getGraph(){
+        return vizState.getCachedGraph(currentProjection, isSplit);
+    }
+    
     /**
      * Changes the font.
      */

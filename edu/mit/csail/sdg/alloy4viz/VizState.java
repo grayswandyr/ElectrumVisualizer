@@ -33,6 +33,8 @@ import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
+import edu.mit.csail.sdg.alloy4graph.Graph;
+import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 
 /**
  * Mutable; this stores an unprojected model as well as the current theme
@@ -215,10 +217,20 @@ public final class VizState {
     private LinkedHashMap<AlloyProjection, JPanel> cacheSplit = new LinkedHashMap<AlloyProjection, JPanel>();
     
     /**
+     * [N7] @Louis Fauvarque
+     * Caches the graphs themselves
+     */
+    private LinkedHashMap<AlloyProjection, Graph> cacheGraph = new LinkedHashMap<AlloyProjection, Graph>();
+
+    /**
+     * [N7] @Louis Fauvarque
+     * Caches the graphs themselves for the split panel.
+     */
+    private LinkedHashMap<AlloyProjection, Graph> cacheSplitGraph = new LinkedHashMap<AlloyProjection, Graph>();
+    
+    /**
      * Generate a VizGraphPanel for a given projection choice, using the current
      * settings.
-     * 
-     * TODO : stocker les graphes en eux mêmes, mettre des getters pour les obtenir puis instancier (ailleurs) le GraphComparer, et l'utiliser !!! Ouais trop bien
      */
     public JPanel getGraph(AlloyProjection projectionChoice, boolean isSplit) {
         JPanel ans = null;
@@ -232,11 +244,18 @@ public final class VizState {
         }
         AlloyInstance inst = originalInstance;
         try {
-            ans = StaticGraphMaker.produceGraph(inst, this, projectionChoice);
+            /**
+             * [N7] @Louis Fauvarque
+             * Adds the gestion of the second screen
+             */
+            Graph gr = StaticGraphMaker.produceGraph(inst, this, projectionChoice);
+            ans = new GraphViewer(gr);
             if(isSplit){
                 cacheSplit.put(projectionChoice, ans);
+                cacheSplitGraph.put(projectionChoice,gr);
             } else {
                 cache.put(projectionChoice, ans);
+                cacheGraph.put(projectionChoice,gr);
             }
         } catch (Throwable ex) {
             String msg = "An error has occurred: " + ex + "\n\nStackTrace:\n" + MailBug.dump(ex) + "\n";
@@ -248,6 +267,19 @@ public final class VizState {
         }
         ans.setBorder(null);
         return ans;
+    }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Returns the cached graph
+     */
+    
+    public Graph getCachedGraph(AlloyProjection projectionChoice, boolean isSplit){
+        if(isSplit){
+            return cacheSplitGraph.get(projectionChoice);
+        } else {
+            return cacheGraph.get(projectionChoice);
+        }
     }
 
     /**
@@ -537,6 +569,13 @@ public final class VizState {
         }
     }
 
+    /*============================================================================================*/
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * 
+     */
+    
     /*============================================================================================*/
     // An important invariant to maintain: every map here must map null to a nonnull value.
     public final MInt weight = new MInt();

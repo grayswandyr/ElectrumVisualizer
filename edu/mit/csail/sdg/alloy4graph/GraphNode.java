@@ -512,6 +512,7 @@ public strictfp class GraphNode {
         } else {
             gr.setColor(color);
         }
+        //needHighlight = false;
         if (shape == DotShape.CIRCLE || shape == DotShape.M_CIRCLE || shape == DotShape.DOUBLE_CIRCLE) {
             int hw = width / 2, hh = height / 2;
             int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
@@ -1084,5 +1085,12 @@ public strictfp class GraphNode {
     
     public boolean getHighlight(){
         return needHighlight;
+    }
+    
+    /**
+     * Getter for labels
+     */
+    public List<String> getLabels(){
+        return labels;
     }
 }

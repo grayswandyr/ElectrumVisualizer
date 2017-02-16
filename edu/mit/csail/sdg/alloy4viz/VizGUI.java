@@ -245,6 +245,13 @@ public final class VizGUI implements ComponentListener {
     // that file
     private final Map<String, Integer> cacheForXmlState = new HashMap<String, Integer>();
 
+    /**
+     * [N7] @Louis Fauvarque
+     * The graph comparer
+     */
+    
+    private GraphComparer graphc;
+    
 	// ==============================================================================================//
     /**
      * The current theme file; "" if there is no theme file loaded.
@@ -1007,7 +1014,7 @@ public final class VizGUI implements ComponentListener {
             // }
             default: {
                 if (myGraphPanel == null) {
-                    myGraphPanel = new VizGraphPanel(myState, false, false);
+                    myGraphPanel = new VizGraphPanel(myState, false, false, graphc);
                 } else {
                     myGraphPanel.seeDot(false);
                     myGraphPanel.remakeAll();
@@ -1018,11 +1025,14 @@ public final class VizGUI implements ComponentListener {
                  */
                 if (myState.splitPanel) {
                     if (mySplitGraphPanel == null) {
-                        mySplitGraphPanel = new VizGraphPanel(myState, false, true);
+                        mySplitGraphPanel = new VizGraphPanel(myState, false, true, graphc);
+                        myGraphPanel.setGraphc(graphc);
                     } else {
                         mySplitGraphPanel.seeDot(false);
                         mySplitGraphPanel.remakeAll();
                     }
+                    graphc.setGraphPanel1(myGraphPanel);
+                    graphc.setGraphPanel2(mySplitGraphPanel);
                 }
             }
             if(!myState.splitPanel){
@@ -1595,7 +1605,13 @@ public final class VizGUI implements ComponentListener {
         if(myState == null){
             return null;
         }
+        // splitPanel == true => the second panel needs to be shown
         myState.splitPanel = !myState.splitPanel && myState.getProjectedTypes().size() > 0;
+        if(graphc == null){
+            graphc = new GraphComparer(null,null);
+        } else if(!myState.splitPanel){
+            graphc = null;
+        }
         updateDisplay();
         return null;
     }
