@@ -251,7 +251,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
     //===================================================================================================  
     //
     /**
-     * This field contains the children of this node. [N7-R. Bossut, M. Quentin]
+     * This field contains the children of this node if they exist. [N7-R. Bossut, M. Quentin]
      */
     private HashSet<GraphNode> children;
 
@@ -261,6 +261,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     private Graph subGraph;
 
+    /**
+     * This field contains the father of the node if it exists. [N7-R. Bossut, M.Quentin]
+     */
+    private GraphNode father;
+    
     //====================================================================================================
     /**
      * Create a new node with the given list of labels, then add it to the given
@@ -325,7 +330,22 @@ public strictfp class GraphNode extends AbstractGraphNode {
         subGraph = (subGraph == null) ? new Graph(1.0) : this.subGraph;
         return (subGraph);
     }
-
+    
+    /**
+     * Get the father of the Node. [N7-R. Bossut, M. Quentin]
+     * @return the father
+     */
+    public GraphNode getFather() {
+        return (father == null) ? this : father;
+    }
+    
+    /**
+     * Set the father of the Node. [N7-R. Bossur, M. Quentin]
+     */
+    public void setFather(GraphNode father) {
+        this.father = father;
+    }
+    
     public boolean hasChild() {
         return !(children.isEmpty());
     }
