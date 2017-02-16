@@ -56,6 +56,7 @@ import edu.mit.csail.sdg.alloy4.OurPNGWriter;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
 
+import java.util.HashMap;
 /**
  * This class displays the graph.
  *
@@ -347,10 +348,25 @@ public final strictfp class GraphViewer extends JPanel {
 			int y = 200;
 			//We have to duplicate the subgraph (each node and edge) so moving nodes in the window won't move those of the main graph.
 		  Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale);
+			//A mapping between original nodes and copies.
+			HashMap<GraphNode, GraphNode> dupl = new HashMap<GraphNode, GraphNode>();
 			for (GraphNode n : node.getChildren()){
-				//System.out.println("Duplicating " + n);
-				//System.out.println("  result : " + (new GraphNode(n, toBeShownGraph)));
-				new GraphNode(n, toBeShownGraph);
+				GraphNode d = new GraphNode(n, toBeShownGraph);
+				dupl.put(n, d);
+			}
+			//We also have to 'duplicate' the edges of this subgraph.
+			for (GraphNode n : node.getChildren()){
+				// For each child-node, we check every edge from this node.
+				for (GraphEdge e : n.outs){
+					//If the 'to' node of the edge is also in the subgraph, we have to duplicate the edge.
+					if (e.getB().graph == n.graph){
+						GraphNode copyN = dupl.get(n);
+						GraphNode copyB = dupl.get(e.getB()); 
+						if (!(copyN == null || copyB == null)) //This should always be true.
+							new GraphEdge(e, copyN, copyB);
+					}
+				}
+				// We don't need to check the edges of ins since checking every out of every node already covers every possible edge of the subgraph.
 			}
 			toBeShownGraph.layout();
 			int width = toBeShownGraph.getTotalWidth() + 25;
