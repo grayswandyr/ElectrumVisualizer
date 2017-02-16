@@ -536,6 +536,9 @@ public final strictfp class GraphEdge {
                 gr.translate(left, top);
                 if (highEdge == null && highGroup == null && label.length() > 0) {
                     drawLabel(gr, color, null);
+                } else if (((GraphNode) this.a).getFather() != null || ((GraphNode) this.b).getFather() != null){
+                    this.set(false,true); // It is supposed to set the Arrowhead
+                    drawLabel(gr, color, null);
                 }
                 drawArrowhead(gr, scale, highEdge, highGroup);
             }
