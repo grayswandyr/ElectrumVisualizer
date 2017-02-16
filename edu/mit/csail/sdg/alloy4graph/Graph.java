@@ -1297,14 +1297,9 @@ public final strictfp class Graph {
 		/**
      * Assuming layout has been performed, this draws the graph with the given
      * magnification scale.
-		 * @param maxDepth the max level of depth that can be drown. [N7-R.Bossut]
      */
     void draw(Artist gr, double scale, Object highlight, boolean showLegends) {
-			draw(gr, scale, highlight, showLegends, 1);
-		}
-
-    void draw(Artist gr, double scale, Object highlight, boolean showLegends, int maxDepth) {
-        if (nodes.size() == 0) {
+				if (nodes.size() == 0) {
             return; // The rest of this procedure assumes there is at least one node
         }
         Object group = null;
@@ -1369,14 +1364,14 @@ public final strictfp class Graph {
         }
         for (GraphNode n : nodes) {
             if (highFirstNode != n && highLastNode != n) {
-                n.draw(gr, scale, n == highlight, maxDepth);
+                n.draw(gr, scale, n == highlight);
             }
         }
         if (highFirstNode != null) {
-            highFirstNode.draw(gr, scale, true, maxDepth);
+            highFirstNode.draw(gr, scale, true);
         }
         if (highLastNode != null && highLastNode != highFirstNode) {
-            highLastNode.draw(gr, scale, true, maxDepth);
+            highLastNode.draw(gr, scale, true);
         }
         if (highFirstEdge != null) {
             highFirstEdge.drawLabel(gr, highFirstEdge.color(), new Color(255, 255, 255, 160));

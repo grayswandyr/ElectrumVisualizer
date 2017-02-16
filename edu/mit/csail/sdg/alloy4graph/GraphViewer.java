@@ -74,11 +74,6 @@ public final strictfp class GraphViewer extends JPanel {
      */
     private final Graph graph;
 
-		/**
-		 * The maximum depth level to be shown in this viewer.
-		 */
-		private final int maxDepth;
-
     /**
      * The current amount of zoom.
      */
@@ -186,23 +181,13 @@ public final strictfp class GraphViewer extends JPanel {
         }
     }
 
-		/**
-		 * Construct a GraphViewer that displays the given graph.
-		 * @param graph The graph to be displayed. 
-		 */
-		public GraphViewer(final Graph graph){
-			this(graph, 1);
-		}
-
     /**
      * Construct a GraphViewer that displays the given graph.
 		 * @param grapĥ The graph to be displayed.
-		 * @param maxDepth The maximum depth level os subgraph shown.
      */
-    public GraphViewer(final Graph graph, final int maxDepth) {
+    public GraphViewer(final Graph graph) {
         OurUtil.make(this, BLACK, WHITE, new EmptyBorder(0, 0, 0, 0));
         setBorder(null);
-				this.maxDepth = maxDepth;
         this.scale = graph.defaultScale;
         this.graph = graph;
         graph.layout();
@@ -368,9 +353,9 @@ public final strictfp class GraphViewer extends JPanel {
 				new GraphNode(n, toBeShownGraph);
 			}
 			toBeShownGraph.layout();
-			int width = toBeShownGraph.getTotalWidth();
+			int width = toBeShownGraph.getTotalWidth() + 25;
 			int height = toBeShownGraph.getTotalHeight() + 100;
-			windowSubgraph.setContentPane(new GraphViewer(toBeShownGraph, maxDepth));
+			windowSubgraph.setContentPane(new GraphViewer(toBeShownGraph));
 			windowSubgraph.setBackground(Color.WHITE);
 			windowSubgraph.setSize(width, height);
 			windowSubgraph.setLocation(x, y);
@@ -693,7 +678,7 @@ public final strictfp class GraphViewer extends JPanel {
                 scale2 = scale1; // Choose the scale such that the image does not exceed the page in either direction
             }
             OurPDFWriter x = new OurPDFWriter(filename, dpi, scale2);
-            graph.draw(new Artist(x), scale2, null, false, maxDepth);
+            graph.draw(new Artist(x), scale2, null, false);
             x.close();
         } catch (Throwable ex) {
             if (ex instanceof IOException) {
@@ -724,7 +709,7 @@ public final strictfp class GraphViewer extends JPanel {
             gr.setColor(BLACK);
             gr.scale(scale, scale);
             gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            graph.draw(new Artist(gr), scale, null, false, maxDepth);
+            graph.draw(new Artist(gr), scale, null, false);
             OurPNGWriter.writePNG(bf, filename, dpiX, dpiY);
         } catch (Throwable ex) {
             if (ex instanceof IOException) {
@@ -773,7 +758,7 @@ public final strictfp class GraphViewer extends JPanel {
             c = (GraphNode) sel;
             sel = c.ins.get(0);
         }
-        graph.draw(new Artist(g2), scale, sel, true, maxDepth);
+        graph.draw(new Artist(g2), scale, sel, true);
         if (c != null) {
             gr.setColor(((GraphEdge) sel).color());
             gr.fillArc(c.x() - 5 - graph.getLeft(), c.y() - 5 - graph.getTop(), 10, 10, 0, 360);
