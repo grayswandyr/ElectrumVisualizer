@@ -106,9 +106,6 @@ public final class VizState {
         // Ports styles
         portStyle.putAll(old.portStyle);
         
-        // Ports labels
-        portLabel.putAll(old.portLabel);
-        
         changedSinceLastSave = false;
     }
 
@@ -180,10 +177,6 @@ public final class VizState {
         // Ports styles
         portStyle.clear();
         portStyle.put(null, DotStyle.SOLID);
-        
-        // Ports labels
-        portLabel.clear();
-        portLabel.put(null, false);
 
         
         // Provide some nice defaults for "Int" and "seq/Int" type
@@ -639,10 +632,6 @@ public final class VizState {
     
     // Ports styles
     public final MMap<DotStyle> portStyle = new MMap<DotStyle>();
-    
-    // Ports labels
-    public final MMap<Boolean> portLabel = new MMap<Boolean>(true,false);
-    
 
     public final class MInt {
 
