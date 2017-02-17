@@ -54,12 +54,14 @@ import edu.mit.csail.sdg.alloy4.OurPDFWriter;
 import edu.mit.csail.sdg.alloy4.OurPNGWriter;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4viz.AlloyAtom;
 import edu.mit.csail.sdg.alloy4viz.AlloyInstance;
 import edu.mit.csail.sdg.alloy4viz.AlloyRelation;
 import edu.mit.csail.sdg.alloy4viz.AlloyTuple;
 import edu.mit.csail.sdg.alloy4viz.StaticGraphMaker;
 import edu.mit.csail.sdg.alloy4viz.VizState;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -217,10 +219,10 @@ public final strictfp class GraphViewer extends JPanel {
         
         /**
          * [N7] @Julien Richer @Louis Fauvarque
-         * Add the edges between the ports
-         * 
-         * For each tuple, if start and end are ports, then create an edge
+         * Add the edges linked to ports
          */
+        
+        // Create the port/port edges
         ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
         Set<AlloyRelation> relations = instance.model.getRelations();
         
@@ -228,13 +230,16 @@ public final strictfp class GraphViewer extends JPanel {
         for(AlloyRelation rel : relations){
             tupleSet = instance.relation2tuples(rel);
             for(AlloyTuple tuple : tupleSet){
-                if(sgm.isPort(portRelations,tuple.getStart()) && sgm.isPort(portRelations,tuple.getEnd())){                   
-                    GraphEdge e = new GraphEdge(sgm.getPortFromAtom(tuple.getStart()),sgm.getPortFromAtom(tuple.getEnd()),null,"",null);
+                AlloyAtom start = tuple.getStart();
+                AlloyAtom end = tuple.getEnd();
+                if(sgm.isPort(portRelations,start) && sgm.isPort(portRelations,end)){
+                    GraphEdge e = new GraphEdge(sgm.getPortFromAtom(start),sgm.getPortFromAtom(end),null,"",null);
                     e.setStyle(DotStyle.SOLID);
                     e.resetPath();
                 }
             }
         }
+        
 
         // GUI related
         final JMenuItem zoomIn = new JMenuItem("Zoom In");

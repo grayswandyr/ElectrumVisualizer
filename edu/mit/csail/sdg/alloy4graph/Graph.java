@@ -303,7 +303,7 @@ public final strictfp class Graph {
             for (GraphEdge e : n.ins) {
                 AbstractGraphNode aa = e.a();
                 if (!(aa instanceof GraphNode)) {
-                    throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                    throw new IllegalArgumentException("This graph contains a port: " + aa + " ! This is not supposed to happen.");
                 }
                 GraphNode a = (GraphNode) aa;
                 if (!in.contains(a)) {
@@ -313,7 +313,7 @@ public final strictfp class Graph {
             for (GraphEdge e : n.outs) {
                 AbstractGraphNode ab = e.b();
                 if (!(ab instanceof GraphNode)) {
-                    throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                    throw new IllegalArgumentException("This graph contains a port: " + ab + " ! This is not supposed to happen.");
                 }
                 GraphNode b = (GraphNode) ab;
                 if (!out.contains(b)) {

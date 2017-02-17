@@ -880,5 +880,9 @@ public class GraphPort extends AbstractGraphNode {
         this.hovered = h;
     }
     
+    @Override
+    public String toString() {
+        return this.label+"["+this.orientation+"]";
+    }
 }
 
