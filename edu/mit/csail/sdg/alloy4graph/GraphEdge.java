@@ -582,7 +582,7 @@ public final strictfp class GraphEdge {
             }
         // If we are drawing an edge between a node from the graph, and a node from one of its subgraph
         } else {
-            /**
+            /*
             if (style != DotStyle.BLANK) {
                 GraphNode aaux = ((GraphNode) a).getFather();
                 GraphNode baux = ((GraphNode) b).getFather();
