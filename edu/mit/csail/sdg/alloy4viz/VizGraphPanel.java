@@ -247,6 +247,7 @@ public final class VizGraphPanel extends JPanel {
                         remakeAll();
                     } else {
                         regenerateProjection();
+                        vizState.getGraph(currentProjection, isSplit);
                         graphc.compare();
                     }
                     VizGraphPanel.this.getParent().invalidate();

@@ -19,7 +19,8 @@ import java.util.List;
 
 /**
  * This class compares two graphs and sets the nodes which differ to be
- * highlighted. [N7] @Louis Fauvarque
+ * highlighted. 
+ * [N7] @Louis Fauvarque
  */
 public class GraphComparer {
 
@@ -34,41 +35,31 @@ public class GraphComparer {
     public void compare() {
         graph1 = vgp1.getGraph();
         graph2 = vgp2.getGraph();
-        //System.out.println("Chaussette");
+        if(graph1 == null){
+            System.out.println("Graph1 null");
+        }
+        if(graph2 == null){
+            System.out.println("Graph2 null");
+        }
         if (graph1 != null && graph2 != null) {
             for (GraphNode n : graph2.nodes) {
                 n.setHighlight(true);
             }
             for (GraphNode n1 : graph1.nodes) {
-                //AlloyAtom at1 = StaticGraphMaker.getAtomFromNode(n1);
                 boolean found = false;
                 for (GraphNode n2 : graph2.nodes) {
-                    //AlloyAtom at2 = StaticGraphMaker.getAtomFromNode(n2);
                     if (setStringCompare(n1.getLabels(),n2.getLabels())) {
                         found = true;
                         n2.setHighlight(false);
                         break;
+                    } else {
+                        /*System.out.println("<--------------------->");
+                        System.out.println(n1.getLabels());
+                        System.out.println(n2.getLabels());*/
                     }
                 }
                 n1.setHighlight(!found);
             }
-            /*for(GraphEdge e1 : graph1.edges){
-                AlloyAtom at11 = StaticGraphMaker.getAtomFromNode(e1.a());
-                AlloyAtom at12 = StaticGraphMaker.getAtomFromNode(e1.b());
-                boolean found = false;
-                for(GraphEdge e2 : graph2.edges){
-                    AlloyAtom at21 = StaticGraphMaker.getAtomFromNode(e2.a());
-                    AlloyAtom at22 = StaticGraphMaker.getAtomFromNode(e2.b());
-                    if(!(at11.equals(at21)) || !(at12.equals(at22))){
-                        found = true;
-                        e2.a().setHighlight(false);
-                        e2.b().setHighlight(false);
-                        break;
-                    }
-                }
-                e1.a().setHighlight(!found);
-                e1.b().setHighlight(!found);
-            }*/
         }
         vgp1.remakeAll();
         vgp2.remakeAll();
@@ -90,8 +81,9 @@ public class GraphComparer {
      * @return true if the two list are composed of the same elements
      */
     private boolean setStringCompare(List<String> labels1, List<String> labels2) {
+        boolean found;
         for(String s1 : labels1){
-            boolean found = false;
+            found = false;
             for(String s2 : labels2){
                 found = s1.equals(s2);
                 if(found){

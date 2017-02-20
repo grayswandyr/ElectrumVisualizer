@@ -728,7 +728,7 @@ public final class VizGUI implements ComponentListener {
         if (frame != null) {
             frame.pack();
             if (!Util.onMac() && !Util.onWindows()) {
-				// many Window managers do not respect ICCCM2; this should help
+		// many Window managers do not respect ICCCM2; this should help
                 // avoid the Title Bar being shifted "off screen"
                 if (x < 30) {
                     if (x < 0) {
@@ -896,7 +896,7 @@ public final class VizGUI implements ComponentListener {
     }
 
     /**
-     * Helper method that repopulates the Porjection popup menu.
+     * Helper method that repopulates the Projection popup menu.
      */
     private void repopulateProjectionPopup() {
         int num = 0;
@@ -987,6 +987,14 @@ public final class VizGUI implements ComponentListener {
         if (frame != null) {
             frame.setTitle(makeVizTitle());
         }
+        /**
+         * [N7] @Louis Fauvarque
+         * Assure that the comparer is not instanciated
+         */
+        repopulateProjectionPopup();
+        if(!myState.splitPanel){
+            graphc = null;
+        }
         switch (currentMode) {
             case Tree: {
                 final VizTree t = new VizTree(myState.getOriginalInstance().originalA4, makeVizTitle(), fontSize);
@@ -1016,6 +1024,7 @@ public final class VizGUI implements ComponentListener {
                 if (myGraphPanel == null) {
                     myGraphPanel = new VizGraphPanel(myState, false, false, graphc);
                 } else {
+                    myGraphPanel.setGraphc(graphc);
                     myGraphPanel.seeDot(false);
                     myGraphPanel.remakeAll();
                 }
@@ -1109,7 +1118,6 @@ public final class VizGUI implements ComponentListener {
         } else {
             myEvaluatorPanel.requestFocusInWindow();
         }
-        repopulateProjectionPopup();
         if (frame != null) {
             frame.validate();
         } else {

@@ -301,6 +301,9 @@ public final class VizState {
     private void change() {
         changedSinceLastSave = true;
         cache.clear();
+        cacheSplit.clear();
+        cacheGraph.clear();
+        cacheSplitGraph.clear();
     }
 
     /**
@@ -418,6 +421,13 @@ public final class VizState {
             currentModel = StaticProjector.project(originalInstance.model, projectedTypes);
             change();
         }
+        /**
+         * [N7] @Louis Fauvarque
+         * Closes the second panel if there's no type to project on
+         */
+        if(projectedTypes.isEmpty()){
+            splitPanel = false;
+        }
     }
 
     /**
@@ -429,6 +439,7 @@ public final class VizState {
             currentModel = StaticProjector.project(originalInstance.model, projectedTypes);
             change();
         }
+        splitPanel = false;
     }
 
     /*============================================================================================*/
@@ -569,12 +580,6 @@ public final class VizState {
         }
     }
 
-    /*============================================================================================*/
-    
-    /**
-     * [N7] @Louis Fauvarque
-     * 
-     */
     
     /*============================================================================================*/
     // An important invariant to maintain: every map here must map null to a nonnull value.
