@@ -30,6 +30,8 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -41,6 +43,7 @@ import java.io.IOException;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
@@ -55,6 +58,7 @@ import edu.mit.csail.sdg.alloy4.OurPDFWriter;
 import edu.mit.csail.sdg.alloy4.OurPNGWriter;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4.OurBorder;
 
 import java.util.HashMap;
 /**
@@ -371,7 +375,25 @@ public final strictfp class GraphViewer extends JPanel {
 			toBeShownGraph.layout();
 			int width = toBeShownGraph.getTotalWidth() + 25;
 			int height = toBeShownGraph.getTotalHeight() + 100;
-			windowSubgraph.setContentPane(new GraphViewer(toBeShownGraph));
+		  //Create the graphviewer in a scroll panel. 
+			JScrollPane diagramScrollPanel;
+			diagramScrollPanel = OurUtil.scrollpane(new GraphViewer(toBeShownGraph), new OurBorder(true, true, true, false));
+        diagramScrollPanel.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                diagramScrollPanel.invalidate();
+                diagramScrollPanel.repaint();
+                diagramScrollPanel.validate();
+            }
+        });
+        diagramScrollPanel.getHorizontalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                diagramScrollPanel.invalidate();
+                diagramScrollPanel.repaint();
+                diagramScrollPanel.validate();
+            }
+        });
+			//We show this scroll panel in the window.
+			windowSubgraph.setContentPane(diagramScrollPanel);
 			windowSubgraph.setBackground(Color.WHITE);
 			windowSubgraph.setSize(width, height);
 			windowSubgraph.setLocation(x, y);
