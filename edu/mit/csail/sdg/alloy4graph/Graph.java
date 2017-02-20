@@ -31,6 +31,7 @@ import java.util.TreeMap;
 
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Util;
+import java.awt.geom.AffineTransform;
 
 /**
  * Mutable; represents a graph.
@@ -109,6 +110,11 @@ public final strictfp class Graph {
      * The height of each layer.
      */
     int[] layerPH = null;
+    
+    /**
+     * Whether we must show ports labels.
+     */
+    private boolean showPortsLabels = false;
 
     /**
      * The list of layers; must stay in sync with GraphNode.graph and
@@ -192,6 +198,17 @@ public final strictfp class Graph {
      */
     public int getTotalHeight() {
         return totalHeight;
+    }
+    
+    /**
+     * Get/set value of showPortsLabels.
+     */
+    public void setShowPortsLabels(boolean v) {
+        this.showPortsLabels = v;
+    }
+    
+    public boolean showPortsLabels() {
+        return this.showPortsLabels;
     }
 
     /**
@@ -1166,6 +1183,9 @@ public final strictfp class Graph {
         if (nodes.size() == 0) {
             return; // The rest of this procedure assumes there is at least one node
         }
+        
+        final AffineTransform at = gr.getTransform();
+        
         Object group = null;
         GraphNode highFirstNode = null, highLastNode = null;
         GraphEdge highFirstEdge = null, highLastEdge = null;
@@ -1309,6 +1329,12 @@ public final strictfp class Graph {
             gr.setColor((!groupFound || e.getKey() == group) ? color : Color.GRAY);
             gr.drawString(e.getValue().a, 8, y + maxAscent);
             y = y + ad;
+        }
+        
+        // [N7-G.Dupont] Draw tooltips
+        gr.setTransform(at); // Reset transformation
+        for (GraphNode gn : this.nodelist) {
+            gn.drawTooltips(gr, this.showPortsLabels);
         }
     }
 

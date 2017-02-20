@@ -813,6 +813,7 @@ public final class VizCustomizationPanel extends JPanel {
                 return (!x ? ON : OFF);
             }
         };
+        
         parent.add(makelabel(" General Graph Settings:"));
         parent.add(OurUtil.makeH(wcolor, new Dimension(6, 6)));
         parent.add(OurUtil.makeH(wcolor, 25, nLabel, 5, nodepal, 8, aLabel, 5, name, 2, null));

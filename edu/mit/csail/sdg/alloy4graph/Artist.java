@@ -30,6 +30,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import edu.mit.csail.sdg.alloy4.OurPDFWriter;
+import java.awt.geom.AffineTransform;
 
 /**
  * This class abstracts the drawing operations so that we can draw the graph
@@ -322,6 +323,28 @@ public final strictfp class Artist {
         draw(gv.getOutline(), true);
         translate(-x, -y);
     }
+    
+    /**
+     * [N7-G.Dupont] Retrieve current transformation of the Graphics2D.
+     */
+    public AffineTransform getTransform() {
+        return this.gr.getTransform();
+    }
+    
+    /**
+     * [N7-G.Dupont] Set the current transformation of the Graphics2D.
+     */
+    public void setTransform(AffineTransform at) {
+        this.gr.setTransform(at);
+    }
+    
+    /**
+     * [N7-G.Dupont] Rotate the artist.
+     * @param theta angle to rotate (in radians)
+     */
+    public void rotate(double theta) {
+        this.gr.rotate(theta);
+    }
 
     /**
      * If nonnull, it caches a Graphics2D object for calculating string bounds.
@@ -405,6 +428,7 @@ public final strictfp class Artist {
     public static Rectangle2D getBounds(boolean fontBoldness, String string) {
         return Artist.getBounds(fontBoldness, string, Artist.fontSize);
     }
+    
     public static Rectangle2D getBounds(boolean fontBoldness, String string, int fs) {
         calc(fs);
         return (fontBoldness ? cachedBoldMetrics : cachedPlainMetrics).getStringBounds(string, cachedGraphics);

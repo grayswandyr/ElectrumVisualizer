@@ -440,7 +440,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
             //int hw = width / 2, hh = height / 2;
             int hw = this.getWidth() / 2, hh = this.getHeight() / 2;
-            int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
+            //int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
+            int radius = hw; // [N7-G.Dupont]
             if (shape() == DotShape.DOUBLE_CIRCLE) {
                 radius = radius + 5;
             }
@@ -515,6 +516,17 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.translate(left - x(), top - y());
     }
     
+    public void drawTooltips(Artist gr, boolean showAllPorts) {
+        final int top = graph.getTop(), left = graph.getLeft();
+        gr.set(this.getStyle(), 1.0);
+        gr.translate(x() - left, y() - top);
+        for (GraphPort gp : this.ports) {
+            if (gp.hovered() || showAllPorts)
+                gp.drawTooltip(gr, 0.5, showAllPorts);
+        }
+        gr.translate(left - x(), top - y());
+    }
+    
     /**
      * [N7-G.Dupont] (debug) Print bounding box, center and points of the polygon.
      */
@@ -523,6 +535,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.setColor(Color.RED);
         gr.draw(new Rectangle(-this.side, -this.updown, 2*this.side, 2*this.updown), false);
         gr.fillCircle(3);
+        gr.setColor(Color.BLUE);
         
         // Print each point of the polygon
         if (this.poly instanceof Polygon) {
@@ -931,11 +944,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
             case M_CIRCLE:
             case CIRCLE:
             case DOUBLE_CIRCLE: {
-                int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
+                //int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
+                int radius = hw; //[N7-G.Dupont] Correct bounding box for circles
                 if (shape() == DotShape.DOUBLE_CIRCLE) {
                     radius = radius + 5;
                 }
-                int L = ((int) (radius / cos18)) + 2, a = (int) (L * sin36), b = (int) (L * cos36), c = (int) (radius * tan18);
+                int L = /*((int) (radius / cos18)) + 2*/radius, a = (int) (L * sin36), b = (int) (L * cos36), c = (int) (radius * tan18);
                 newPoly.addPoint(-L, 0);
                 newPoly.addPoint(-b, a);
                 newPoly.addPoint(-c, L);
@@ -946,8 +960,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 newPoly.addPoint(c, -L);
                 newPoly.addPoint(-c, -L);
                 newPoly.addPoint(-b, -a);
-                updown = L;
-                side = L;
+                updown = radius;
+                side = radius;
                 break;
             }
             case EGG:
@@ -1030,9 +1044,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
                         maxVport = port.getHeight();
             }
         }
+        
+        if (vPort == 0 && hPort == 0) // No ports = no tweak
+            return;
        
-        int paddedSide = this.side + hPort * maxHport;
-        int paddedUpdown = this.updown + vPort * maxVport;
+        int paddedSide = hPort*maxHport;
+        int paddedUpdown = vPort*maxVport;
         
         // Padding due to port spacing
         // To simplify, we will say that we count the port as they would be on a
@@ -1069,11 +1086,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
         
-        int minSide = this.side + (Math.max(numE, numW)+1)*GraphPort.PortDistance;
-        int minUpdown = this.updown + (Math.max(numN, numS)+1)*GraphPort.PortDistance;
+        int minSide = (Math.max(numN, numS))*GraphPort.PortDistance;
+        int minUpdown = (Math.max(numE, numW))*GraphPort.PortDistance;
         
-        this.side = Math.max(paddedSide, minSide);
-        this.updown = Math.max(paddedUpdown, minUpdown);
+        this.side += Math.max(paddedSide, minSide);
+        this.updown += Math.max(paddedUpdown, minUpdown);
     }
 
    //===================================================================================================

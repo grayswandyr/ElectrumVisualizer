@@ -688,16 +688,14 @@ public final class StaticGraphMaker {
      * @return boolean res
      */
     private boolean isIn(ArrayList<AlloyRelation> elementsArray, AlloyRelation elt) {
-        boolean res = false;
         for (AlloyRelation eltA : elementsArray) {
             if (eltA != null) {
-                res = res || (eltA.compareTo(elt) == 0);
-                if (res) {
-                    break;
+                if (eltA.compareTo(elt) == 0) {
+                    return true;
                 }
             }
         }
-        return res;
+        return false;
     }
 
     /**
@@ -706,20 +704,18 @@ public final class StaticGraphMaker {
      *
      * @param portRelations
      * @param atom
-     * @return boolean res
+     * @return true if atom represents a port in portRelations
      */
     public boolean isPort(ArrayList<AlloyRelation> portRelations, AlloyAtom atom) {
-        boolean res = false;
         for (AlloyRelation eltA : portRelations) {
             if (eltA != null) {
                 List<AlloyType> lst = eltA.getTypes();
-                res = res || lst.contains(atom.getType()) && lst.indexOf(atom.getType()) == lst.lastIndexOf(atom.getType());
-                if (res) {
-                    break;
+                if (lst.contains(atom.getType()) && lst.indexOf(atom.getType()) == lst.lastIndexOf(atom.getType())) {
+                    return true;
                 }
             }
         }
-        return res;
+        return false;
     }
 
     

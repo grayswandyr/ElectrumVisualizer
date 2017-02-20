@@ -62,7 +62,7 @@ public class GraphPort extends AbstractGraphNode {
      * the side of the node.
      * (From center)
      */
-    static final int PortDistance = 10;
+    static final int PortDistance = 15;
     
     /**
      * Defines a small offset for the tooltip (to avoid ugly superposition).
@@ -492,11 +492,10 @@ public class GraphPort extends AbstractGraphNode {
         }
         
         //drawDebug(gr);
-        
-        if (hovered)
-            drawTooltip(gr, 0.5);
-        
         gr.translate(-x(), -y());
+        
+        //if (hovered)
+        //    drawTooltip(gr, 0.5);
     }
     
     /**
@@ -726,19 +725,51 @@ public class GraphPort extends AbstractGraphNode {
     /**
      * Draw the port's label as a tooltip.
      */
-    public void drawTooltip(Artist gr, double scale) {
+    public void drawTooltip(Artist gr, double scale, boolean force) {
         Rectangle2D rect = Artist.getBounds(this.getFontBoldness(), this.label);
         int width = (int)rect.getWidth(), height = (int)rect.getHeight();
         
         Rectangle s = new Rectangle(0, 0, width + 2*LabelPaddingLeft, height + 2*LabelPaddingTop);
-        gr.translate(0, -s.height - TooltipOffset);
+        
+        gr.translate(x(), y());
+        int transX = 0, transY = 0;
+        double rotateAngle = 0.0;
+        
+        if (force) {
+            if (this.orientation.equals(Orientation.North) || this.orientation.equals(Orientation.South)) {
+                transX = -s.height / 2;
+                rotateAngle = - Math.PI / 2.0;
+                if (this.orientation.equals(Orientation.North)) {
+                    transY = -this.radius - TooltipOffset;
+                } else {//Orientation = South
+                    transY = this.radius + TooltipOffset + width;
+                }
+            } else if (this.orientation.equals(Orientation.West) || this.orientation.equals(Orientation.East)) {
+                transY = -s.height / 2;
+                if (this.orientation.equals(Orientation.East)) {
+                    transX = this.radius + TooltipOffset;
+                } else {//Orientation = West
+                    transX = -this.radius - TooltipOffset - width;
+                }
+            }
+        } else {
+            transY = -s.height - TooltipOffset;
+        }
+        
+        gr.translate(transX, transY);
+        gr.rotate(rotateAngle);
+        
         gr.setColor(new Color(0.9f,0.9f,0.9f));
         gr.draw(s, true);
         gr.setColor(Color.BLACK);
         gr.set(DotStyle.SOLID, scale);
         gr.draw(s, false);
+        gr.setFont(false);
         gr.drawString(this.label, LabelPaddingLeft, height + LabelPaddingTop, 0);
-        gr.translate(0, s.height - TooltipOffset);
+        
+        gr.rotate(-rotateAngle);
+        gr.translate(-transX, -transY);
+        gr.translate(-x(), -y());
     }
     
     /**
@@ -750,18 +781,8 @@ public class GraphPort extends AbstractGraphNode {
         int x = 0, y = 0;
         
         if (this.node.shape().equals(DotShape.ELLIPSE) || this.node.shape().equals(DotShape.CIRCLE)) {
-            double a = this.node.getWidth(), b = this.node.getHeight(); // In any case, we will divide this by 2
-            
-            if (this.node.shape().equals(DotShape.CIRCLE)) {
-                // With the circle shape, the "bounding box" given is actually the insquare
-                // of the circle, so we have 2*R = sqrt(w*w + h*h) (if w is the width of the
-                // bounding box and h is its height)
-                a = Math.sqrt(a*a + b*b);
-                b = a;
-            }
-            a /= 2.0; // semiaxis major
-            b /= 2.0; // semiaxis minor
-            
+            // Semiaxis major and minor
+            double a = this.node.getWidth() / 2.0, b = this.node.getHeight() / 2.0;
             double offset = GraphPort.orientAngle(this.orientation, a, b);
             double angbar = GraphPort.angularBarycenter(this.order, numports, this.orientation, a, b);
             Point pt = GraphPort.angular(offset + angbar, a, b);
@@ -902,6 +923,10 @@ public class GraphPort extends AbstractGraphNode {
     
     public String getLabel() {
         return label;
+    }
+    
+    public boolean hovered() {
+        return this.hovered;
     }
     
     public void setHovered(boolean h) {
