@@ -680,8 +680,8 @@ public final strictfp class Graph {
             GraphNode a = top.get(i);
             double left = a.x() - a.getWidth() / 2, right = a.x() - a.getWidth() / 2;
             for (GraphEdge e : a.outs) {
-                if (!(e.b() instanceof GraphNode)) {
-                    new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                if (!(e.b() instanceof GraphNode) || !(e.a() instanceof GraphNode)) {
+                    break;
                 }
                 GraphNode b = (GraphNode) e.b();
                 if (b.x() >= right) {
@@ -718,8 +718,8 @@ public final strictfp class Graph {
             GraphNode b = bottom.get(i);
             double left = b.x() - b.getWidth() / 2, right = b.x() - b.getWidth() / 2;
             for (GraphEdge e : b.ins) {
-                if (!(e.a() instanceof GraphNode)) {
-                    new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
+                    break;
                 }
                 GraphNode a = (GraphNode) e.a();
                 if (a.x() <= left) {

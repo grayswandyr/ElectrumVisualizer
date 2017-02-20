@@ -228,15 +228,25 @@ public final strictfp class GraphViewer extends JPanel {
         Set<AlloyRelation> relations = instance.model.getRelations();
         
         Set<AlloyTuple> tupleSet = null;
-        for(AlloyRelation rel : relations){
-            tupleSet = instance.relation2tuples(rel);
-            for(AlloyTuple tuple : tupleSet){
-                AlloyAtom start = tuple.getStart();
-                AlloyAtom end = tuple.getEnd();
-                if(sgm.isPort(portRelations,start) && sgm.isPort(portRelations,end)){
-                    GraphEdge e = new GraphEdge(sgm.getPortFromAtom(start),sgm.getPortFromAtom(end),null,"",null);
-                    e.setStyle(DotStyle.SOLID);
-                    e.resetPath();
+        for (AlloyRelation rel : relations) {
+            if (!portRelations.contains(rel)) {
+                tupleSet = instance.relation2tuples(rel);
+                for (AlloyTuple tuple : tupleSet) {
+                    AlloyAtom start = tuple.getStart();
+                    AlloyAtom end = tuple.getEnd();
+                    if (sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)) {
+                        GraphEdge e = new GraphEdge(sgm.getPortFromAtom(start), sgm.getPortFromAtom(end), null, "", null);
+                        e.setStyle(DotStyle.SOLID);
+                        e.resetPath();
+                    } else if (!sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)){
+                        GraphEdge e = new GraphEdge(sgm.getNodeFromAtom(start), sgm.getPortFromAtom(end), null, "", null);
+                        e.setStyle(DotStyle.SOLID);
+                        e.resetPath();
+                    } else if (sgm.isPort(portRelations, start) && !sgm.isPort(portRelations, end)){
+                        GraphEdge e = new GraphEdge(sgm.getPortFromAtom(start), sgm.getNodeFromAtom(end), null, "", null);
+                        e.setStyle(DotStyle.SOLID);
+                        e.resetPath();
+                    }
                 }
             }
         }

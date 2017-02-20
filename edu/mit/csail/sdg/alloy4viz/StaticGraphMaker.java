@@ -257,6 +257,56 @@ public final class StaticGraphMaker {
                             // Create the blank edge between the 2 nodes connected through the 2 ports
                             new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
                         }
+                    } else if(!isPort(portRelations,tuple.getStart()) && isPort(portRelations,tuple.getEnd())){
+                        AlloyAtom atomStart = tuple.getStart();
+                        AlloyAtom atomEnd = null;
+                        AlloyRelation relEnd = null;
+                        
+                        // Get the 2 relations and their extremities
+                        // NB : grel.getStart() is a port
+                        for(GraphRelation grel : relList) {
+                            if(grel.getStart()==tuple.getEnd()) {
+                                atomEnd = grel.getEnd();
+                                relEnd = grel.getRelation();
+                            }
+                        }
+                        
+                        // Create the 2 nodes and the 2 ports
+                        if(atomStart!=null && atomEnd!=null && relEnd!=null) {
+                            GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                        
+                            GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
+                            createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+
+                            // Create the blank edge between the 2 nodes connected through the 2 ports
+                            new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
+                        }
+                    } else if(isPort(portRelations,tuple.getStart()) && !isPort(portRelations,tuple.getEnd())){
+                        AlloyAtom atomStart = null;
+                        AlloyRelation relStart = null;
+                        AlloyAtom atomEnd = tuple.getEnd();
+                        
+                        // Get the 2 relations and their extremities
+                        // NB : grel.getStart() is a port
+                        for(GraphRelation grel : relList) {
+                            if(grel.getStart()==tuple.getStart()) {
+                                atomStart = grel.getEnd();
+                                relStart = grel.getRelation();
+                            }
+                        }
+                        
+                        // Create the 2 nodes and the 2 ports
+                        if(atomStart!=null && atomEnd!=null && relStart!=null) {
+                            GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                            Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
+                            createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
+                        
+                            GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+
+                            // Create the blank edge between the 2 nodes connected through the 2 ports
+                            new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
+                        }
                     }
                 }
             }
