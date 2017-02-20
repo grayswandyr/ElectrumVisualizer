@@ -170,7 +170,6 @@ public final strictfp class GraphEdge {
         } else {
             labelbox = new AvailableSpace.Box(0, 0, 0, 0);
         }
-        System.out.println("Edge: " + this.label + " from: " + this.a + " to: " + this.b + " of the " + this.group + " family ");
     }
 
     /**
