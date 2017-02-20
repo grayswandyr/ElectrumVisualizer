@@ -180,10 +180,12 @@ public final strictfp class GraphEdge {
         this(from, to, uuid, label, false, true, null, null, group);
     }
 
+		//[N7-R.Bossut, M.Quentin]
 		/**
 		 * Create a copy of the given edge, between nodes from and to.
 		 */
 		public GraphEdge(GraphEdge toBeCopied, AbstractGraphNode to, AbstractGraphNode from){
+			//Copy attributes.
 			this.uuid = toBeCopied.uuid;
 			this.group = toBeCopied.group;
 			this.label = toBeCopied.label;
@@ -191,16 +193,24 @@ public final strictfp class GraphEdge {
 			this.bhead = toBeCopied.bhead;
 			this.style = toBeCopied.style;
 			this.color = toBeCopied.color;
-			this.labelbox = toBeCopied.labelbox;
-			
+			//Create a new labelebox.
+			if (this.label.length() > 0) {
+            Rectangle2D box = getBounds(false, label);
+            labelbox = new AvailableSpace.Box(0, 0, (int) box.getWidth(), (int) box.getHeight());
+        } else {
+            labelbox = new AvailableSpace.Box(0, 0, 0, 0);
+        }
+			//Set from and to nodes. 
 			this.a = from;
 			this.b = to;
-      if (a == b) {
+      //Add this edge to nodes.
+			if (a == b) {
           a.selfs.add(this);
       } else {
           a.outs.add(this);
           b.ins.add(this);
       }
+			//Add this to the graph.
       a.graph.edgelist.add(this);
 		}
 
