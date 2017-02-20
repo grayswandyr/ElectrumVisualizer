@@ -344,42 +344,44 @@ public final strictfp class GraphViewer extends JPanel {
             }
         });
     }
-    
-		/** 
-		 * Displays the subgraph of the given GraphNode in a new window. 
-		 */
-		private void showSubgraph(GraphNode node){
-			JFrame windowSubgraph = new JFrame(node.uuid.toString());
-			int x = 200;
-			int y = 200;
-			//We have to duplicate the subgraph (each node and edge) so moving nodes in the window won't move those of the main graph.
-		  Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale);
-			//A mapping between original nodes and copies.
-			HashMap<GraphNode, GraphNode> dupl = new HashMap<GraphNode, GraphNode>();
-			for (GraphNode n : node.getChildren()){
-				GraphNode d = new GraphNode(n, toBeShownGraph);
-				dupl.put(n, d);
-			}
-			//We also have to 'duplicate' the edges of this subgraph.
-			for (GraphNode n : node.getChildren()){
-				// For each child-node, we check every edge from this node.
-				for (GraphEdge e : n.outs){
-					//If the 'to' node of the edge is also in the subgraph, we have to duplicate the edge.
-					if (e.getB().graph == n.graph){
-						GraphNode copyN = dupl.get(n);
-						GraphNode copyB = dupl.get(e.getB()); 
-						if (!(copyN == null || copyB == null)) //This should always be true.
-							new GraphEdge(e, copyN, copyB);
-					}
-				}
-				// We don't need to check the edges of ins since checking every out of every node already covers every possible edge of the subgraph.
-			}
-			toBeShownGraph.layout();
-			int width = toBeShownGraph.getTotalWidth() + 25;
-			int height = toBeShownGraph.getTotalHeight() + 100;
-		  //Create the graphviewer in a scroll panel. 
-			JScrollPane diagramScrollPanel;
-			diagramScrollPanel = OurUtil.scrollpane(new GraphViewer(toBeShownGraph), new OurBorder(true, true, true, false));
+
+    /**
+     * Displays the subgraph of the given GraphNode in a new window.
+     */
+    private void showSubgraph(GraphNode node) {
+        JFrame windowSubgraph = new JFrame(node.uuid.toString());
+        int x = 200;
+        int y = 200;
+        //We have to duplicate the subgraph (each node and edge) so moving nodes in the window won't move those of the main graph.
+        Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale);
+        //A mapping between original nodes and copies.
+        HashMap<GraphNode, GraphNode> dupl = new HashMap<GraphNode, GraphNode>();
+        for (GraphNode n : node.getChildren()) {
+            GraphNode d = new GraphNode(n, toBeShownGraph);
+            dupl.put(n, d);
+        }
+        //We also have to 'duplicate' the edges of this subgraph.
+        for (GraphNode n : node.getChildren()) {
+            // For each child-node, we check every edge from this node.
+            for (GraphEdge e : n.outs) {
+                //If the 'to' node of the edge is also in the subgraph, we have to duplicate the edge.
+                if (e.getB().graph == n.graph) {
+                    GraphNode copyN = dupl.get(n);
+                    GraphNode copyB = dupl.get(e.getB());
+                    if (!(copyN == null || copyB == null)) //This should always be true.
+                    {
+                        new GraphEdge(e, copyN, copyB);
+                    }
+                }
+            }
+            // We don't need to check the edges of ins since checking every out of every node already covers every possible edge of the subgraph.
+        }
+        toBeShownGraph.layout();
+        int width = toBeShownGraph.getTotalWidth() + 25;
+        int height = toBeShownGraph.getTotalHeight() + 100;
+        //Create the graphviewer in a scroll panel. 
+        JScrollPane diagramScrollPanel;
+        diagramScrollPanel = OurUtil.scrollpane(new GraphViewer(toBeShownGraph), new OurBorder(true, true, true, false));
         diagramScrollPanel.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
             public void adjustmentValueChanged(AdjustmentEvent e) {
                 diagramScrollPanel.invalidate();
@@ -394,13 +396,13 @@ public final strictfp class GraphViewer extends JPanel {
                 diagramScrollPanel.validate();
             }
         });
-			//We show this scroll panel in the window.
-			windowSubgraph.setContentPane(diagramScrollPanel);
-			windowSubgraph.setBackground(Color.WHITE);
-			windowSubgraph.setSize(width, height);
-			windowSubgraph.setLocation(x, y);
-			windowSubgraph.setVisible(true);
-		}
+        //We show this scroll panel in the window.
+        windowSubgraph.setContentPane(diagramScrollPanel);
+        windowSubgraph.setBackground(Color.WHITE);
+        windowSubgraph.setSize(width, height);
+        windowSubgraph.setLocation(x, y);
+        windowSubgraph.setVisible(true);
+    }
 
     /**
      * This color is used as the background for a JTextField that contains bad
