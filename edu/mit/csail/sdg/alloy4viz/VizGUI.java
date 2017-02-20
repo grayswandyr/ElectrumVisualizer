@@ -1096,6 +1096,13 @@ public final class VizGUI implements ComponentListener {
 	
 	/** Load the XML instance. */
 	public void loadXML(final String fileName, boolean forcefully, int state) {
+        // [debug]
+        StackTraceElement elt[] = Thread.currentThread().getStackTrace();
+        System.out.println("loadXML called with fileName=\"" + fileName + "\", forcefully=" + forcefully + ", state=" + state + ";\nStack trace :");
+        for (StackTraceElement e : elt)
+            System.out.println("  " + e);
+        System.out.println(".");
+
 		String dfileName = splitTemporalFileName(state, fileName);  // [HASLab]
 		final String xmlFileName = Util.canon(dfileName);
 		File f = new File(xmlFileName);
