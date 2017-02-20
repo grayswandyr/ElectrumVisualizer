@@ -142,7 +142,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
          */
         if (!(a instanceof GraphPort || b instanceof GraphPort)) {
             a.graph.edgelist.add(this);
-        } else if(a instanceof GraphPort && b instanceof GraphPort) {
+        } else {
             a.graph.portEdgeList.add(this);
         }
         this.group = group;
