@@ -588,9 +588,9 @@ public final class VizCustomizationPanel extends JPanel {
             }
         ;               //[N7-M.Quentin]
         };                                                                                                                     				//[N7-M.Quentin]
-      JLabel containerLabel = OurUtil.label("Use as container:");                                                            				//[N7-M.Quentin]
+        JLabel containerLabel = OurUtil.label("Use as container:");                                                            				//[N7-M.Quentin]
         JPanel containerPanel = OurUtil.makeH(containerLabel, 5, container);                                                   			 	//[N7-M.Quentin]
-
+        
         JPanel visible = vizState.edgeVisible.pick(rel, "Show as arcs", "Show relation as arcs");
         JPanel attr = vizState.attribute.pick(rel, "Show as attribute", "Additionally display this relation as an attribute on the nodes' labels");
         JPanel back = vizState.layoutBack.pick(rel, "Layout backwards", "Layout graph as if arcs were reversed");
