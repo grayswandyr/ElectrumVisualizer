@@ -119,7 +119,7 @@ public final class VizCustomizationPanel extends JPanel {
      */
     private Object lastElement = null;
 
-   //=============================================================================================================//
+    //=============================================================================================================//
     /**
      * Constructs a customization panel.
      *
@@ -141,7 +141,7 @@ public final class VizCustomizationPanel extends JPanel {
         remakeAll();
     }
 
-   //=============================================================================================================//
+    //=============================================================================================================//
     /**
      * This method selects a particular treenode and shows the details of a
      * particular Type/Set/Relation.
@@ -184,7 +184,7 @@ public final class VizCustomizationPanel extends JPanel {
         validate();
     }
 
-   //=============================================================================================================//
+    //=============================================================================================================//
     /**
      * Regenerate all the customization widgets based on the latest settings.
      */
@@ -313,7 +313,7 @@ public final class VizCustomizationPanel extends JPanel {
         validate();
     }
 
-   //=============================================================================================================//
+    //=============================================================================================================//
     /**
      * Generates the node settings widgets for the given type or set, and add
      * them to "parent".
@@ -470,7 +470,7 @@ public final class VizCustomizationPanel extends JPanel {
         }
     }
 
-   //=============================================================================================================//
+    //=============================================================================================================//
     /**
      * Generates the edge settings widgets for the given relation, and add them
      * to "parent".
@@ -603,7 +603,7 @@ public final class VizCustomizationPanel extends JPanel {
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
     }
 
-   //=============================================================================================================//
+    //=============================================================================================================//
     /**
      * Generates the "general graph settings" widgets, and add them to "parent".
      */
@@ -680,10 +680,10 @@ public final class VizCustomizationPanel extends JPanel {
                 return (!x ? ON : OFF);
             }
         };
-				
+
 				// [N7-R.Bossut]
-				// Definition of the spinner that will be used to define the maximum depth level to be shown for the graph.
-				final JLabel depthLabel = OurUtil.label("Maximum depth level:");
+        // Definition of the spinner that will be used to define the maximum depth level to be shown for the graph.
+        final JLabel depthLabel = OurUtil.label("Maximum depth level:");
         final JSpinner depthSpinner = new JSpinner(new SpinnerNumberModel(vizState.getDepthMax(), 0, 9, 1));
         depthSpinner.setMaximumSize(depthSpinner.getPreferredSize());
         depthSpinner.setToolTipText("A higher maximum depth will show more level of recursive containing relations, but can cause the representation to be messy.");
@@ -718,8 +718,8 @@ public final class VizCustomizationPanel extends JPanel {
         depthPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         depthPanel.setAlignmentY(0.5f);
         depthPanel.setToolTipText("A higher maximum depth will show more level of recursive containing relations, but can cause the representation to be messy.");
-        
-				parent.add(makelabel(" General Graph Settings:"));
+
+        parent.add(makelabel(" General Graph Settings:"));
         parent.add(OurUtil.makeH(wcolor, new Dimension(6, 6)));
         parent.add(OurUtil.makeH(wcolor, 25, nLabel, 5, nodepal, 8, aLabel, 5, name, 2, null));
         parent.add(OurUtil.makeH(wcolor, 25, eLabel, 5, edgepal, 8, fLabel, 5, fontSize, 2, null));
@@ -727,7 +727,7 @@ public final class VizCustomizationPanel extends JPanel {
         parent.add(OurUtil.makeH(wcolor, 20, depthPanel, 2, null));
     }
 
-   //=============================================================================================================//
+    //=============================================================================================================//
     /**
      * Generates the "default type and set settings" widgets, and add them to
      * "parent".
@@ -798,7 +798,7 @@ public final class VizCustomizationPanel extends JPanel {
         parent.add(OurUtil.makeHT(wcolor, 10, a, 10, b, 2, null));
     }
 
-   //=============================================================================================================//
+    //=============================================================================================================//
     /**
      * Generates the "default relation settings" widgets, and add them to
      * "parent".
@@ -851,7 +851,7 @@ public final class VizCustomizationPanel extends JPanel {
         parent.add(OurUtil.makeHT(wcolor, 10, a, 10, b, 2, null));
     }
 
-   //=============================================================================================================//
+    //=============================================================================================================//
     /**
      * Convenient helper method that returns a description of an AlloyType (and
      * what it extends).

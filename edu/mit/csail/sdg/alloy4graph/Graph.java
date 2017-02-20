@@ -644,7 +644,7 @@ public final strictfp class Graph {
                 childHeight = child.getHeight();
                 maxLayerHeight = Math.max(childHeight, maxLayerHeight);
                 
-                layerWidth[nbLayers-i] += child.getWidth() + GraphNode.xJumpNode;
+                layerWidth[nbLayers-i] += Math.max(child.getWidth(), child.getLabelWidth()) + GraphNode.xJumpNode;
             }
             layerHeight[nbLayers-i] += maxLayerHeight + GraphNode.yJumpNode;
             i--;
@@ -658,6 +658,9 @@ public final strictfp class Graph {
             this.totalHeight += layerHeight[j];
             this.totalWidth = Math.max(layerWidth[j], this.totalWidth);
         }
+        
+        totalHeight += father.getLabelHeight();  // - GraphNode.yJumpNode
+        totalWidth = Math.max(totalWidth, (int) father.getLabelWidth() + 2*GraphNode.xJumpNode); // + GraphNode.xJumpNode
         
         // The two integers corresponding to the coordinates wehre we start to draw each layer
         int startX;

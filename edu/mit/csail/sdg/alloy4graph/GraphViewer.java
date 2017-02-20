@@ -57,6 +57,7 @@ import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
 
 import java.util.HashMap;
+
 /**
  * This class displays the graph.
  *
@@ -184,7 +185,8 @@ public final strictfp class GraphViewer extends JPanel {
 
     /**
      * Construct a GraphViewer that displays the given graph.
-		 * @param grapĥ The graph to be displayed.
+     *
+     * @param grapĥ The graph to be displayed.
      */
     public GraphViewer(final Graph graph) {
         OurUtil.make(this, BLACK, WHITE, new EmptyBorder(0, 0, 0, 0));
@@ -288,20 +290,20 @@ public final strictfp class GraphViewer extends JPanel {
                 alloyRepaint();
             }
 
-						long timeLastClick = 0;
+            long timeLastClick = 0;
 
             @Override
             public void mousePressed(MouseEvent ev) {
                 dragButton = 0;
                 int mod = ev.getModifiers();
                 if ((mod & BUTTON3_MASK) != 0) {
-                  //Right click  
-										selected = alloyFind(ev.getX(), ev.getY());
+                    //Right click  
+                    selected = alloyFind(ev.getX(), ev.getY());
                     highlight = null;
                     alloyRepaint();
                     pop.show(GraphViewer.this, ev.getX(), ev.getY());
                 } else if ((mod & BUTTON1_MASK) != 0 && (mod & CTRL_MASK) != 0) {
-                  // This lets Ctrl+LeftClick bring up the popup menu, just like RightClick,
+                    // This lets Ctrl+LeftClick bring up the popup menu, just like RightClick,
                     // since many Mac mouses do not have a right button.
                     selected = alloyFind(ev.getX(), ev.getY());
                     highlight = null;
@@ -313,20 +315,20 @@ public final strictfp class GraphViewer extends JPanel {
                     highlight = null;
                     alloyRepaint();
                     if (selected instanceof GraphNode) {
-											  GraphNode sel = (GraphNode) selected;
+                        GraphNode sel = (GraphNode) selected;
                         oldX = sel.x();
                         oldY = sel.y();
-                   			long currentTime = System.currentTimeMillis();
-												if (currentTime - timeLastClick < 800){
-													//Double click on a node, we have to show the subgraph if there is one.
-												  if (sel.hasChild()){
-														//The node double-clicked has children we have to print the subgraph in a new window.
-													  showSubgraph(sel);
-													}
-												}
-												timeLastClick = System.currentTimeMillis();
-										}
-								}
+                        long currentTime = System.currentTimeMillis();
+                        if (currentTime - timeLastClick < 800) {
+                            //Double click on a node, we have to show the subgraph if there is one.
+                            if (sel.hasChild()) {
+                                //The node double-clicked has children we have to print the subgraph in a new window.
+                                showSubgraph(sel);
+                            }
+                        }
+                        timeLastClick = System.currentTimeMillis();
+                    }
+                }
             }
 
             @Override
@@ -339,44 +341,46 @@ public final strictfp class GraphViewer extends JPanel {
         });
     }
 
-		/** 
-		 * Displays the subgraph of the given GraphNode in a new window. 
-		 */
-		private void showSubgraph(GraphNode node){
-			JFrame windowSubgraph = new JFrame(node.uuid.toString());
-			int x = 200;
-			int y = 200;
-			//We have to duplicate the subgraph (each node and edge) so moving nodes in the window won't move those of the main graph.
-		  Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale);
-			//A mapping between original nodes and copies.
-			HashMap<GraphNode, GraphNode> dupl = new HashMap<GraphNode, GraphNode>();
-			for (GraphNode n : node.getChildren()){
-				GraphNode d = new GraphNode(n, toBeShownGraph);
-				dupl.put(n, d);
-			}
-			//We also have to 'duplicate' the edges of this subgraph.
-			for (GraphNode n : node.getChildren()){
-				// For each child-node, we check every edge from this node.
-				for (GraphEdge e : n.outs){
-					//If the 'to' node of the edge is also in the subgraph, we have to duplicate the edge.
-					if (e.getB().graph == n.graph){
-						GraphNode copyN = dupl.get(n);
-						GraphNode copyB = dupl.get(e.getB()); 
-						if (!(copyN == null || copyB == null)) //This should always be true.
-							new GraphEdge(e, copyN, copyB);
-					}
-				}
-				// We don't need to check the edges of ins since checking every out of every node already covers every possible edge of the subgraph.
-			}
-			toBeShownGraph.layout();
-			int width = toBeShownGraph.getTotalWidth() + 25;
-			int height = toBeShownGraph.getTotalHeight() + 100;
-			windowSubgraph.setContentPane(new GraphViewer(toBeShownGraph));
-			windowSubgraph.setBackground(Color.WHITE);
-			windowSubgraph.setSize(width, height);
-			windowSubgraph.setLocation(x, y);
-			windowSubgraph.setVisible(true);
-		}
+    /**
+     * Displays the subgraph of the given GraphNode in a new window.
+     */
+    private void showSubgraph(GraphNode node) {
+        JFrame windowSubgraph = new JFrame(node.uuid.toString());
+        int x = 200;
+        int y = 200;
+        //We have to duplicate the subgraph (each node and edge) so moving nodes in the window won't move those of the main graph.
+        Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale);
+        //A mapping between original nodes and copies.
+        HashMap<GraphNode, GraphNode> dupl = new HashMap<GraphNode, GraphNode>();
+        for (GraphNode n : node.getChildren()) {
+            GraphNode d = new GraphNode(n, toBeShownGraph);
+            dupl.put(n, d);
+        }
+        //We also have to 'duplicate' the edges of this subgraph.
+        for (GraphNode n : node.getChildren()) {
+            // For each child-node, we check every edge from this node.
+            for (GraphEdge e : n.outs) {
+                //If the 'to' node of the edge is also in the subgraph, we have to duplicate the edge.
+                if (e.getB().graph == n.graph) {
+                    GraphNode copyN = dupl.get(n);
+                    GraphNode copyB = dupl.get(e.getB());
+                    if (!(copyN == null || copyB == null)) //This should always be true.
+                    {
+                        new GraphEdge(e, copyN, copyB);
+                    }
+                }
+            }
+            // We don't need to check the edges of ins since checking every out of every node already covers every possible edge of the subgraph.
+        }
+        toBeShownGraph.layout();
+        int width = toBeShownGraph.getTotalWidth() + 25;
+        int height = toBeShownGraph.getTotalHeight() + 100;
+        windowSubgraph.setContentPane(new GraphViewer(toBeShownGraph));
+        windowSubgraph.setBackground(Color.WHITE);
+        windowSubgraph.setSize(width, height);
+        windowSubgraph.setLocation(x, y);
+        windowSubgraph.setVisible(true);
+    }
 
     /**
      * This color is used as the background for a JTextField that contains bad
