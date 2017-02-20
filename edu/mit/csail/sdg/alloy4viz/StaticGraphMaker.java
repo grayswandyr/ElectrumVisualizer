@@ -473,24 +473,49 @@ public final class StaticGraphMaker {
             return 0;
 
         }
-
-        // [N7-R.Bossut, M.Quentin]
-        // If the starting atom is contained in the ending one, we don't print the edge.
-        // Same if the ending is contained in the starting.
+        
+				// [N7-R.Bossut, M.Quentin]
         AlloyAtom atomStart = tuple.getStart();
         AlloyAtom atomEnd = tuple.getEnd();
-        Set<AlloyAtom> map = containedInMap.get(atomStart);
-        if (!(map == null)) {
+				boolean endChanged = false;
+				boolean startChanged = false;
+				// If the starting or the ending atom of the relation is a container, we have to check if there are more than two members in the relation.
+				// If not, we simply donnot create any edge.
+				// If yes, we have to create an edge as if the container was'nt in the relation.
+				Set<AlloyAtom> map = containedInMap.get(atomStart);
+				int realArity = tuple.getArity();
+				if (!(map == null)) {
             if (map.contains(atomEnd)) {
-                return 0;
+								//Start is contained in end.
+								List<AlloyAtom> atoms = tuple.getAtoms();
+								if (realArity < 3){
+									//There are only two atoms in the realtion: no edge to draw.
+									return 0;
+								}else{
+									//There are more than two atoms in the relation, we have to create an edge between
+									// the starting atom and a new ending one.
+									atomEnd = atoms.get(atoms.size()-2); // This is the last atom if we remove the container.
+									endChanged = true;
+									realArity--;
+								}
             }
         }
-        map = containedInMap.get(atomEnd);
-        if (!(map == null)) {
+				if (!endChanged){
+					map = containedInMap.get(atomEnd);
+        	if (!(map == null)) {
             if (map.contains(atomStart)) {
-                return 0;
-            }
-        }
+              //End is contained in end.
+							List<AlloyAtom> atoms = tuple.getAtoms();
+							if (realArity < 3){
+								return 0;
+							}else{
+								atomStart = atoms.get(1); //First atom after the container.
+								startChanged = true;
+								realArity--;
+							}
+						}
+					}
+				}
 
         //If no node corresponding to the atom has already been created, we create it here.
         List<GraphNode> starts = atom2node.get(atomStart);
@@ -512,10 +537,12 @@ public final class StaticGraphMaker {
             for (GraphNode end : ends) {
                 boolean layoutBack = view.layoutBack.resolve(rel);
                 String label = view.label.get(rel);
-                if (tuple.getArity() > 2) {
+                if (realArity > 2) {
                     StringBuilder moreLabel = new StringBuilder();
-                    List<AlloyAtom> atoms = tuple.getAtoms();
-                    for (int i = 1; i < atoms.size() - 1; i++) {
+                    List<AlloyAtom> atoms = tuple.getAtoms();  
+										int init =  startChanged ? 2 : 1;
+										int endIndex = endChanged ? 2 : 1;
+										for (int i = init; i < atoms.size() - endIndex; i++) {
                         if (i > 1) {
                             moreLabel.append(", ");
                         }
