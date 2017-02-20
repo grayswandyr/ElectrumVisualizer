@@ -1027,6 +1027,7 @@ public final class VizGUI implements ComponentListener {
                     if (mySplitGraphPanel == null) {
                         mySplitGraphPanel = new VizGraphPanel(myState, false, true, graphc);
                         mySplitGraphPanel.regenerateProjection();
+                        mySplitGraphPanel.remakeAll();
                         myGraphPanel.setGraphc(graphc);
                     } else {
                         mySplitGraphPanel.seeDot(false);
@@ -1613,6 +1614,7 @@ public final class VizGUI implements ComponentListener {
             graphc = new GraphComparer(null,null);
         } else if(!myState.splitPanel){
             graphc = null;
+            myGraphPanel.setGraphc(graphc);
         }
         updateDisplay();
         return null;

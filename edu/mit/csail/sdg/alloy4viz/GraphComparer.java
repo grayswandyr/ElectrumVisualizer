@@ -36,9 +36,6 @@ public class GraphComparer {
         graph2 = vgp2.getGraph();
         //System.out.println("Chaussette");
         if (graph1 != null && graph2 != null) {
-            for (GraphNode n : graph1.nodes) {
-                n.setHighlight(false);
-            }
             for (GraphNode n : graph2.nodes) {
                 n.setHighlight(true);
             }
