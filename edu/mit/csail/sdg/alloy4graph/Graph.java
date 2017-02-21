@@ -273,7 +273,6 @@ public final strictfp class Graph {
         // in "A Fast & Effective Heuristic for the Feedback Arc Set Problem"
         // in Information Processing Letters, Volume 47, Number 6, Pages 319-323, 1993
         final int num = nodes.size();
-        //System.out.println("Nodes: " + nodes + "\n\nLENGTH: " + num + "\n\n");
         if ((Integer.MAX_VALUE - 1) / 2 < num) {
             throw new OutOfMemoryError();
         }
@@ -564,9 +563,6 @@ public final strictfp class Graph {
         // This is the set containing all the children of the father node
         HashSet<GraphNode> children = father.getChildren();
 
-String s = ""; 
-for (GraphNode n : children){ s = s + "\n  " + n.uuid + ":(" + n.x() + ";" + n.y() + ")";} 
-System.out.println("Before layoutsubGraph:"+s);
         //TODO Retrieve the relations between the nodes and constructs the layers
         // The height and the width of the current child
         int height;
@@ -702,9 +698,6 @@ System.out.println("Before layoutsubGraph:"+s);
             layerPH[layer] = maxHeight;
             startY -= maxHeight/2 + GraphNode.yJumpNode;
         }
-s = ""; 
-for (GraphNode n : children){ s = s + "\n  " + n.uuid + ":(" + n.x() + ";" + n.y() + ")";} 
-System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
    }
     
     /** 
@@ -1085,6 +1078,88 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         }
     }
 
+
+    /** 
+     * Re-establish top/left/width/height for a subgraph.
+     */
+    public void recalcBoundSub(boolean fresh){
+        if (nodes.size() == 0) {
+            top = 0;
+            bottom = 10;
+            totalHeight = 10;
+            left = 0;
+            totalWidth = 10;
+            return;
+        }
+        int saveTop = top;
+        int saveLeft = left;
+        if (fresh) {
+            top = nodes.get(0).y() - nodes.get(0).getHeight() / 2 - 5;
+            bottom = nodes.get(0).y() + nodes.get(0).getHeight() / 2 + 5;
+        }
+        // Find the leftmost and rightmost pixel
+        int minX = nodes.get(0).x() - nodes.get(0).getWidth() / 2 - 5;
+        int maxX = nodes.get(0).x() + nodes.get(0).getWidth() / 2 + nodes.get(0).getReserved() + 5;
+        for (GraphNode n : nodes) {
+            int min = n.x() - n.getWidth() / 2 - 5;
+            if (minX > min) {
+                minX = min;
+            }
+            int max = n.x() + n.getWidth() / 2 + n.getReserved() + 5;
+            if (maxX < max) {
+                maxX = max;
+            }
+        }
+        for (GraphEdge e : edges) {
+            if (e.getLabelW() > 0 && e.getLabelH() > 0) {
+                int x1 = e.getLabelX(), x2 = x1 + e.getLabelW() - 1;
+                if (minX > x1) {
+                    minX = x1;
+                }
+                if (maxX < x2) {
+                    maxX = x2;
+                }
+            }
+        }
+        left = minX - 20;
+        totalWidth = maxX - minX + 20;
+        // Find the topmost and bottommost pixel
+        for (int layer = layers() - 1; layer >= 0; layer--) {
+            for (GraphNode n : layer(layer)) {
+                int ytop = n.y() - n.getHeight() / 2 - 5;
+                if (top > ytop) {
+                    top = ytop;
+                }
+                int ybottom = n.y() + n.getHeight() / 2 + 5;
+                if (bottom < ybottom) {
+                    bottom = ybottom;
+                }
+            }
+        }
+        totalHeight = bottom - top;
+        int widestLegend = 0, legendHeight = 30;
+        for (Pair<String, Color> e : legends.values()) {
+            if (e.b == null) {
+                continue; // that means this legend is not visible
+            }
+            int widthOfLegend = (int) getBounds(true, e.a).getWidth();
+            if (widestLegend < widthOfLegend) {
+                widestLegend = widthOfLegend;
+            }
+            legendHeight += ad;
+        }
+        if (widestLegend > 0) {
+            left -= (widestLegend + 10);
+            totalWidth += (widestLegend * 2 + 10);
+            if (totalHeight < legendHeight) {
+                bottom = bottom + (legendHeight - totalHeight);
+                totalHeight = legendHeight;
+            }
+        }
+        top = saveTop;
+        left = saveLeft;
+    }
+
     //============================================================================================================================//
     /**
      * Assuming everything was laid out already, but at least one node just
@@ -1353,18 +1428,10 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
                 if (n.hasChild()) {
                     subFind = n.getSubGraph().subFind(scale, x - (double) n.x(), y - (double) n.y());
                 }
-<<<<<<< HEAD
-                if (subFind == null){
-                  return n;
-                }else{
-                  return subFind;
-=======
                 if (subFind == null) {
                     return n;
                 } else {
-                    System.out.println("subFound: " + subFind);
                     return subFind;
->>>>>>> b321a809933980abff5e1207b71891e64e942a42
                 }
             }
             if (n.contains(x, y)) {
@@ -1372,18 +1439,10 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
                 if (n.hasChild()) {
                     subFind = n.getSubGraph().subFind(scale, x - (double) n.x(), y - (double) n.y());
                 }
-<<<<<<< HEAD
-                if (subFind == null){
-                  return n;
-                }else{
-                  return subFind;
-=======
                 if (subFind == null) {
                     return n;
                 } else {
-                    System.out.println("subFound: " + subFind);
                     return subFind;
->>>>>>> b321a809933980abff5e1207b71891e64e942a42
                 }
             }
         }

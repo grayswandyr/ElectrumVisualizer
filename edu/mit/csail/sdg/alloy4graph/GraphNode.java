@@ -249,29 +249,31 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private Shape poly3 = null;
 
     //===================================================================================================  
-    //
+    // Attributes needed for imbrication.
     /**
-     * This field contains the children of this node if they exist. [N7-R.
-     * Bossut, M. Quentin]
+     * This field contains the children of this node if they exist.
      */
     private HashSet<GraphNode> children;
 
     /**
-     * This field contains the subGraph of the node if it exists. [N7-R. Bossut,
-     * M. Quentin]
+     * This field contains the subGraph of the node if it exists.
      */
     private Graph subGraph;
     /**
      * The integer representing the maximum depth level of representation of
-     * subgraphs of this GraphNode. [N7-R. Bossut, M. Quentin]
+     * subgraphs of this GraphNode.
      */
     private int maxDepth;
 
     /**
-     * This field contains the father of the node if it exists. [N7-R. Bossut,
-     * M.Quentin]
+     * This field contains the father of the node if it exists.
      */
     private GraphNode father;
+
+    /**
+     * This field is here to ensure we only layout the subgraph one time.
+     */
+    private boolean layout = false;
 
     //====================================================================================================
     /**
@@ -624,25 +626,16 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else if (updown < 0) {
             calcBounds();
         }
-        final int top = graph.getTop(), left = graph.getLeft();
-        gr.set(style, scale);
-        gr.translate(x() - left, y() - top);
-        gr.setFont(fontBold);
-        if (highlight) {
-            gr.setColor(COLOR_CHOSENNODE);
-        } else {
-            gr.setColor(color);
-        }
 
         if (!hasChild()) {
-            drawRegular(gr, scale, highlight, top, left);
+            drawRegular(gr, scale, highlight);
         } else {
             // [N7-Bossut, Quentin] Draw the subGraph
             if (maxDepth > 0) {
-                drawSubgraph(gr, scale, top, left, highlight);
+                drawSubgraph(gr, scale, highlight);
             } else {
                 //We cannot draw the subgraph (it is too deep), we have to paint the node and a button the user have to click to see the subgraph.
-                drawHidder(gr, scale, highlight, top, left);
+                drawHidder(gr, scale, highlight);
             }
         }
     }
@@ -651,8 +644,17 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * Draws a regular node (not a containig one). Draws this node at its
      * current (x, y) location; this method will call calcBounds() if necessary.
      */
-    private void drawRegular(Artist gr, double scale, boolean highlight, int top, int left) {
-
+    private void drawRegular(Artist gr, double scale, boolean highlight) {
+        final int top = graph.getTop(), left = graph.getLeft();
+        if (father != null) System.out.println("[" + uuid + "] top:" + top + "left:" + left); 
+        gr.set(style, scale);
+        gr.translate(x() - left, y() - top);
+        gr.setFont(fontBold);
+        if (highlight) {
+            gr.setColor(COLOR_CHOSENNODE);
+        } else {
+            gr.setColor(color);
+        }
         if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
             int hw = width / 2, hh = height / 2;
             int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
@@ -723,7 +725,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
         for (GraphPort p : this.ports) {
             p.draw(gr, scale, false);
         }
-
         gr.translate(left - x(), top - y());
     }
 
@@ -733,10 +734,20 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * the draw method of the sub-nodes, so it works recursively). Then draws
      * the node arround the subgraph.
      */
-    private void drawSubgraph(Artist gr, double scale, int top, int left, boolean highlight) {
+    private void drawSubgraph(Artist gr, double scale, boolean highlight) {
         // [N7-Bossut, Quentin] Draws the subGraph.         
         // We have'nt reach the depth max yet, we can draw the subgraph.
-
+        
+        final int top = graph.getTop(), left = graph.getLeft();
+        gr.set(style, scale);
+        gr.translate(x() - left, y() - top);
+        gr.setFont(fontBold);
+        if (highlight) {
+            gr.setColor(COLOR_CHOSENNODE);
+        } else {
+            gr.setColor(color);
+        }
+        
         // It is not supposed to be here, but it does not work without it.
         imbricatedNodeBounds();
 
@@ -821,8 +832,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * depth level. Draws the node as a regular one and an indicator meaning
      * that the sugraph is hidden.
      */
-    private void drawHidder(Artist gr, double scale, boolean highlight, int top, int left) {
-        drawRegular(gr, scale, highlight, top, left);
+    private void drawHidder(Artist gr, double scale, boolean highlight) {
+        drawRegular(gr, scale, highlight);
         
         GraphNode dad = (this.getFather() != null) ? this.getFather() : this;
         gr.setFont(true);
@@ -1007,7 +1018,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else {
             graph.relayout_edges(layer());
         }
-        graph.recalcBound(false);
+        if (father == null) graph.recalcBound(false);
+        else graph.recalcBoundSub(false);
     }
 
     //===================================================================================================
@@ -1317,7 +1329,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 }
             }
 
-            subGraph.layoutSubGraph(this);
+            if (!layout){
+                subGraph.layoutSubGraph(this);
+                layout = true;
+            }
             this.updown = subGraph.getTotalHeight() / 2;
             this.side = subGraph.getTotalWidth() / 2;
 
