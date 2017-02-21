@@ -51,11 +51,12 @@ public class GraphComparer {
                     if (setStringCompare(n1.getLabels(),n2.getLabels())) {
                         found = true;
                         n2.setHighlight(false);
+                        System.out.println("<--------------------->");
+                        System.out.println(n1.getLabels());
+                        System.out.println(n2.getLabels());
                         break;
                     } else {
-                        /*System.out.println("<--------------------->");
-                        System.out.println(n1.getLabels());
-                        System.out.println(n2.getLabels());*/
+                        
                     }
                 }
                 n1.setHighlight(!found);
@@ -82,6 +83,9 @@ public class GraphComparer {
      */
     private boolean setStringCompare(List<String> labels1, List<String> labels2) {
         boolean found;
+        if(labels1.size() != labels2.size()){
+            return false;
+        }
         for(String s1 : labels1){
             found = false;
             for(String s2 : labels2){
