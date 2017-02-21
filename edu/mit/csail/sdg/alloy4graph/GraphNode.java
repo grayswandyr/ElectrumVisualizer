@@ -824,7 +824,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private void drawHidder(Artist gr, double scale, boolean highlight, int top, int left) {
         drawRegular(gr, scale, highlight, top, left);
         
-        GraphNode dad = this.getFather();
+        GraphNode dad = (this.getFather() != null) ? this.getFather() : this;
         gr.setFont(true);
         gr.set(DotStyle.SOLID, scale);
         int clr = dad.color.getRGB() & 0xFFFFFF;
