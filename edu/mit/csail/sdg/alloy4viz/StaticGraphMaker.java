@@ -77,7 +77,7 @@ public final class StaticGraphMaker {
     private final Map<GraphNode, AlloyAtom> nodes = new LinkedHashMap<GraphNode, AlloyAtom>();
 
     /**
-     * This maps each atom to the node representing it; if an atom doesn't have
+     * This maps each atom to the nodes representing it; if an atom doesn't have
      * a node, it won't be in the map.
      */
     private final Map<AlloyAtom, List<GraphNode>> atom2node = new LinkedHashMap<AlloyAtom, List<GraphNode>>();
