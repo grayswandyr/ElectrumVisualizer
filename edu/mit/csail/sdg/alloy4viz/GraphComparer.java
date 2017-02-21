@@ -83,6 +83,9 @@ public class GraphComparer {
      */
     private boolean setStringCompare(List<String> labels1, List<String> labels2) {
         boolean found;
+        if(labels1 == null || labels2 == null){
+            return false;
+        }
         if(labels1.size() != labels2.size()){
             return false;
         }
