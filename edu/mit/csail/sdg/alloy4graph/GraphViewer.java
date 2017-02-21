@@ -223,7 +223,7 @@ public final strictfp class GraphViewer extends JPanel {
          * Add the edges linked to ports
          */
         
-        // Create the port/port edges
+        // Create the port edges
         ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
         Set<AlloyRelation> relations = instance.model.getRelations();
         
@@ -234,15 +234,20 @@ public final strictfp class GraphViewer extends JPanel {
                 for (AlloyTuple tuple : tupleSet) {
                     AlloyAtom start = tuple.getStart();
                     AlloyAtom end = tuple.getEnd();
+                    // Port to port
                     if (sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)) {
                         GraphEdge e = new GraphEdge(sgm.getPortFromAtom(start), sgm.getPortFromAtom(end), null, "", null);
                         e.setStyle(DotStyle.SOLID);
                         e.resetPath();
-                    } else if (!sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)){
+                    }
+                    // Node to port
+                    else if (!sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)){
                         GraphEdge e = new GraphEdge(sgm.getNodeFromAtom(start), sgm.getPortFromAtom(end), null, "", null);
                         e.setStyle(DotStyle.SOLID);
                         e.resetPath();
-                    } else if (sgm.isPort(portRelations, start) && !sgm.isPort(portRelations, end)){
+                    }
+                    // Port to node
+                    else if (sgm.isPort(portRelations, start) && !sgm.isPort(portRelations, end)){
                         GraphEdge e = new GraphEdge(sgm.getPortFromAtom(start), sgm.getNodeFromAtom(end), null, "", null);
                         e.setStyle(DotStyle.SOLID);
                         e.resetPath();
