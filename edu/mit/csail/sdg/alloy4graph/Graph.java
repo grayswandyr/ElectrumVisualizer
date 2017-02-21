@@ -1277,21 +1277,18 @@ public final strictfp class Graph {
                 // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.
                 Object subFind = null;
                 if (n.hasChild()) {
-                  subFind = n.getSubGraph().find(scale, mouseX, mouseY);
+                  subFind = n.getSubGraph().subFind(scale, x - (double)n.x(), y - (double)n.y());
                 }
-                if (subFind == null)
+                if (subFind == null){
                   return n;
-                else
+                }else{
                   return subFind;
+                }
             }
             if (n.contains(x, y)) {
                 Object subFind = null;
                if (n.hasChild()) {
-System.out.println("Found a node that has child, x="+n.x()+";y="+n.y());
-for(GraphNode child : n.getChildren()) System.out.println("  child, x="+child.x()+";y="+child.y());
-System.out.println("Bounds container: " + n.poly.getBounds());
-for(GraphNode child : n.getChildren()) System.out.println("  child bounds: " + child.poly.getBounds());
-                 subFind = n.getSubGraph().find(scale, mouseX - n.x(), mouseY - n.y(), true);
+                  subFind = n.getSubGraph().subFind(scale, x - (double)n.x(), y - (double)n.y());
                 }
                 if (subFind == null){
                   return n;
@@ -1326,13 +1323,76 @@ for(GraphNode child : n.getChildren()) System.out.println("  child bounds: " + c
         return null;
     }
 
-    //TODO: this is only for trace!
-    public Object find(double scale, int mouseX, int mouseY, boolean trace) {
-      System.out.println("This is a recursive find!");
-      //System.out.println("Graph is: " + this);
-      Object o = this.find(scale, mouseX, mouseY);
-      System.out.println(" Result is: " + o);
-      return o;
+    //This will be use for recursive find (in order to find the deepest node at this x and y).
+    public Object subFind(double scale, double x, double y) {
+      int h = getTop() + 10 - ad;
+        x = x / scale + getLeft();
+        y = y / scale + getTop();
+        for (Map.Entry<Comparable<?>, Pair<String, Color>> e : legends.entrySet()) {
+            if (e.getValue().b == null) {
+                continue;
+            }
+            h = h + ad;
+            if (y < h || y >= h + ad) {
+                continue;
+            }
+            int w = (int) getBounds(true, e.getValue().a).getWidth();
+            if (x >= getLeft() + 10 && x <= getLeft() + 10 + w) {
+                return e.getKey();
+            }
+        }
+        for (GraphNode n : nodes) {
+            if (n.shape() == null && Math.abs(n.x() - x) < 10 && Math.abs(n.y() - y) < 10) {
+                //[N7-R.Bossut, M.Quentin]
+                // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.
+                Object subFind = null;
+                if (n.hasChild()) {
+                  subFind = n.getSubGraph().subFind(scale, x - (double)n.x(), y - (double)n.y());
+                }
+                if (subFind == null){
+                  return n;
+                }else{
+System.out.println("subFound: " + subFind);
+                  return subFind;
+                }
+            }
+            if (n.contains(x, y)) {
+                Object subFind = null;
+               if (n.hasChild()) {
+                  subFind = n.getSubGraph().subFind(scale, x - (double)n.x(), y - (double)n.y());
+                }
+                if (subFind == null){
+                  return n;
+                }else{
+System.out.println("subFound: " + subFind);
+                  return subFind;
+                }
+            }
+        }
+        for (GraphEdge e : edges) {
+            if (e.a() != e.b()) {
+                double dx;
+                dx = e.path().getXatY(y, 0, 1, Double.NaN);
+                if (!Double.isNaN(dx) && StrictMath.abs(x - dx) < 12 / scale) {
+                    return e;
+                }
+            } else {
+                double dx;
+                dx = e.path().getXatY(y, 0.25, 0.75, Double.NaN);
+                if (!Double.isNaN(dx) && StrictMath.abs(x - dx) < 12 / scale) {
+                    return e;
+                }
+                dx = e.path().getXatY(y, 0, 0.25, Double.NaN);
+                if (!Double.isNaN(dx) && StrictMath.abs(x - dx) < 12 / scale) {
+                    return e;
+                }
+                dx = e.path().getXatY(y, 0.75, 1, Double.NaN);
+                if (!Double.isNaN(dx) && StrictMath.abs(x - dx) < 12 / scale) {
+                    return e;
+                }
+            }
+        }
+        return null;
     }
    //============================================================================================================================//
 		/**
