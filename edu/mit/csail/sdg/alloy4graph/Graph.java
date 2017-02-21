@@ -563,11 +563,6 @@ public final strictfp class Graph {
         // This is the set containing all the children of the father node
         HashSet<GraphNode> children = father.getChildren();
 
-        //TODO Retrieve the relations between the nodes and constructs the layers
-        // The height and the width of the current child
-        int height;
-        int width;
-
         // The number of incoming and outgoing edges within the subGraph
         int nOuts;
         int nIns;
@@ -611,9 +606,6 @@ public final strictfp class Graph {
             }
 
             nodaList.put(nOuts + nIns, auxList);
-
-            height = child.getHeight();
-            width = child.getWidth();
 
         }
 
