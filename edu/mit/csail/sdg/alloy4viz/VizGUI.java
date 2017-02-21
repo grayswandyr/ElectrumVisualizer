@@ -1619,7 +1619,7 @@ public final class VizGUI implements ComponentListener {
         // splitPanel == true => the second panel needs to be shown
         myState.splitPanel = !myState.splitPanel && myState.getProjectedTypes().size() > 0;
         if(graphc == null){
-            graphc = new GraphComparer(null,null);
+            graphc = new GraphComparer(null,null,myState);
         } else if(!myState.splitPanel){
             graphc = null;
             myGraphPanel.setGraphc(graphc);
