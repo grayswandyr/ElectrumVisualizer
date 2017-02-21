@@ -725,6 +725,7 @@ public final class VizCustomizationPanel extends JPanel {
         JLabel fLabel = OurUtil.label("Font Size:");
         // [N7] @JulienRicher
         JLabel hideLabel = OurUtil.label("Hide ports labels:");
+        JLabel pPaletteLabel = OurUtil.label("Port Color Palette:");
         
         JComboBox fontSize = new OurCombobox(false, fontSizes.toArray(), 60, 32, vizState.getFontSize()) {
             private static final long serialVersionUID = 0;
@@ -796,8 +797,6 @@ public final class VizCustomizationPanel extends JPanel {
          * [N7] @Julien Richer
          * Checkbox to set/unset ports labels visible
          */
-        //OurCheckbox portHideLabel = vizState.portHideLabel.pick(null, "Hide ports labels", "Set ports labels visibility");
-        
         OurCheckbox portHideLabel = new OurCheckbox("", "Set ports labels visibility", vizState.portHideLabel.get(null) ? OurCheckbox.ON : OurCheckbox.OFF) {
             private static final long serialVersionUID = 0;
 
@@ -810,15 +809,33 @@ public final class VizCustomizationPanel extends JPanel {
         
         JPanel hideLabelPanel = OurUtil.makeH(wcolor, portHideLabel);
         
+        /**
+         * [N7] @Julien Richer
+         * Combobox to set port palette
+         */
+        JComboBox portpal = new OurCombobox(false, DotPalette.values(), 100, 32, vizState.getPortPalette()) {
+            private static final long serialVersionUID = 0;
+
+            @Override
+            public String do_getText(Object value) {
+                return ((DotPalette) value).getDisplayedText();
+            }
+
+            @Override
+            public void do_changed(Object value) {
+                vizState.setPortPalette((DotPalette) value);
+            }
+        };
+        
         
         parent.add(makelabel(" General Graph Settings:"));
         parent.add(OurUtil.makeH(wcolor, new Dimension(6, 6)));
         parent.add(OurUtil.makeH(wcolor, 25, nLabel, 5, nodepal, 8, aLabel, 5, name, 2, null));
         parent.add(OurUtil.makeH(wcolor, 25, eLabel, 5, edgepal, 8, fLabel, 5, fontSize, 2, null));
+        parent.add(OurUtil.makeH(wcolor, 25, pPaletteLabel, 5, portpal, 2, null)); // [N7] @Julien Richer
         parent.add(OurUtil.makeH(wcolor, 25, pLabel, 5, priv, 2, null));
         parent.add(OurUtil.makeH(wcolor, 25, mLabel, 5, meta, 2, null));
-        // [N7] @Julien Richer
-        parent.add(OurUtil.makeH(wcolor, 25, hideLabel, 5, hideLabelPanel, 2, null));
+        parent.add(OurUtil.makeH(wcolor, 25, hideLabel, 5, hideLabelPanel, 2, null)); // [N7] @Julien Richer
     }
 
    //=============================================================================================================//
