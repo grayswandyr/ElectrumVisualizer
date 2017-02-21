@@ -1242,6 +1242,7 @@ public final strictfp class Graph {
    //============================================================================================================================//
     /**
      * Locates the node or edge at the given (X,Y) location.
+     * If the node contains a subgraph, we have to return the contained Object.
      */
     public Object find(double scale, int mouseX, int mouseY) {
         int h = getTop() + 10 - ad;
@@ -1261,10 +1262,31 @@ public final strictfp class Graph {
         }
         for (GraphNode n : nodes) {
             if (n.shape() == null && Math.abs(n.x() - x) < 10 && Math.abs(n.y() - y) < 10) {
-                return n;
+                //[N7-R.Bossut, M.Quentin]
+                // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.
+                Object subFind = null;
+                if (n.hasChild()) {
+                  subFind = n.getSubGraph().find(scale, mouseX, mouseY);
+                }
+                if (subFind == null)
+                  return n;
+                else
+                  return subFind;
             }
             if (n.contains(x, y)) {
-                return n;
+                Object subFind = null;
+               if (n.hasChild()) {
+System.out.println("Found a node that has child, x="+n.x()+";y="+n.y());
+for(GraphNode child : n.getChildren()) System.out.println("  child, x="+child.x()+";y="+child.y());
+System.out.println("Bounds container: " + n.poly.getBounds());
+for(GraphNode child : n.getChildren()) System.out.println("  child bounds: " + child.poly.getBounds());
+                 subFind = n.getSubGraph().find(scale, mouseX - n.x(), mouseY - n.y(), true);
+                }
+                if (subFind == null){
+                  return n;
+                }else{
+                  return subFind;
+                }
             }
         }
         for (GraphEdge e : edges) {
@@ -1293,6 +1315,14 @@ public final strictfp class Graph {
         return null;
     }
 
+    //TODO: this is only for trace!
+    public Object find(double scale, int mouseX, int mouseY, boolean trace) {
+      System.out.println("This is a recursive find!");
+      //System.out.println("Graph is: " + this);
+      Object o = this.find(scale, mouseX, mouseY);
+      System.out.println(" Result is: " + o);
+      return o;
+    }
    //============================================================================================================================//
 		/**
      * Assuming layout has been performed, this draws the graph with the given

@@ -232,7 +232,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * If (updown>=0 and shape!=null), this is the bounding polygon. Note: if
      * not null, it must be either a GeneralPath or a Polygon.
      */
-    private Shape poly = null;
+    public /*private*/ Shape poly = null; //TODO set this back to private!
 
     /**
      * If (updown>=0 and shape!=null and poly2!=null), then poly2 will also be
@@ -290,7 +290,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
 
-//TODO change this?
 				this.maxDepth = 1;
 
         // [N7-G. Dupont] Instanciate map port
