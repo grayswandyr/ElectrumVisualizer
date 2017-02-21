@@ -103,8 +103,8 @@ public final class VizState {
         // Ports shapes
         portShape.putAll(old.portShape);
         
-        // Ports styles
-        portStyle.putAll(old.portStyle);
+        // Ports labels visible
+        labelVisible.putAll(old.labelVisible);
         
         changedSinceLastSave = false;
     }
@@ -174,9 +174,9 @@ public final class VizState {
         portShape.clear();
         portShape.put(null, DotShape.BOX);
         
-        // Ports styles
-        portStyle.clear();
-        portStyle.put(null, DotStyle.SOLID);
+        // Ports labels visible
+        labelVisible.clear();
+        labelVisible.put(null, false);
 
         
         // Provide some nice defaults for "Int" and "seq/Int" type
@@ -630,8 +630,9 @@ public final class VizState {
     // Ports shapes
     public final MMap<DotShape> portShape = new MMap<DotShape>();
     
-    // Ports styles
-    public final MMap<DotStyle> portStyle = new MMap<DotStyle>();
+    // Ports labels visible
+    public final MMap<Boolean> labelVisible = new MMap<Boolean>(true,false);
+    
 
     public final class MInt {
 
@@ -883,5 +884,20 @@ public final class VizState {
             return false;
         }
         return nodeVisible.resolve(a.getType());
+    }
+    
+    // [N7] @Julien Richer
+    public boolean labelVisible(AlloyAtom a, AlloyInstance i) {
+      // If it's in 1 or more set, then TRUE if at least one of them is TRUE.
+        // If it's in 0 set, then travel up the chain of AlloyType and return the first non-null value.
+        if (i.atom2sets(a).size() > 0) {
+            for (AlloySet s : i.atom2sets(a)) {
+                if (labelVisible.resolve(s)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return labelVisible.resolve(a.getType());
     }
 }

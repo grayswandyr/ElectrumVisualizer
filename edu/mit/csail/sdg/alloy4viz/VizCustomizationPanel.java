@@ -676,61 +676,37 @@ public final class VizCustomizationPanel extends JPanel {
         shapePanel.setToolTipText("Choose the shape of the port on the node.");
         
         
-        // Combobox to define the style of a port
-        OurCombobox styleBox = new OurCombobox(true, DotStyle.valuesWithout(DotStyle.BLANK), 105, 35, vizState.portStyle.get(rel)) {
-            @Override
-            public String do_getText(Object value) {
-                return value == null ? "Inherit" : ((DotStyle) value).toString();
-            }
-            
-            @Override
-            public Icon do_getIcon(Object value) {
-                if (value == null) {
-                    value = vizState.portStyle.get(null);
-                }
-                return value == null ? null : ((DotStyle) value).getIcon();
-            }
-            
-            @Override
-            public void do_changed(Object value) {
-                vizState.portStyle.put(rel, (DotStyle) value);
-            }
-        };
-        
-        JPanel stylePanel = OurUtil.makeH(wcolor, styleBox);
-        stylePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-        stylePanel.setAlignmentY(0.5f);
-        stylePanel.setAlignmentX(0.5f);
-        stylePanel.setToolTipText("Choose the style of the port on the node.");
+        // Checkbox to set/unset ports labels visible
+        OurCheckbox portLabel = vizState.labelVisible.pick(rel, "Hide port label", "Set or unset ports labels visible");
         
         
         // Initialization of the ports settings activation
         orientBox.setEnabled(vizState.isPort.resolve(rel));
         colorBox.setEnabled(vizState.isPort.resolve(rel));
         shapeBox.setEnabled(vizState.isPort.resolve(rel));
-        styleBox.setEnabled(vizState.isPort.resolve(rel));
+        portLabel.setEnabled(vizState.isPort.resolve(rel));
         
         
         // Checkbox to define relations as ports relations
-        OurCheckbox port = vizState.isPort.pick(rel, "Is a port relation", "Define the relation as a node/port relation", new VizState.Callback<Boolean>() {
+        OurCheckbox port = vizState.isPort.pick(rel, "Show as port", "Define the relation as a node/port relation", new VizState.Callback<Boolean>() {
             public void call(Boolean a) {
                 orientBox.setEnabled(a);
                 colorBox.setEnabled(a);
                 shapeBox.setEnabled(a);
-                styleBox.setEnabled(a);
+                portLabel.setEnabled(a);
             }
         });
 
         
         // Panels layout
-        JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint, port);
-        JPanel panel2 = OurUtil.makeVR(wcolor, back, merge);
+        JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, port, portLabel);
+        JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, constraint);
         
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
 
-        JPanel panelPort = OurUtil.makeHB(wcolor, orientPanel, colorPanel, stylePanel, shapePanel);
+        JPanel panelPort = OurUtil.makeHB(wcolor, orientPanel, colorPanel, shapePanel);
 
         parent.add(OurUtil.makeVL(wcolor, panelPort));
     }

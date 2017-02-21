@@ -224,7 +224,7 @@ public final strictfp class GraphViewer extends JPanel {
          * Add the edges linked to ports
          */
         
-        // Create the port/port edges
+        // Create the port edges
         ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
         Set<AlloyRelation> relations = instance.model.getRelations();
         
@@ -255,13 +255,18 @@ public final strictfp class GraphViewer extends JPanel {
                     
                     // Build edges between prots
                     AbstractGraphNode startgn = null, endgn = null;
+                    // From port to port
                     if (sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)) {
                         startgn = sgm.getPortFromAtom(start);
                         endgn = sgm.getPortFromAtom(end);
-                    } else if (!sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)){
+                    }
+                    // From node to port
+                    else if (!sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)){
                         startgn = sgm.getNodeFromAtom(start);
                         endgn = sgm.getPortFromAtom(end);
-                    } else if (sgm.isPort(portRelations, start) && !sgm.isPort(portRelations, end)){
+                    }
+                    // From port to node
+                    else if (sgm.isPort(portRelations, start) && !sgm.isPort(portRelations, end)){
                         startgn = sgm.getPortFromAtom(start);
                         endgn = sgm.getNodeFromAtom(end);
                     }
@@ -272,7 +277,7 @@ public final strictfp class GraphViewer extends JPanel {
                         
                         DotColor color = view.edgeColor.resolve(rel);
                         e.setColor(color.getColor(view.getEdgePalette()));
-                        
+                
                         e.resetPath();
                     }
                 }

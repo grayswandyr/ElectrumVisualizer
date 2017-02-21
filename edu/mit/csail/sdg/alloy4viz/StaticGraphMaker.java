@@ -79,6 +79,7 @@ public final class StaticGraphMaker {
     private final Map<GraphNode, AlloyAtom> nodes = new LinkedHashMap<GraphNode, AlloyAtom>();
     
     /**
+     * [N7] @Julien Richer
      * The map that contains all nodes and what the AlloyAtom that each port
      * corresponds to.
      */
@@ -509,7 +510,7 @@ public final class StaticGraphMaker {
     }
     
     /**
-     * [N7] @Julien Richer BROKEN
+     * [N7] @Julien Richer
      * Return the port for a specific AlloyAtom (create it if it doesn't exist
      * yet).
      */
@@ -582,16 +583,6 @@ public final class StaticGraphMaker {
         else {
             // Default shape
             port.setShape(DotShape.BOX);
-        }
-        
-        // Set the port style
-        DotStyle style = view.portStyle.resolve(rel);
-        if(style!=null) {
-            port.setStyle(style);
-        }
-        else {
-            // Default style
-            port.setStyle(DotStyle.SOLID);
         }
         
         return port;
