@@ -206,14 +206,18 @@ public final class StaticGraphMaker {
                 // Output port
                 if(isPort(portRelations,tuple.getStart())) {
                     GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getEnd());
-                    Orientation defaultOri = GraphPort.AvailableOrientations.get(node.shape())[0];
-                    createPort(tuple.getStart(), node, rel, tuple.getStart().toString(), defaultOri);
+                    if (node != null) {
+                        Orientation defaultOri = GraphPort.AvailableOrientations.get(node.shape())[0];
+                        createPort(tuple.getStart(), node, rel, tuple.getStart().toString(), defaultOri);
+                    }
                 }
                 // Input port
                 if(isPort(portRelations,tuple.getEnd())) {
                     GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getStart());
-                    Orientation defaultOri = GraphPort.AvailableOrientations.get(node.shape())[0];
-                    createPort(tuple.getEnd(), node, rel, tuple.getEnd().toString(), defaultOri);
+                    if (node != null) {
+                        Orientation defaultOri = GraphPort.AvailableOrientations.get(node.shape())[0];
+                        createPort(tuple.getEnd(), node, rel, tuple.getEnd().toString(), defaultOri);
+                    }
                 }
             }
         }
@@ -248,15 +252,21 @@ public final class StaticGraphMaker {
                         // Create the 2 nodes and the 2 ports
                         if(atomStart!=null && atomEnd!=null && relStart!=null && relEnd!=null) {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                            Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
-                            createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
-                        
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
-                            Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
-                            createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                            
+                            if (startNode != null) {
+                                Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
+                                createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
+                            }
+                            
+                            if (endNode != null) {
+                                Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
+                                createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                            }
 
                             // Create the blank edge between the 2 nodes connected through the 2 ports
-                            new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
+                            if (startNode != null && endNode != null)
+                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
                         }
                     } else if(!isPort(portRelations,tuple.getStart()) && isPort(portRelations,tuple.getEnd())){
                         AlloyAtom atomStart = tuple.getStart();
@@ -275,13 +285,16 @@ public final class StaticGraphMaker {
                         // Create the 2 nodes and the 2 ports
                         if(atomStart!=null && atomEnd!=null && relEnd!=null) {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                        
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
-                            Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
-                            createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                            
+                            if (endNode != null) {
+                                Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
+                                createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                            }
 
                             // Create the blank edge between the 2 nodes connected through the 2 ports
-                            new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
+                            if (startNode != null && endNode != null)
+                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
                         }
                     } else if(isPort(portRelations,tuple.getStart()) && !isPort(portRelations,tuple.getEnd())){
                         AlloyAtom atomStart = null;
@@ -300,13 +313,16 @@ public final class StaticGraphMaker {
                         // Create the 2 nodes and the 2 ports
                         if(atomStart!=null && atomEnd!=null && relStart!=null) {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                            Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
-                            createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
-                        
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            
+                            if (startNode != null) {
+                                Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
+                                createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
+                            }
 
                             // Create the blank edge between the 2 nodes connected through the 2 ports
-                            new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
+                            if (startNode != null && endNode != null)
+                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
                         }
                     }
                 }
@@ -499,6 +515,10 @@ public final class StaticGraphMaker {
      * yet).
      */
     private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori) {
+
+        if (node == null) {
+            return null;
+        }
         
         GraphPort port = atom2port.get(atom);
         
@@ -686,7 +706,7 @@ public final class StaticGraphMaker {
      * have "show in relational attribute == on", then the return value would be
      * "Person (Set1, Set2)".
      */
-    private String atomname(AlloyAtom atom, boolean showSets) {
+    public String atomname(AlloyAtom atom, boolean showSets) {
         String label = atom.getVizName(view, view.number.resolve(atom.getType()));
         if (!showSets) {
             return label;

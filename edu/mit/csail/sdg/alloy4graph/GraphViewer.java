@@ -62,6 +62,7 @@ import edu.mit.csail.sdg.alloy4viz.StaticGraphMaker;
 import edu.mit.csail.sdg.alloy4viz.VizState;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.swing.JCheckBoxMenuItem;
 
@@ -234,22 +235,49 @@ public final strictfp class GraphViewer extends JPanel {
                 for (AlloyTuple tuple : tupleSet) {
                     AlloyAtom start = tuple.getStart();
                     AlloyAtom end = tuple.getEnd();
-                    // Port to port
+                    String uuid = "Port[" + tuple + "]";
+                    
+                    // [N7-G.Dupont] Add a proper label to the arcs
+                    String label = view.label.get(rel);
+                    if (tuple.getArity() > 2) {
+                        StringBuilder moreLabel = new StringBuilder();
+                        List<AlloyAtom> atoms = tuple.getAtoms();
+                        for (int i = 1; i < atoms.size() - 1; i++) {
+                            if (i > 1) {
+                                moreLabel.append(", ");
+                            }
+                            moreLabel.append(sgm.atomname(atoms.get(i), false));
+                        }
+                        if (label.length() == 0) { /* label=moreLabel.toString(); */ } else {
+                            label = label + (" [" + moreLabel + "]");
+                        }
+                    }
+                    
+                    // Build edges between prots
+                    AbstractGraphNode startgn = null, endgn = null;
+                    // From port to port
                     if (sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)) {
-                        GraphEdge e = new GraphEdge(sgm.getPortFromAtom(start), sgm.getPortFromAtom(end), null, "", null);
-                        e.setStyle(DotStyle.SOLID);
-                        e.resetPath();
+                        startgn = sgm.getPortFromAtom(start);
+                        endgn = sgm.getPortFromAtom(end);
                     }
-                    // Node to port
+                    // From node to port
                     else if (!sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)){
-                        GraphEdge e = new GraphEdge(sgm.getNodeFromAtom(start), sgm.getPortFromAtom(end), null, "", null);
-                        e.setStyle(DotStyle.SOLID);
-                        e.resetPath();
+                        startgn = sgm.getNodeFromAtom(start);
+                        endgn = sgm.getPortFromAtom(end);
                     }
-                    // Port to node
+                    // From port to node
                     else if (sgm.isPort(portRelations, start) && !sgm.isPort(portRelations, end)){
-                        GraphEdge e = new GraphEdge(sgm.getPortFromAtom(start), sgm.getNodeFromAtom(end), null, "", null);
-                        e.setStyle(DotStyle.SOLID);
+                        startgn = sgm.getPortFromAtom(start);
+                        endgn = sgm.getNodeFromAtom(end);
+                    }
+                    
+                    if (startgn != null && endgn != null) {
+                        GraphEdge e = new GraphEdge(startgn, endgn, uuid, label, rel);
+                        e.setStyle(view.edgeStyle.resolve(rel));
+                        
+                        DotColor color = view.edgeColor.resolve(rel);
+                        e.setColor(color.getColor(view.getEdgePalette()));
+                
                         e.resetPath();
                     }
                 }
