@@ -251,24 +251,28 @@ public strictfp class GraphNode extends AbstractGraphNode {
     //===================================================================================================  
     //
     /**
-     * This field contains the children of this node if they exist. [N7-R. Bossut, M. Quentin]
+     * This field contains the children of this node if they exist. [N7-R.
+     * Bossut, M. Quentin]
      */
     private HashSet<GraphNode> children;
 
     /**
-     * This field contains the subGraph of the node if it exists. [N7-R. Bossut, M. Quentin]
+     * This field contains the subGraph of the node if it exists. [N7-R. Bossut,
+     * M. Quentin]
      */
     private Graph subGraph;
-		/**
-		 * The integer representing the maximum depth level of representation of subgraphs of this GraphNode. [N7-R. Bossut, M. Quentin]
-		 */
-		private int maxDepth;
+    /**
+     * The integer representing the maximum depth level of representation of
+     * subgraphs of this GraphNode. [N7-R. Bossut, M. Quentin]
+     */
+    private int maxDepth;
 
     /**
-     * This field contains the father of the node if it exists. [N7-R. Bossut, M.Quentin]
+     * This field contains the father of the node if it exists. [N7-R. Bossut,
+     * M.Quentin]
      */
     private GraphNode father;
-    
+
     //====================================================================================================
     /**
      * Create a new node with the given list of labels, then add it to the given
@@ -301,12 +305,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
 		//[N7-R.Bossut, M.Quentin]
-		// Adds an integer parameter the maximum depth level in this node.
-		public GraphNode(Graph graph, Object uuid, int maxDepth, String... labels) {
+    // Adds an integer parameter the maximum depth level in this node.
+    public GraphNode(Graph graph, Object uuid, int maxDepth, String... labels) {
         super(graph, uuid);
         this.pos = graph.nodelist.size();
         this.children = new HashSet<>(); //[N7-R. Bossut, M. Quentin]
-				this.maxDepth = maxDepth;
+        this.maxDepth = maxDepth;
         graph.nodelist.add(this);
         if (graph.layerlist.size() == 0) {
             graph.layerlist.add(new ArrayList<GraphNode>());
@@ -326,28 +330,28 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.numPorts.put(GraphPort.Orientation.East, 0);
         this.numPorts.put(GraphPort.Orientation.West, 0);
     }
-		/**
-		 * Duplicate the given GraphNode, only changing the graph in which it is.
-		 */
-		public GraphNode(GraphNode toBeCopied, Graph graph){
-			super(graph, toBeCopied.uuid);
-			this.pos = graph.nodelist.size(); 
-			this.children = toBeCopied.children;
-			this.color = toBeCopied.color;
-			this.fontBold = toBeCopied.fontBold;
-			this.style = toBeCopied.style;
-			this.set(toBeCopied.shape());
-			this.subGraph = toBeCopied.subGraph;
-			this.maxDepth = toBeCopied.maxDepth + 1; //We do not show the "upper depth" of the graph, we can show one level deeper.
-			graph.nodelist.add(this);
-			if (graph.layerlist.size() == 0) {
-				graph.layerlist.add(new ArrayList<GraphNode>());
-			}
-			graph.layerlist.get(0).add(this);
-			this.labels = toBeCopied.labels;
-			this.numPorts = toBeCopied.numPorts;
- 	}
 
+    /**
+     * Duplicate the given GraphNode, only changing the graph in which it is.
+     */
+    public GraphNode(GraphNode toBeCopied, Graph graph) {
+        super(graph, toBeCopied.uuid);
+        this.pos = graph.nodelist.size();
+        this.children = toBeCopied.children;
+        this.color = toBeCopied.color;
+        this.fontBold = toBeCopied.fontBold;
+        this.style = toBeCopied.style;
+        this.set(toBeCopied.shape());
+        this.subGraph = toBeCopied.subGraph;
+        this.maxDepth = toBeCopied.maxDepth + 1; //We do not show the "upper depth" of the graph, we can show one level deeper.
+        graph.nodelist.add(this);
+        if (graph.layerlist.size() == 0) {
+            graph.layerlist.add(new ArrayList<GraphNode>());
+        }
+        graph.layerlist.get(0).add(this);
+        this.labels = toBeCopied.labels;
+        this.numPorts = toBeCopied.numPorts;
+    }
 
     /**
      * Get the children of the Node. [N7-R. Bossut, M. Quentin]
@@ -363,7 +367,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         subGraph = (subGraph == null) ? new Graph(1.0) : this.subGraph;
         return (subGraph);
     }
-    
+
     /**
      * Get the father of the Node. [N7-R. Bossut, M. Quentin]
      * @return the father
@@ -371,14 +375,14 @@ public strictfp class GraphNode extends AbstractGraphNode {
     public GraphNode getFather() {
         return (father == null) ? this : father;
     }
-    
+
     /**
      * Set the father of the Node. [N7-R. Bossur, M. Quentin]
      */
     public void setFather(GraphNode father) {
         this.father = father;
     }
-    
+
     public boolean hasChild() {
         return !(children.isEmpty());
     }
@@ -388,17 +392,36 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     public void addChild(GraphNode gn) {
         this.children.add(gn);
-				if(!(subGraph.nodelist.contains(gn)))
-					subGraph.nodelist.add(gn);
+        if (!(subGraph.nodelist.contains(gn))) {
+            subGraph.nodelist.add(gn);
+        }
     }
 
-		/** 
-		 * Gets the depth level of the node. [N7-R.Bossut, M.Quentin]
-		 */
-		public int getMaxDepth(){
-			return maxDepth;
-		}
+    /**
+     * Gets the depth level of the node. [N7-R.Bossut, M.Quentin]
+     */
+    public int getMaxDepth() {
+        return maxDepth;
+    }
+    
+    /**
+    * Return the Height of the label. [N7-R.Bossut, M.Quentin]
+    */
+    public int getLabelHeight() {
+        return this.height;
+    }
+    
+    /**
+    * Return the Width of the label. [N7-R.Bossut, M.Quentin]
+    */
+    public int getLabelWidth() {
+        return this.width;
+    }
 
+    public List<String> getLabels() {
+        return this.labels;
+    }
+    
     /**
      * Changes the layer that this node is in; the new layer must be 0 or
      * greater.
@@ -720,7 +743,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         if (highlight) {
             gr.setColor(COLOR_CHOSENNODE);
         } else {
-            gr.setColor(Color.YELLOW);
+            gr.setColor(color);
         }
 
         gr.draw(poly, true);
@@ -730,50 +753,56 @@ public strictfp class GraphNode extends AbstractGraphNode {
         subGraph.draw(gr, scale, uuid, true);
 
         /*
-        if (poly2 != null) {
-            gr.draw(poly2, false);
-        }
-        if (poly3 != null) {
-            gr.draw(poly3, false);
-        }
-        if (style
-                == DotStyle.DOTTED || style == DotStyle.DASHED) {
-            gr.set(DotStyle.SOLID,
-                    scale);
-        }
-        if (shape() == DotShape.M_DIAMOND) {
-            gr.drawLine(-side + 8,
-                    -8, -side + 8, 8);
-            gr.drawLine(-8, -side + 8, 8, -side + 8);
-            gr.drawLine(side - 8, -8, side - 8, 8);
-            gr.drawLine(-8, side - 8, 8,
-                    side - 8);
-        }
-        if (shape() == DotShape.M_SQUARE) {
-            gr.drawLine(-side,
-                    -side + 8, -side + 8, -side);
-            gr.drawLine(side, -side + 8, side - 8,
-                    -side);
-            gr.drawLine(-side, side - 8, -side + 8, side);
-            gr.drawLine(side, side - 8, side - 8, side);
-        }
-        */
-        
+         if (poly2 != null) {
+         gr.draw(poly2, false);
+         }
+         if (poly3 != null) {
+         gr.draw(poly3, false);
+         }
+         if (style
+         == DotStyle.DOTTED || style == DotStyle.DASHED) {
+         gr.set(DotStyle.SOLID,
+         scale);
+         }
+         if (shape() == DotShape.M_DIAMOND) {
+         gr.drawLine(-side + 8,
+         -8, -side + 8, 8);
+         gr.drawLine(-8, -side + 8, 8, -side + 8);
+         gr.drawLine(side - 8, -8, side - 8, 8);
+         gr.drawLine(-8, side - 8, 8,
+         side - 8);
+         }
+         if (shape() == DotShape.M_SQUARE) {
+         gr.drawLine(-side,
+         -side + 8, -side + 8, -side);
+         gr.drawLine(side, -side + 8, side - 8,
+         -side);
+         gr.drawLine(-side, side - 8, -side + 8, side);
+         gr.drawLine(side, side - 8, side - 8, side);
+         }
+         */
         // Draw the label into the GraphNode
         gr.set(DotStyle.SOLID, scale);
         int clr = color.getRGB() & 0xFFFFFF;
         gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
         if (labels != null && labels.size() > 0) {
-            //int x = (-width / 2), y = yShift + (-labels.size() * ad / 2);
-            int x = (-side), y = (-updown) + (labels.size() * ad / 3);
+            //int x = (-width / 2), y = -updown + (labels.size() * ad / 2);        
+            int maxWidth=0;
+            for (int i=0; i < labels.size(); i++ ) {
+                maxWidth = Math.max(maxWidth, (int) getBounds(true, labels.get(i)).getWidth());
+            }
+            width = maxWidth;
+            int x = (int) Math.ceil(-width/2), y = -updown + (labels.size() * ad / 2);
+            
             for (int i = 0; i < labels.size(); i++) {
                 String t = labels.get(i);
-                int w = ((int) (getBounds(fontBold, t).getWidth())) + 1; // Round it up
+                int w = ((int) (getBounds(true, t).getWidth())) + 1; // Round it up
                 if (width > w) {
                     w = (width - w) / 2;
                 } else {
                     w = 0;
                 }
+                gr.setFont(true);
                 gr.drawString(t, x + w, y + Artist.getMaxAscent());
                 y = y + ad;
             }
@@ -1259,15 +1288,15 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     void imbricatedNodeBounds() {
 
-        if (hasChild() && (maxDepth>0)) {
+        if (hasChild() && (maxDepth > 0)) {
 
             for (GraphNode gn : children) {
                 if (gn.updown < 0) {
                     gn.calcBounds();
                 }
             }
-           
-						subGraph.layoutSubGraph(this);
+
+            subGraph.layoutSubGraph(this);
             this.updown = subGraph.getTotalHeight() / 2;
             this.side = subGraph.getTotalWidth() / 2;
 
@@ -1386,8 +1415,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         out.append(", fontcolor = \"#" + text + "\"");
         out.append(", shape = \"" + shape().getDotText() + "\"");
         out.append(", style = \"filled, " + style.getDotText() + "\"");
-        out.append(", maxDepth = " + maxDepth); 
-				out.append("]\n");
+        out.append(", maxDepth = " + maxDepth);
+        out.append("]\n");
         return out.toString();
     }
 }
