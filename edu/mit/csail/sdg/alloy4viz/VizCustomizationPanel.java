@@ -122,6 +122,7 @@ public final class VizCustomizationPanel extends JPanel {
      */
     private Object lastElement = null;
 
+
    //=============================================================================================================//
     /**
      * Constructs a customization panel.
@@ -685,6 +686,7 @@ public final class VizCustomizationPanel extends JPanel {
         colorBox.setEnabled(vizState.isPort.resolve(rel));
         shapeBox.setEnabled(vizState.isPort.resolve(rel));
         portLabel.setEnabled(vizState.isPort.resolve(rel));
+        visible.setEnabled(!vizState.isPort.resolve(rel));
         
         
         // Checkbox to define relations as ports relations
@@ -694,6 +696,7 @@ public final class VizCustomizationPanel extends JPanel {
                 colorBox.setEnabled(a);
                 shapeBox.setEnabled(a);
                 portLabel.setEnabled(a);
+                visible.setEnabled(!a);
             }
         });
 
