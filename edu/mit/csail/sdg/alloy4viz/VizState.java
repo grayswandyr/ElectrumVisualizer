@@ -104,7 +104,7 @@ public final class VizState {
         portShape.putAll(old.portShape);
         
         // Ports labels visible
-        labelVisible.putAll(old.labelVisible);
+        portHideLabel.putAll(old.portHideLabel);
         
         changedSinceLastSave = false;
     }
@@ -175,8 +175,8 @@ public final class VizState {
         portShape.put(null, DotShape.BOX);
         
         // Ports labels visible
-        labelVisible.clear();
-        labelVisible.put(null, false);
+        portHideLabel.clear();
+        portHideLabel.put(null, true);
 
         
         // Provide some nice defaults for "Int" and "seq/Int" type
@@ -631,7 +631,7 @@ public final class VizState {
     public final MMap<DotShape> portShape = new MMap<DotShape>();
     
     // Ports labels visible
-    public final MMap<Boolean> labelVisible = new MMap<Boolean>(true, false);
+    public final MMap<Boolean> portHideLabel = new MMap<Boolean>(true, false);
     
 
     public final class MInt {
@@ -892,12 +892,12 @@ public final class VizState {
         // If it's in 0 set, then travel up the chain of AlloyType and return the first non-null value.
         if (i.atom2sets(a).size() > 0) {
             for (AlloySet s : i.atom2sets(a)) {
-                if (labelVisible.resolve(s)) {
+                if (portHideLabel.resolve(s)) {
                     return true;
                 }
             }
             return false;
         }
-        return labelVisible.resolve(a.getType());
+        return portHideLabel.resolve(a.getType());
     }
 }

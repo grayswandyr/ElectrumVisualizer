@@ -677,7 +677,7 @@ public final class VizCustomizationPanel extends JPanel {
         
         
         // Checkbox to set/unset ports labels visible
-        OurCheckbox portLabel = vizState.labelVisible.pick(rel, "Show ports labels", "Set ports labels visibility");
+        OurCheckbox portLabel = vizState.portHideLabel.pick(rel, "Hide ports labels", "Set ports labels visibility");
         
         
         // Initialization of the ports settings activation

@@ -587,7 +587,7 @@ public final class StaticGraphMaker {
         }
         
         // Set the label visibility
-        port.setHideLabel(!view.labelVisible.resolve(rel));
+        port.setHideLabel(view.portHideLabel.resolve(rel));
         
         return port;
     }
