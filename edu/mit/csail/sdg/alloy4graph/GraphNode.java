@@ -792,7 +792,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 maxWidth = Math.max(maxWidth, (int) getBounds(true, labels.get(i)).getWidth());
             }
             width = maxWidth;
-            int x = (int) Math.ceil(-width/2), y = -updown + (labels.size() * ad / 2);
+            int x = (-width/2), y = -updown + (labels.size() * ad / 2);
             
             for (int i = 0; i < labels.size(); i++) {
                 String t = labels.get(i);
@@ -808,6 +808,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
 
+        // [N7-G. Dupont] Draw each ports
+        for (GraphPort p : this.ports) {
+            p.draw(gr, scale, false);
+        }
+        
         gr.translate(left - x(), top - y());
     }
 
@@ -818,7 +823,23 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     private void drawHidder(Artist gr, double scale, boolean highlight, int top, int left) {
         drawRegular(gr, scale, highlight, top, left);
-        //TODO draw an indicator.
+        
+        GraphNode dad = (this.getFather() != null) ? this.getFather() : this;
+        gr.setFont(true);
+        gr.set(DotStyle.SOLID, scale);
+        int clr = dad.color.getRGB() & 0xFFFFFF;
+        gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
+        if (dad.labels != null && dad.labels.size() > 0) {
+            int x = (-width / 2), y = -dad.updown + (dad.labels.size() * 3 * dad.ad / 2);
+            String t = " ...";
+            int w = ((int) (getBounds(true, t).getWidth()));
+            if (width > w) {
+                w = (width - w) / 2;
+            } else {
+                w = 0;
+            }
+            gr.drawString(t, x + w, y + Artist.getMaxAscent());
+        }
     }
 
     /**

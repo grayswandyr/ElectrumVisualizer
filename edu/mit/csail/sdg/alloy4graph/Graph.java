@@ -42,7 +42,7 @@ import java.util.HashSet;
  */
 public final strictfp class Graph {
 
-   //================================ adjustable options ========================================================================//
+    //================================ adjustable options ========================================================================//
     /**
      * Minimum horizontal distance between adjacent nodes.
      */
@@ -76,7 +76,7 @@ public final strictfp class Graph {
      */
     private final int ad = Artist.getMaxAscentAndDescent();
 
-   //=============================== fields ======================================================================================//
+    //=============================== fields ======================================================================================//
     /**
      * The default magnification.
      */
@@ -106,7 +106,7 @@ public final strictfp class Graph {
      * The total height of the graph; this value is computed by layout().
      */
     public int totalHeight = 0;
-  
+
     /**
      * The height of each layer.
      */
@@ -148,7 +148,7 @@ public final strictfp class Graph {
      */
     private final List<GraphNode> emptyListOfNodes = Collections.unmodifiableList(new ArrayList<GraphNode>(0));
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Constructs an empty Graph object.
      */
@@ -183,7 +183,7 @@ public final strictfp class Graph {
     public int getTotalHeight() {
         return totalHeight;
     }
-  
+
     /**
      * Returns an unmodifiable view of the list of nodes in the given layer
      * (0..#layer-1); return an empty list if no such layer.
@@ -216,7 +216,7 @@ public final strictfp class Graph {
      * Sort the list of nodes according to the order in the given list.
      */
     void sortNodes(Iterable<GraphNode> newOrder) {
-      // The nodes that are common to this.nodelist and newOrder are moved to the front of the list, in the given order.
+        // The nodes that are common to this.nodelist and newOrder are moved to the front of the list, in the given order.
         // The nodes that are in this.nodelist but not in newOrder are moved to the back in an unspecified order.
         // The nodes that are in newOrder but not in this.nodelist are ignored.
         int i = 0, n = nodelist.size();
@@ -264,12 +264,12 @@ public final strictfp class Graph {
         legends.put(object, new Pair<String, Color>(label, color));
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #1: assign a total order on the nodes.
      */
     private void layout_assignOrder() {
-      // This is an implementation of the GR algorithm described by Peter Eades, Xuemin Lin, and William F. Smyth
+        // This is an implementation of the GR algorithm described by Peter Eades, Xuemin Lin, and William F. Smyth
         // in "A Fast & Effective Heuristic for the Feedback Arc Set Problem"
         // in Information Processing Letters, Volume 47, Number 6, Pages 319-323, 1993
         final int num = nodes.size();
@@ -277,7 +277,7 @@ public final strictfp class Graph {
         if ((Integer.MAX_VALUE - 1) / 2 < num) {
             throw new OutOfMemoryError();
         }
-      // Now, allocate 2n+1 bins labeled -n .. n
+        // Now, allocate 2n+1 bins labeled -n .. n
         // Note: inside this method, whenever we see #in and #out, we ignore repeated edges.
         // Note: since Java ArrayList always start at 0, we'll index it by adding "n" to it.
         final List<List<GraphNode>> bins = new ArrayList<List<GraphNode>>(2 * num + 1);
@@ -291,34 +291,34 @@ public final strictfp class Graph {
         for (GraphNode n : nodes) {
             //if (n.graph == this) { //[N7-R. Bossut, M. Quentin]
             int ni = n.pos();
-                LinkedList<GraphNode> in = new LinkedList<GraphNode>(), out = new LinkedList<GraphNode>();
-                for (GraphEdge e : n.ins) {
-                    AbstractGraphNode aa = e.a();
-                    if (!(aa instanceof GraphNode)) {
-                        throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
-                    }
-                    GraphNode a = (GraphNode)aa;
-                    if (!in.contains(a) && a.graph == n.graph) {
-                        in.add(a);
-                    }
+            LinkedList<GraphNode> in = new LinkedList<GraphNode>(), out = new LinkedList<GraphNode>();
+            for (GraphEdge e : n.ins) {
+                AbstractGraphNode aa = e.a();
+                if (!(aa instanceof GraphNode)) {
+                    throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
                 }
-                for (GraphEdge e : n.outs) {
-                    AbstractGraphNode ab = e.b();
-                    if (!(ab instanceof GraphNode)) {
-                        throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
-                    }
-                    GraphNode b = (GraphNode)ab;
-                    if (!out.contains(b) && b.graph == n.graph) {
-                        out.add(b);
-                    }
+                GraphNode a = (GraphNode) aa;
+                if (!in.contains(a) && a.graph == n.graph) {
+                    in.add(a);
                 }
-                grIN.add(in);
-                grOUT.add(out);
-                grBIN[ni] = (out.size() == 0) ? 0 : (in.size() == 0 ? (2 * num) : (out.size() - in.size() + num));
-                bins.get(grBIN[ni]).add(n);
+            }
+            for (GraphEdge e : n.outs) {
+                AbstractGraphNode ab = e.b();
+                if (!(ab instanceof GraphNode)) {
+                    throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                }
+                GraphNode b = (GraphNode) ab;
+                if (!out.contains(b) && b.graph == n.graph) {
+                    out.add(b);
+                }
+            }
+            grIN.add(in);
+            grOUT.add(out);
+            grBIN[ni] = (out.size() == 0) ? 0 : (in.size() == 0 ? (2 * num) : (out.size() - in.size() + num));
+            bins.get(grBIN[ni]).add(n);
              // bin[0]     = { v | #out=0 }
-                // bin[n + d] = { v | d=#out-#in and #out!=0 and #in!=0 } for -n < d < n
-                // bin[n + n] = { v | #in=0 and #out>0 }
+            // bin[n + d] = { v | d=#out-#in and #out!=0 and #in!=0 } for -n < d < n
+            // bin[n + n] = { v | #in=0 and #out>0 }
             //} //[N7-R. Bossut, M. Quentin]
         }
         // Main loop
@@ -364,7 +364,7 @@ public final strictfp class Graph {
         sortNodes(Util.fastJoin(s1, s2));
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #2: reverses all backward edges.
      */
@@ -373,14 +373,14 @@ public final strictfp class Graph {
             if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
                 throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
             }
-            GraphNode a = (GraphNode)e.a(), b = (GraphNode)e.b();
+            GraphNode a = (GraphNode) e.a(), b = (GraphNode) e.b();
             if (a.pos() < b.pos()) {
                 e.set(e.bhead(), e.ahead()).reverse();
             }
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #3: assign the nodes into one or more layers, then return the
      * number of layers.
@@ -390,14 +390,14 @@ public final strictfp class Graph {
         final int n = nodes.size();
         int[] len = new int[n];
         for (GraphNode x : nodes) {
-         // Since we ensured that arrows only ever go from a node with bigger pos() to a node with smaller pos(),
+            // Since we ensured that arrows only ever go from a node with bigger pos() to a node with smaller pos(),
             // we can compute the "len" array in O(n) time by visiting each node IN THE SORTED ORDER
             int max = 0;
             for (GraphEdge e : x.outs) {
                 if (!(e.b() instanceof GraphNode)) {
                     throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
                 }
-                GraphNode y = (GraphNode)e.b();
+                GraphNode y = (GraphNode) e.b();
                 int yLen = len[y.pos()] + 1;
                 if (max < yLen) {
                     max = yLen;
@@ -419,7 +419,7 @@ public final strictfp class Graph {
                         if (!(e.a() instanceof GraphNode)) {
                             throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
                         }
-                        int y = ((GraphNode)e.a()).layer();
+                        int y = ((GraphNode) e.a()).layer();
                         if (closestLayer > y) {
                             closestLayer = y;
                         }
@@ -438,7 +438,7 @@ public final strictfp class Graph {
         return layers();
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #4: add dummy nodes so that each edge only goes between
      * adjacent layers.
@@ -449,7 +449,7 @@ public final strictfp class Graph {
             if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
                 throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
             }
-            GraphNode a = (GraphNode)e.a(), b = (GraphNode)e.b();
+            GraphNode a = (GraphNode) e.a(), b = (GraphNode) e.b();
             while (a.layer() - b.layer() > 1) {
                 GraphNode tmp = a;
                 a = new GraphNode(a.graph, e.uuid).set((DotShape) null);
@@ -461,7 +461,7 @@ public final strictfp class Graph {
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #5: decide the order of the nodes within each layer.
      */
@@ -483,7 +483,7 @@ public final strictfp class Graph {
                     if (!(e.b() instanceof GraphNode)) {
                         throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
                     }
-                    GraphNode nn = (GraphNode)e.b();
+                    GraphNode nn = (GraphNode) e.b();
                     if (map.put(nn, nn) == null) {
                         count++;
                         sum += bc[nn.pos()];
@@ -515,12 +515,12 @@ public final strictfp class Graph {
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #6: decide the exact X position of each component.
      */
     private void layout_xAssignment(List<GraphNode> nodes) {
-      // This implementation uses the iterative approach described in the paper "Layout of Bayesian Networks"
+        // This implementation uses the iterative approach described in the paper "Layout of Bayesian Networks"
         // by Kim Marriott, Peter Moulder, Lucas Hope, and Charles Twardy
         final int n = nodes.size();
         if (n == 0) {
@@ -557,7 +557,7 @@ public final strictfp class Graph {
 
     //[N7-R.Bossut, M.Quentin]
     /**
-     * Compute the layout for the subGraph contained in the node father 
+     * Compute the layout for the subGraph contained in the node father
      */
     public void layoutSubGraph(GraphNode father) {
         //================================= Creation of the subGraph layers ================================================= //
@@ -568,140 +568,137 @@ String s = "";
 for (GraphNode n : children){ s = s + "\n  " + n.uuid + ":(" + n.x() + ";" + n.y() + ")";} 
 System.out.println("Before layoutsubGraph:"+s);
         //TODO Retrieve the relations between the nodes and constructs the layers
-        
         // The height and the width of the current child
         int height;
         int width;
-        
+
         // The number of incoming and outgoing edges within the subGraph
         int nOuts;
         int nIns;
-        
+
         // The map containing the layers and ordered according to the sum of nIns and nOuts
         TreeMap<Integer, ArrayList<GraphNode>> nodaList = new TreeMap<Integer, ArrayList<GraphNode>>();
-        
+
         // We fill the Map
         for (GraphNode child : children) {
             nOuts = 0;
             nIns = 0;
-            
+
             for (GraphEdge e : child.outs) {
                 if (e.b() instanceof GraphNode) {
                     // If the edge concerns two elements of the subGraph then we increment nOuts
                     if (children.contains((GraphNode) e.b())) {
                         nOuts++;
-                    		edgelist.add(e);
-										}
+                        edgelist.add(e);
+                    }
                 }
             }
-            
+
             for (GraphEdge e : child.ins) {
                 if (e.a() instanceof GraphNode) {
                     // If the edge concerns two elements of the subGraph then we increment nIns
                     if (children.contains((GraphNode) e.a())) {
                         nIns++;
-                    		edgelist.add(e);
+                        edgelist.add(e);
                     }
                 }
-            }      
-            
+            }
+
             // Now we can construct the layers and add them to the Map
             ArrayList<GraphNode> auxList;
-            if (nodaList.get(nOuts+nIns) == null) {
+            if (nodaList.get(nOuts + nIns) == null) {
                 auxList = new ArrayList<>();
                 auxList.add(child);
             } else {
-                auxList = nodaList.get(nOuts+nIns);
+                auxList = nodaList.get(nOuts + nIns);
                 auxList.add(child);
             }
-            
-            nodaList.put(nOuts+nIns, auxList);
-            
+
+            nodaList.put(nOuts + nIns, auxList);
+
             height = child.getHeight();
             width = child.getWidth();
-            
-        }     
-        
+
+        }
+
         // We see if each layers respect the established rules
         layout_decideLayerSubGraph(nodaList);
-        
+
         //================================= Assignment of the nodes according to the layers previously established ================================================= //
-        
         int nbLayers = nodaList.size();
-        
+
         // The arrays containing the width and the height of each layer
         layerPH = new int[nbLayers];  
         int[] layerWidth = new int[nbLayers];
         Arrays.fill(layerWidth, GraphNode.xJumpNode); // We have to consider the little space between the edge of the father node and the layer
         int[] layerHeight = new int[nbLayers];
         Arrays.fill(layerHeight, GraphNode.yJumpNode); // We have to consider the little space between the edge of the father node and the layer
-        
+
         // We fill the two list
         int childHeight;
         int i = nbLayers;
         for (ArrayList<GraphNode> childList : nodaList.values()) { //for (List<GraphNode> childList : layerlist)
             int maxLayerHeight = 0;
             for (GraphNode child : childList) {
-                child.setLayer(nbLayers-i);
-                
+                child.setLayer(nbLayers - i);
+
                 childHeight = child.getHeight();
                 maxLayerHeight = Math.max(childHeight, maxLayerHeight);
-               
-                layerWidth[nbLayers-i] += child.getWidth() + GraphNode.xJumpNode;
+
+                layerWidth[nbLayers - i] += child.getWidth() + GraphNode.xJumpNode;
             }
-            
-            layerHeight[nbLayers-i] += maxLayerHeight + GraphNode.yJumpNode;
+
+            layerHeight[nbLayers - i] += maxLayerHeight + GraphNode.yJumpNode;
             i--;
         }
-        
+
         // This is where the assignment begin
         // First, we have to compute the two dimensions of the father node
-        this.totalHeight=0;
-        this.totalWidth=0;
-        for (int j=0; j<nbLayers; j++) {
+        this.totalHeight = 0;
+        this.totalWidth = 0;
+        for (int j = 0; j < nbLayers; j++) {
             this.totalHeight += layerHeight[j];
             this.totalWidth = Math.max(layerWidth[j], this.totalWidth);
         }
-        
+
         // Compute the max width of the labels 
-        int maxLabelWidth=0;
+        int maxLabelWidth = 0;
         List<String> labels = father.getLabels();
-        for (int l=0; l < labels.size(); l++ ) {
+        for (int l = 0; l < labels.size(); l++) {
             maxLabelWidth = Math.max(maxLabelWidth, (int) getBounds(true, labels.get(l)).getWidth());
         }
-        
+
         totalHeight += father.getLabelHeight();
         totalWidth = Math.max(this.totalWidth, maxLabelWidth) + GraphNode.xJumpNode;
-        
+
         // The two integers corresponding to the coordinates wehre we start to draw each layer
         int startX;
-        int startY = this.totalHeight/2 - GraphNode.yJumpNode;
-        
-        int layer=0;
+        int startY = this.totalHeight / 2 - GraphNode.yJumpNode;
+
+        int layer = 0;
         int maxHeight;
         for (ArrayList<GraphNode> childList : nodaList.values()) {
             layer = childList.get(0).layer();
-            startX = (childList.size() > 1) ? -layerWidth[layer]/2 + GraphNode.xJumpNode : 0;
-            
+            startX = (childList.size() > 1) ? -layerWidth[layer] / 2 + GraphNode.xJumpNode : 0;
+
             // The height can vary from a node to an other, so we have to consider the biggest height for the layer
             maxHeight = 0;
-            for (GraphNode child: childList) {
+            for (GraphNode child : childList) {
                 layer = child.layer();
                 childHeight = child.getHeight();
                 maxHeight = Math.max(childHeight, maxHeight);
             }
-            startY -= (layer > 0) ? maxHeight/2 : 0;
-            
-            for (GraphNode child : childList) {
-                
-                startX += (childList.size() > 1) ? child.getWidth()/2 : 0;
-                
-                child.setX(startX);
-                child.setY(startY - child.getHeight()/2);
+            startY -= (layer > 0) ? maxHeight / 2 : 0;
 
-                startX += (childList.size() > 1) ? child.getWidth()/2 + GraphNode.xJumpNode : 0;
+            for (GraphNode child : childList) {
+
+                startX += (childList.size() > 1) ? child.getWidth() / 2 : 0;
+
+                child.setX(startX);
+                child.setY(startY - child.getHeight() / 2);
+
+                startX += (childList.size() > 1) ? child.getWidth() / 2 + GraphNode.xJumpNode : 0;
             }
-            
             layerPH[layer] = maxHeight;
             startY -= maxHeight/2 + GraphNode.yJumpNode;
         }
@@ -716,36 +713,36 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
      * The method takes the nodaList as the entry and computes the good layers in
      * order to respect the fact that two linked nodes can be in the same layer.
      */
-    private void layout_decideLayerSubGraph(TreeMap<Integer, ArrayList<GraphNode>> nodaList ) {
+    private void layout_decideLayerSubGraph(TreeMap<Integer, ArrayList<GraphNode>> nodaList) {
         // The temporary list used to do the calculations
         List<List<GraphNode>> tempList = new ArrayList<>();
-        
+
         // We fill the list using the nodaLIst data
         for (ArrayList<GraphNode> list : nodaList.values()) {
             tempList.add(list);
         }
-        
+
         // Then, wa can clear the nodaList
         nodaList.clear();
-        
+
         int listSize = tempList.size(); // This integer is used to cumpute dynamically the size of the tempList
         for (int k = 0; k < listSize; k++) {
             List<GraphNode> list = tempList.get(k);
             int cpt = list.size(); //This integer is used to compute dynamically the size of the list
-            for (int j = 0; j < cpt; j++) { 
+            for (int j = 0; j < cpt; j++) {
                 GraphNode gn = list.get(j);
                 for (GraphEdge e : gn.outs) {
                     if (e.b() instanceof GraphNode) {
                         if (list.contains(((GraphNode) e.b()))) {
                             list.remove(gn);
                             cpt--;
-                            if (k+1 >= tempList.size()) {
+                            if (k + 1 >= tempList.size()) {
                                 List<GraphNode> auxList = new ArrayList<GraphNode>();
                                 auxList.add(gn);
-                                tempList.add(k+1,auxList);
+                                tempList.add(k + 1, auxList);
                                 listSize++;
                             } else {
-                                tempList.get(k+1).add(gn);
+                                tempList.get(k + 1).add(gn);
                             }
                         }
                     }
@@ -754,7 +751,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
             nodaList.put(k, (ArrayList) list);
         }
     }
-    
+
     /**
      * This computes the des() value as described in the paper.
      * <p>
@@ -844,7 +841,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * For each edge coming out of this layer of nodes, add bends to it if it
      * currently overlaps some nodes inappropriately.
@@ -858,7 +855,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
                 if (!(e.b() instanceof GraphNode)) {
                     new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
                 }
-                GraphNode b = (GraphNode)e.b();
+                GraphNode b = (GraphNode) e.b();
                 if (b.x() >= right) {
                     for (int j = i + 1; j < top.size(); j++) { // This edge goes from top-left to bottom-right
                         GraphNode c = top.get(j);
@@ -882,7 +879,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * For each edge going into this layer of nodes, add bends to it if it
      * currently overlaps some nodes inappropriately.
@@ -896,7 +893,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
                 if (!(e.a() instanceof GraphNode)) {
                     new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
                 }
-                GraphNode a = (GraphNode)e.a();
+                GraphNode a = (GraphNode) e.a();
                 if (a.x() <= left) {
                     for (int j = i - 1; j >= 0; j--) { // This edge goes from top-left to bottom-right
                         GraphNode c = bottom.get(j);
@@ -920,7 +917,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Returns true if a direct line between a and b will not intersect any
      * other node.
@@ -942,12 +939,12 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         return true;
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * (Re-)perform the layout.
      */
     public void layout() {
-        
+
         // The rest of the code below assumes at least one node, so we return right away if nodes.size()==0
         if (nodes.size() == 0) {
             return;
@@ -1005,12 +1002,12 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
 
         relayout_edges(true);
 
-      // Since we're doing layout for the first time, we need to explicitly set top and bottom, since
+        // Since we're doing layout for the first time, we need to explicitly set top and bottom, since
         // otherwise "recalcBound" will merely "extend top and bottom" as needed.
         recalcBound(true);
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Re-establish top/left/width/height.
      */
@@ -1088,7 +1085,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Assuming everything was laid out already, but at least one node just
      * moved, this re-layouts ALL edges.
@@ -1103,7 +1100,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
                         if (!(e1.a() instanceof GraphNode) || !(e2.b() instanceof GraphNode)) {
                             throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
                         }
-                        if (!free((GraphNode)e1.a(), (GraphNode)e2.b())) {
+                        if (!free((GraphNode) e1.a(), (GraphNode) e2.b())) {
                             continue;
                         }
                         double slope = (e2.b().x() - e1.a().x()) / ((double) (e2.b().y() - e1.a().y()));
@@ -1120,12 +1117,12 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
                     if (!(e.a() instanceof GraphNode)) {
                         throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
                     }
-                    GraphNode a = (GraphNode)e.a(), b;
+                    GraphNode a = (GraphNode) e.a(), b;
                     for (GraphEdge ee = e;;) {
                         if (!(ee.b() instanceof GraphNode)) {
                             throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
                         }
-                        b = (GraphNode)ee.b();
+                        b = (GraphNode) ee.b();
                         if (b.shape() != null) {
                             break;
                         }
@@ -1139,7 +1136,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
                         if (!(ee.b() instanceof GraphNode)) {
                             throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
                         }
-                        b = (GraphNode)ee.b();
+                        b = (GraphNode) ee.b();
                         if (b.shape() != null) {
                             break;
                         }
@@ -1207,7 +1204,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Assuming everything was laid out already, but nodes in layer[i] just
      * moved horizontally, this re-layouts edges to+from layer i.
@@ -1257,10 +1254,10 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
-     * Locates the node or edge at the given (X,Y) location.
-     * If the node contains a subgraph, we have to return the contained Object.
+     * Locates the node or edge at the given (X,Y) location. If the node
+     * contains a subgraph, we have to return the contained Object.
      */
     public Object find(double scale, int mouseX, int mouseY) {
         int h = getTop() + 10 - ad;
@@ -1284,23 +1281,23 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
                 // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.
                 Object subFind = null;
                 if (n.hasChild()) {
-                  subFind = n.getSubGraph().subFind(scale, x - (double)n.x(), y - (double)n.y());
+                    subFind = n.getSubGraph().subFind(scale, x - (double) n.x(), y - (double) n.y());
                 }
-                if (subFind == null){
-                  return n;
-                }else{
-                  return subFind;
+                if (subFind == null) {
+                    return n;
+                } else {
+                    return subFind;
                 }
             }
             if (n.contains(x, y)) {
                 Object subFind = null;
-               if (n.hasChild()) {
-                  subFind = n.getSubGraph().subFind(scale, x - (double)n.x(), y - (double)n.y());
+                if (n.hasChild()) {
+                    subFind = n.getSubGraph().subFind(scale, x - (double) n.x(), y - (double) n.y());
                 }
-                if (subFind == null){
-                  return n;
-                }else{
-                  return subFind;
+                if (subFind == null) {
+                    return n;
+                } else {
+                    return subFind;
                 }
             }
         }
@@ -1332,7 +1329,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
 
     //This will be use for recursive find (in order to find the deepest node at this x and y).
     public Object subFind(double scale, double x, double y) {
-      int h = getTop() + 10 - ad;
+        int h = getTop() + 10 - ad;
         x = x / scale + getLeft();
         y = y / scale + getTop();
         for (Map.Entry<Comparable<?>, Pair<String, Color>> e : legends.entrySet()) {
@@ -1354,23 +1351,39 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
                 // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.
                 Object subFind = null;
                 if (n.hasChild()) {
-                  subFind = n.getSubGraph().subFind(scale, x - (double)n.x(), y - (double)n.y());
+                    subFind = n.getSubGraph().subFind(scale, x - (double) n.x(), y - (double) n.y());
                 }
+<<<<<<< HEAD
                 if (subFind == null){
                   return n;
                 }else{
                   return subFind;
+=======
+                if (subFind == null) {
+                    return n;
+                } else {
+                    System.out.println("subFound: " + subFind);
+                    return subFind;
+>>>>>>> b321a809933980abff5e1207b71891e64e942a42
                 }
             }
             if (n.contains(x, y)) {
                 Object subFind = null;
-               if (n.hasChild()) {
-                  subFind = n.getSubGraph().subFind(scale, x - (double)n.x(), y - (double)n.y());
+                if (n.hasChild()) {
+                    subFind = n.getSubGraph().subFind(scale, x - (double) n.x(), y - (double) n.y());
                 }
+<<<<<<< HEAD
                 if (subFind == null){
                   return n;
                 }else{
                   return subFind;
+=======
+                if (subFind == null) {
+                    return n;
+                } else {
+                    System.out.println("subFound: " + subFind);
+                    return subFind;
+>>>>>>> b321a809933980abff5e1207b71891e64e942a42
                 }
             }
         }
@@ -1399,13 +1412,15 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         }
         return null;
     }
-   //============================================================================================================================//
-		/**
+
+    //============================================================================================================================//
+
+    /**
      * Assuming layout has been performed, this draws the graph with the given
      * magnification scale.
      */
     void draw(Artist gr, double scale, Object highlight, boolean showLegends) {
-				if (nodes.size() == 0) {
+        if (nodes.size() == 0) {
             return; // The rest of this procedure assumes there is at least one node
         }
         Object group = null;
@@ -1424,12 +1439,12 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
             if (!(highFirstEdge.a() instanceof GraphNode) || !(highLastEdge.b() instanceof GraphNode)) {
                 throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
             }
-            highFirstNode = (GraphNode)highFirstEdge.a();
-            highLastNode = (GraphNode)highLastEdge.b();
+            highFirstNode = (GraphNode) highFirstEdge.a();
+            highLastNode = (GraphNode) highLastEdge.b();
         } else if (!(highlight instanceof GraphNode) && highlight != null) {
             group = highlight;
         }
-      // Since drawing an edge will automatically draw all segments if they're connected via dummy nodes,
+        // Since drawing an edge will automatically draw all segments if they're connected via dummy nodes,
         // we must make sure we only draw out edges from non-dummy-nodes
         // Draws the unselected edges
         int maxAscent = Artist.getMaxAscent();
@@ -1519,7 +1534,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Helper method that encodes a String for printing into a DOT file.
      */
@@ -1538,7 +1553,7 @@ System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
         return out.toString();
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Returns a DOT representation of this graph.
      */

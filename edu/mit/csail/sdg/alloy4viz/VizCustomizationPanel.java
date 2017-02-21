@@ -601,6 +601,12 @@ public final class VizCustomizationPanel extends JPanel {
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
+        
+        // If we are in a containing relation, then show as arc doesn't work anymore
+        String s = (container.getSelectedItem() != null) ? container.getSelectedItem().toString() : "None";
+        if ( !s.equals("None") ) {
+            visible.setEnabled(false);
+        }
     }
 
     //=============================================================================================================//
