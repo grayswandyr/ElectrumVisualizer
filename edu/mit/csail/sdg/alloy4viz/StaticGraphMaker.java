@@ -500,10 +500,6 @@ public final class StaticGraphMaker {
      */
     private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori) {
         
-        if (!view.labelVisible(atom, instance)) {
-            return null;
-        }
-        
         GraphPort port = atom2port.get(atom);
         
         // Create the port if it does not exist
@@ -569,6 +565,9 @@ public final class StaticGraphMaker {
             // Default shape
             port.setShape(DotShape.BOX);
         }
+        
+        // Set the label visibility
+        port.setHideLabel(!view.labelVisible.resolve(rel));
         
         return port;
     }
