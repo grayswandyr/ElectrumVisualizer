@@ -755,14 +755,14 @@ public class GraphPort extends AbstractGraphNode {
                 if (this.orientation.equals(Orientation.North)) {
                     transY = -this.radius - TooltipOffset;
                 } else {//Orientation = South
-                    transY = this.radius + TooltipOffset + width;
+                    transY = this.radius + TooltipOffset + (int)s.getWidth();
                 }
             } else if (this.orientation.equals(Orientation.West) || this.orientation.equals(Orientation.East)) {
                 transY = -s.height / 2;
                 if (this.orientation.equals(Orientation.East)) {
                     transX = this.radius + TooltipOffset;
                 } else {//Orientation = West
-                    transX = -this.radius - TooltipOffset - width;
+                    transX = -this.radius - TooltipOffset - (int)s.getWidth();
                 }
             }
         } else {
