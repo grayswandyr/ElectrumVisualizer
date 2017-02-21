@@ -735,7 +735,8 @@ public final class VizState {
         }
         
         
-        /** [N7] @Julien Richer
+        /**
+         * [N7] @Julien Richer
          * Prints the map in the console
          */
         public void printMap() {
