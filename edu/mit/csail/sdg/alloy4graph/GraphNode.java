@@ -373,7 +373,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * @return the father
      */
     public GraphNode getFather() {
-        return (father == null) ? this : father;
+        return father;
     }
 
     /**

@@ -561,10 +561,12 @@ public final strictfp class Graph {
      */
     public void layoutSubGraph(GraphNode father) {
         //================================= Creation of the subGraph layers ================================================= //
-        
         // This is the set containing all the children of the father node
         HashSet<GraphNode> children = father.getChildren();
 
+String s = ""; 
+for (GraphNode n : children){ s = s + "\n  " + n.uuid + ":(" + n.x() + ";" + n.y() + ")";} 
+System.out.println("Before layoutsubGraph:"+s);
         //TODO Retrieve the relations between the nodes and constructs the layers
         
         // The height and the width of the current child
@@ -628,6 +630,7 @@ public final strictfp class Graph {
         int nbLayers = nodaList.size();
         
         // The arrays containing the width and the height of each layer
+        layerPH = new int[nbLayers];  
         int[] layerWidth = new int[nbLayers];
         Arrays.fill(layerWidth, GraphNode.xJumpNode); // We have to consider the little space between the edge of the father node and the layer
         int[] layerHeight = new int[nbLayers];
@@ -699,9 +702,13 @@ public final strictfp class Graph {
                 startX += (childList.size() > 1) ? child.getWidth()/2 + GraphNode.xJumpNode : 0;
             }
             
+            layerPH[layer] = maxHeight;
             startY -= maxHeight/2 + GraphNode.yJumpNode;
         }
-    }
+s = ""; 
+for (GraphNode n : children){ s = s + "\n  " + n.uuid + ":(" + n.x() + ";" + n.y() + ")";} 
+System.out.println("\nAfter layoutsubGraph:"+s+"\n\n");
+   }
     
     /** 
      * [N7-M Quentin, R Bossut]
@@ -1352,7 +1359,6 @@ public final strictfp class Graph {
                 if (subFind == null){
                   return n;
                 }else{
-System.out.println("subFound: " + subFind);
                   return subFind;
                 }
             }
@@ -1364,7 +1370,6 @@ System.out.println("subFound: " + subFind);
                 if (subFind == null){
                   return n;
                 }else{
-System.out.println("subFound: " + subFind);
                   return subFind;
                 }
             }
