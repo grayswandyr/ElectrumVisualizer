@@ -331,7 +331,15 @@ public class GraphPort extends AbstractGraphNode {
      */
     private int order;
     
+    /**
+     * Is the port hovered.
+     */
     private boolean hovered = false;
+    
+    /**
+     * Shall we hide labels.
+     */
+    private boolean hideLabel = true;
     
     /// Label ///
     /**
@@ -725,7 +733,12 @@ public class GraphPort extends AbstractGraphNode {
     /**
      * Draw the port's label as a tooltip.
      */
-    public void drawTooltip(Artist gr, double scale, boolean force) {
+    public void drawTooltip(Artist gr, double scale) {
+        // We draw the tool tip iff the label is not hidden or the label is hovered
+        // So we exit if not(not(hideLabel) \/ hovered) = hideLabel /\ not(hovered)
+        if (!this.hovered && this.hideLabel)
+            return;
+        
         Rectangle2D rect = Artist.getBounds(this.getFontBoldness(), this.label);
         int width = (int)rect.getWidth(), height = (int)rect.getHeight();
         
@@ -735,7 +748,7 @@ public class GraphPort extends AbstractGraphNode {
         int transX = 0, transY = 0;
         double rotateAngle = 0.0;
         
-        if (force) {
+        if (!this.hideLabel) {
             if (this.orientation.equals(Orientation.North) || this.orientation.equals(Orientation.South)) {
                 transX = -s.height / 2;
                 rotateAngle = - Math.PI / 2.0;
@@ -931,6 +944,10 @@ public class GraphPort extends AbstractGraphNode {
     
     public void setHovered(boolean h) {
         this.hovered = h;
+    }
+    
+    public void setHideLabel(boolean h) {
+        this.hideLabel = h;
     }
     
     @Override
