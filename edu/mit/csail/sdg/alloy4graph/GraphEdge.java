@@ -179,39 +179,39 @@ public final strictfp class GraphEdge {
         this(from, to, uuid, label, false, true, null, null, group);
     }
 
-		//[N7-R.Bossut, M.Quentin]
-		/**
-		 * Create a copy of the given edge, between nodes from and to.
-		 */
-		public GraphEdge(GraphEdge toBeCopied, AbstractGraphNode to, AbstractGraphNode from){
-			//Copy attributes.
-			this.uuid = toBeCopied.uuid;
-			this.group = toBeCopied.group;
-			this.label = toBeCopied.label;
-			this.ahead = toBeCopied.ahead;
-			this.bhead = toBeCopied.bhead;
-			this.style = toBeCopied.style;
-			this.color = toBeCopied.color;
-			//Create a new labelebox.
-			if (this.label.length() > 0) {
+    //[N7-R.Bossut, M.Quentin]
+    /**
+     * Create a copy of the given edge, between nodes from and to.
+     */
+    public GraphEdge(GraphEdge toBeCopied, AbstractGraphNode to, AbstractGraphNode from) {
+        //Copy attributes.
+        this.uuid = toBeCopied.uuid;
+        this.group = toBeCopied.group;
+        this.label = toBeCopied.label;
+        this.ahead = toBeCopied.ahead;
+        this.bhead = toBeCopied.bhead;
+        this.style = toBeCopied.style;
+        this.color = toBeCopied.color;
+        //Create a new labelebox.
+        if (this.label.length() > 0) {
             Rectangle2D box = getBounds(false, label);
             labelbox = new AvailableSpace.Box(0, 0, (int) box.getWidth(), (int) box.getHeight());
         } else {
             labelbox = new AvailableSpace.Box(0, 0, 0, 0);
         }
-			//Set from and to nodes. 
-			this.a = from;
-			this.b = to;
-      //Add this edge to nodes.
-			if (a == b) {
-          a.selfs.add(this);
-      } else {
-          a.outs.add(this);
-          b.ins.add(this);
-      }
-			//Add this to the graph.
-      a.graph.edgelist.add(this);
-		}
+        //Set from and to nodes. 
+        this.a = from;
+        this.b = to;
+        //Add this edge to nodes.
+        if (a == b) {
+            a.selfs.add(this);
+        } else {
+            a.outs.add(this);
+            b.ins.add(this);
+        }
+        //Add this to the graph.
+        a.graph.edgelist.add(this);
+    }
 
     /**
      * Returns the "from" node.
@@ -267,19 +267,19 @@ public final strictfp class GraphEdge {
         }
     }
 
-		/** 
-		 * Returns the a node of the edge.
-		 */
-		public AbstractGraphNode getA(){
-			return a;
-		}
+    /**
+     * Returns the a node of the edge.
+     */
+    public AbstractGraphNode getA() {
+        return a;
+    }
 
-		/** 
-		 * Returns the a node of the edge.
-		 */
-		public AbstractGraphNode getB(){
-			return b;
-		}
+    /**
+     * Returns the a node of the edge.
+     */
+    public AbstractGraphNode getB() {
+        return b;
+    }
 
     /**
      * Return the X coordinate of the top-left corner of the label box.
@@ -435,6 +435,37 @@ public final strictfp class GraphEdge {
                 e.labelbox.y = (int) (ay - getBounds(false, e.label()).getHeight() / 2);
                 break;
             }
+        } else if (a.graph != b.graph) { //if the edge is between two nodes from different graphes
+            // TODO: Adapt the code to create the path between two nodes from different graphes
+            int i = 0, n = 0;
+            for (GraphEdge e : a.outs) {
+                if (e == this) {
+                    i = n++;
+                } else if (e.b == b) {
+                    n++;
+                }
+            }
+            //double cx = ((GraphNode) b).getFather().x(), cy = ((GraphNode) b).getFather().y(), bx = (ax + cx) / 2, by = (ay + cy) / 2;
+            double cx = - b.x() + ((GraphNode) b).getFather().x(), cy = - b.y() + ((GraphNode) b).getFather().y(), bx = (ax + cx) / 2, by = (ay + cy) / 2;
+            path = new Curve(ax, ay);
+            if (n > 1 && (n & 1) == 1) {
+                if (i < n / 2) {
+                    bx = bx - (n / 2 - i) * 10;
+                } else if (i > n / 2) {
+                    bx = bx + (i - n / 2) * 10;
+                }
+                path.lineTo(bx, by).lineTo(cx, cy);
+            } else if (n > 1) {
+                if (i < n / 2) {
+                    bx = bx - (n / 2 - i) * 10 + 5;
+                } else {
+                    bx = bx + (i - n / 2) * 10 + 5;
+                }
+                path.lineTo(bx, by).lineTo(cx, cy);
+            } else {
+                path.lineTo(cx, cy);
+            }
+
         } else {
             int i = 0, n = 0;
             for (GraphEdge e : a.outs) {
@@ -583,21 +614,22 @@ public final strictfp class GraphEdge {
                 gr.translate(left, top);
                 if (highEdge == null && highGroup == null && label.length() > 0) {
                     drawLabel(gr, color, null);
-                } else if (((GraphNode) this.a).getFather() != null || ((GraphNode) this.b).getFather() != null){
-                    this.set(false,true); // It is supposed to set the Arrowhead
+                } else if (((GraphNode) this.a).getFather() != null || ((GraphNode) this.b).getFather() != null) {
+                    this.set(false, true); // It is supposed to set the Arrowhead
                     drawLabel(gr, color, null);
                 }
                 drawArrowhead(gr, scale, highEdge, highGroup);
             }
-        // If we are drawing an edge between a node from the graph, and a node from one of its subgraph
+            // If we are drawing an edge between a node from the graph, and a node from one of its subgraph
         } else {
-            /*
+
             if (style != DotStyle.BLANK) {
-                GraphNode aaux = ((GraphNode) a).getFather();
-                GraphNode baux = ((GraphNode) b).getFather();
-                final int top = aaux.graph.getTop(), left = aaux.graph.getLeft();
-                //final int top = a.graph.getTop(), left = a.graph.getLeft();
+                final int top = (((GraphNode) a).getFather() != null) ? b.graph.getTop() : a.graph.getTop(), left = (((GraphNode) a).getFather() != null) ? b.graph.getLeft() : a.graph.getLeft();
+                final int subTop = (((GraphNode) a).getFather() != null) ? a.graph.getTop() : b.graph.getTop(), subLeft = (((GraphNode) a).getFather() != null) ? a.graph.getLeft() : b.graph.getLeft();
+
                 gr.translate(-left, -top);
+                gr.translate(-subLeft, -subTop);
+
                 if (highEdge == this) { // Change the color of the selected edge and turn it into a bold edge
                     gr.setColor(color);
                     gr.set(DotStyle.BOLD, scale);
@@ -614,28 +646,36 @@ public final strictfp class GraphEdge {
                     // Concatenate this path and its connected segments into a single VizPath object, then draw it
                     Curve p = null;
                     GraphEdge e = this;
-                    while (((GraphNode) e.a).getFather().shape() == null) {
-                        e = aaux.ins.get(0);
-                        //e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
-                    }
-                    while (true) {
-                        p = (p == null) ? e.path() : p.join(e.path());
-                        if (((GraphNode) e.b).getFather().shape() != null) {
-                            break;
-                        }
-                        e = baux.outs.get(0);
-                        //e = e.b.outs.get(0);
-                    }
+                    /*
+                     while (e.a.shape() == null) {
+                     e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
+                     }
+                     while (true) {
+                     p = (p == null) ? e.path() : p.join(e.path());
+                     if (e.b.shape() != null) {
+                     break;
+                     }
+                     e = e.b.outs.get(0);
+                     }*/
+
+                    p = e.path();
+                    //e = e.b.outs.get(0);
+                    //p.join(e.path());
+
                     gr.drawSmoothly(p);
                 }
+
                 gr.set(DotStyle.SOLID, scale);
+                gr.translate(subLeft, subTop);
                 gr.translate(left, top);
+
                 if (highEdge == null && highGroup == null && label.length() > 0) {
                     drawLabel(gr, color, null);
                 }
                 drawArrowhead(gr, scale, highEdge, highGroup);
+
             }
-            */
+
         }
     }
 
