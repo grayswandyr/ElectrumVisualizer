@@ -516,13 +516,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.translate(left - x(), top - y());
     }
     
-    public void drawTooltips(Artist gr, boolean showAllPorts) {
+    public void drawTooltips(Artist gr) {
         final int top = graph.getTop(), left = graph.getLeft();
         gr.set(this.getStyle(), 1.0);
         gr.translate(x() - left, y() - top);
         for (GraphPort gp : this.ports) {
-            if (gp.hovered() || showAllPorts)
-                gp.drawTooltip(gr, 0.5, showAllPorts);
+            gp.drawTooltip(gr, 0.5);
         }
         gr.translate(left - x(), top - y());
     }

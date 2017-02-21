@@ -1334,7 +1334,7 @@ public final strictfp class Graph {
         // [N7-G.Dupont] Draw tooltips
         gr.setTransform(at); // Reset transformation
         for (GraphNode gn : this.nodelist) {
-            gn.drawTooltips(gr, this.showPortsLabels);
+            gn.drawTooltips(gr);
         }
     }
 

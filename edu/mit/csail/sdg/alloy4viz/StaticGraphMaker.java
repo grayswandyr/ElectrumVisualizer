@@ -79,6 +79,7 @@ public final class StaticGraphMaker {
     private final Map<GraphNode, AlloyAtom> nodes = new LinkedHashMap<GraphNode, AlloyAtom>();
     
     /**
+     * [N7] @Julien Richer
      * The map that contains all nodes and what the AlloyAtom that each port
      * corresponds to.
      */
