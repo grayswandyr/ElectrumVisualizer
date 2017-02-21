@@ -63,6 +63,7 @@ import edu.mit.csail.sdg.alloy4viz.VizState;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import javax.swing.JCheckBoxMenuItem;
 
 /**
  * This class displays the graph.
@@ -256,10 +257,13 @@ public final strictfp class GraphViewer extends JPanel {
         final JMenuItem zoomOut = new JMenuItem("Zoom Out");
         final JMenuItem zoomToFit = new JMenuItem("Zoom to Fit");
         final JMenuItem print = new JMenuItem("Export to PNG or PDF");
+        
         pop.add(zoomIn);
         pop.add(zoomOut);
         pop.add(zoomToFit);
+        pop.addSeparator();
         pop.add(print);
+        
         ActionListener act = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Container c = getParent();
@@ -300,6 +304,7 @@ public final strictfp class GraphViewer extends JPanel {
                         scale = scale2;
                     }
                 }
+                
                 alloyRepaint();
             }
         };
