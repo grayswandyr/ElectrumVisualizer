@@ -631,7 +631,7 @@ public final class VizState {
     public final MMap<DotShape> portShape = new MMap<DotShape>();
     
     // Ports labels visible
-    public final MMap<Boolean> labelVisible = new MMap<Boolean>(true,false);
+    public final MMap<Boolean> labelVisible = new MMap<Boolean>(true, false);
     
 
     public final class MInt {

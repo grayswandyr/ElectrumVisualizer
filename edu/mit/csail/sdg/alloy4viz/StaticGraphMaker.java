@@ -515,6 +515,7 @@ public final class StaticGraphMaker {
      * yet).
      */
     private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori) {
+
         if (node == null) {
             return null;
         }
@@ -584,6 +585,9 @@ public final class StaticGraphMaker {
             // Default shape
             port.setShape(DotShape.BOX);
         }
+        
+        // Set the label visibility
+        port.setHideLabel(!view.labelVisible.resolve(rel));
         
         return port;
     }

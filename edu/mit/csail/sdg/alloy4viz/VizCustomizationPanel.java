@@ -677,7 +677,7 @@ public final class VizCustomizationPanel extends JPanel {
         
         
         // Checkbox to set/unset ports labels visible
-        OurCheckbox portLabel = vizState.labelVisible.pick(rel, "Hide port label", "Set or unset ports labels visible");
+        OurCheckbox portLabel = vizState.labelVisible.pick(rel, "Show ports labels", "Set ports labels visibility");
         
         
         // Initialization of the ports settings activation
@@ -688,7 +688,7 @@ public final class VizCustomizationPanel extends JPanel {
         
         
         // Checkbox to define relations as ports relations
-        OurCheckbox port = vizState.isPort.pick(rel, "Show as port", "Define the relation as a node/port relation", new VizState.Callback<Boolean>() {
+        OurCheckbox port = vizState.isPort.pick(rel, "Show as ports", "Define the relation as a node/port relation", new VizState.Callback<Boolean>() {
             public void call(Boolean a) {
                 orientBox.setEnabled(a);
                 colorBox.setEnabled(a);
