@@ -27,7 +27,7 @@ import javax.swing.JPanel;
 
 import edu.mit.csail.sdg.alloy4.ErrorFatal;
 import edu.mit.csail.sdg.alloy4.Util;
-import edu.mit.csail.sdg.alloy4graph.Artist;
+import edu.mit.csail.sdg.alloy4graph.AbstractGraphNode;
 import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotDirection;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
@@ -210,6 +210,8 @@ public final class StaticGraphMaker {
          * For each portRelation :
          * Add the non port atom to the box list
          * And keep to which port they are connected (Hashmap)
+         * 
+         * WARNING : ArrayList becomes a reserved group type for Edges linked with ports
          */
         
         // List of GraphRelations that link a node, one of its ports and the relation between them
@@ -280,22 +282,28 @@ public final class StaticGraphMaker {
                         if(atomStart!=null && atomEnd!=null && relStart!=null && relEnd!=null) {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            GraphPort startPort = null;
+                            GraphPort endPort = null;
                             
                             // Output port
                             if (startNode != null) {
                                 Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
-                                createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
+                                startPort = createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
                             }
                             
                             // Input port
                             if (endNode != null) {
                                 Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
-                                createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                                endPort = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
                             }
 
                             // Create the blank edge between the 2 nodes connected through the 2 ports
-                            if (startNode != null && endNode != null)
-                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
+                            if (startNode != null && endNode != null){
+                                ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
+                                couple.add(startPort);
+                                couple.add(endPort);
+                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                            }
                         }
                     }
                     // Check that start is a node and end is a port
@@ -317,17 +325,22 @@ public final class StaticGraphMaker {
                         if(atomStart!=null && atomEnd!=null && relEnd!=null) {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
-                            
+                            GraphPort endPort = null;
+     
                             // Input port
                             if (endNode != null) {
                                 Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
-                                GraphPort port = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
-                                setPortColor(port,rel,magicol);
+                                endPort = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                                setPortColor(endPort,rel,magicol);
                             }
 
                             // Create the blank edge between the 2 nodes connected through the port
-                            if (startNode != null && endNode != null)
-                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
+                            if (startNode != null && endNode != null){
+                                ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
+                                couple.add(startNode);
+                                couple.add(endPort);
+                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                            }
                         }
                     }
                     // Check that start is a port and end is a node
@@ -349,17 +362,22 @@ public final class StaticGraphMaker {
                         if(atomStart!=null && atomEnd!=null && relStart!=null) {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            GraphPort startPort = null;
                             
                             // Output port
                             if (startNode != null) {
                                 Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
-                                GraphPort port = createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
-                                setPortColor(port,rel,magicol);
+                                startPort = createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
+                                setPortColor(startPort,rel,magicol);
                             }
 
                             // Create the blank edge between the 2 nodes connected through the port
-                            if (startNode != null && endNode != null)
-                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
+                            if (startNode != null && endNode != null){
+                                ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
+                                couple.add(startPort);
+                                couple.add(endNode);
+                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                            }
                         }
                     }
                 }

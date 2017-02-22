@@ -73,6 +73,11 @@ public class GraphPort extends AbstractGraphNode {
      * Defines the color for representing a selected port.
      */
     private static final Color COLOR_CHOSENNODE = Color.LIGHT_GRAY;
+
+    @Override
+    int layer() {
+        return node.layer();
+    }
     
     /**
      * This enumeration represents where is the port drawn.

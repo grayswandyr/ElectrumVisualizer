@@ -1208,11 +1208,10 @@ public final strictfp class Graph {
             while (highLastEdge.b().shape() == null) {
                 highLastEdge = highLastEdge.b().outs.get(0);
             }
-            if (!(highFirstEdge.a() instanceof GraphNode) || !(highLastEdge.b() instanceof GraphNode)) {
-                throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+            if ((highFirstEdge.a() instanceof GraphNode) && (highLastEdge.b() instanceof GraphNode)) {
+                highFirstNode = (GraphNode) highFirstEdge.a();
+                highLastNode = (GraphNode) highLastEdge.b();
             }
-            highFirstNode = (GraphNode) highFirstEdge.a();
-            highLastNode = (GraphNode) highLastEdge.b();
         } else if (!(highlight instanceof GraphNode) && highlight != null) {
             group = highlight;
         }

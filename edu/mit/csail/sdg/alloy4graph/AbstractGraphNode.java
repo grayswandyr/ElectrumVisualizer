@@ -171,4 +171,10 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      * @return the height of the element.
      */
     public abstract int getHeight();
+    
+    /**
+     * Gets the layer of the element
+     * @return number of the layer
+     */
+    abstract int layer();
 }
