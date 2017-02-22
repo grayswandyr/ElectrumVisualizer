@@ -550,7 +550,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         if (this.getStyle() != DotStyle.BLANK) { // Modified @Louis Fauvarque
             // Set the arrow head's size
             // [N7] @Julien Richer => doubled tipLength
-            final double tipLength = ad * 0.6D * 2D;
+            final double tipLength = ad * 0.6D * 1.5D;
             
             final int top = a.graph.getTop(), left = a.graph.getLeft();
             // Check to see if this edge is highlighted or not
