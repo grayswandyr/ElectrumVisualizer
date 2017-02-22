@@ -183,13 +183,8 @@ public final class StaticGraphMaker {
         //Creation of a Map to store atoms that are instances of a containment relation.
         // The key of the Map is an AlloyAtom which is the container of the containmentTuple.
         // The value is a List of List of AlloyAtoms; each List represents the rest of a containmentTuple (contained in key).
-        boolean isContainment;
         for (AlloyRelation rel : model.getRelations()) {
-            if (view.containmentRel.get(rel) == null)
-                isContainment = false;
-            else
-                isContainment = view.containmentRel.get(rel);
-            if (isContainment) {
+            if (view.containmentRel.resolve(rel)) {
                 //The relation is a containment one.
                 for (AlloyTuple tuple : instance.relation2tuples(rel)) {
                     ArrayList<AlloyAtom> atoms = new ArrayList<AlloyAtom>(tuple.getAtoms());
@@ -481,12 +476,7 @@ public final class StaticGraphMaker {
         AlloyAtom atomEnd = tuple.getEnd();
         int edgeArity = tuple.getArity();
         //Check if this is a containment relation.
-        boolean isContainment;
-        if (view.containmentRel.get(rel) == null)
-            isContainment = false;
-        else
-            isContainment = view.containmentRel.get(rel);
-        if (isContainment) {
+        if (view.containmentRel.resolve(rel)) {
             if (edgeArity < 3) {
                 //If there is only 2 atoms in the tuple and one of them is the container, we don't create any edge. 
                 return 0;
