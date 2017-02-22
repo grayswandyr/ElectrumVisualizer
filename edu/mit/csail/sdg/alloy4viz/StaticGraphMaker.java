@@ -821,7 +821,7 @@ public final class StaticGraphMaker {
         for (AlloyRelation eltA : portRelations) {
             if (eltA != null) {
                 List<AlloyType> lst = eltA.getTypes();
-                if (lst.contains(atom.getType()) && lst.indexOf(atom.getType()) == lst.lastIndexOf(atom.getType())) {
+                if (lst.contains(atom.getType()) && lst.indexOf(atom.getType()) == lst.lastIndexOf(atom.getType()) && lst.indexOf(atom.getType()) != 0) {
                     return true;
                 }
             }
