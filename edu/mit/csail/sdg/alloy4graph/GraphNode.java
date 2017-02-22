@@ -1021,8 +1021,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else {
             graph.relayout_edges(layer());
         }
-        if (father == null) graph.recalcBound(false);
-        else graph.recalcBoundSub(false);
+        graph.recalcBound(false);
     }
 
     //===================================================================================================
