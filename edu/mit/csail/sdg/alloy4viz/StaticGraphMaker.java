@@ -183,15 +183,18 @@ public final class StaticGraphMaker {
         //Creation of a Map to store atoms that are instances of a containment relation.
         // The key of the Map is an AlloyAtom which is the container of the containmentTuple.
         // The value is a List of List of AlloyAtoms; each List represents the rest of a containmentTuple (contained in key).
+        boolean isContainment;
         for (AlloyRelation rel : model.getRelations()) {
-            IndexedAlloyType containerType = view.subVisible.get(rel);
-            if (!(containerType == null)) {
+            if (view.containmentRel.get(rel) == null)
+                isContainment = false;
+            else
+                isContainment = view.containmentRel.get(rel);
+            if (isContainment) {
                 //The relation is a containment one.
-                int indexType = containerType.getIndex() - 1;
                 for (AlloyTuple tuple : instance.relation2tuples(rel)) {
                     ArrayList<AlloyAtom> atoms = new ArrayList<AlloyAtom>(tuple.getAtoms());
-                    AlloyAtom a = atoms.get(indexType);
-                    atoms.remove(indexType);
+                    AlloyAtom a = atoms.get(0);
+                    atoms.remove(0);
 
                     //containmentTuples
                     List<List<AlloyAtom>> otherTuples = containmentTuples.get(a);
@@ -477,23 +480,20 @@ public final class StaticGraphMaker {
         AlloyAtom atomStart = tuple.getStart();
         AlloyAtom atomEnd = tuple.getEnd();
         int edgeArity = tuple.getArity();
-        int indexContainer = -1;
-        IndexedAlloyType containerType = view.subVisible.get(rel);
         //Check if this is a containment relation.
-        if (!(containerType == null)) {
+        boolean isContainment;
+        if (view.containmentRel.get(rel) == null)
+            isContainment = false;
+        else
+            isContainment = view.containmentRel.get(rel);
+        if (isContainment) {
             if (edgeArity < 3) {
                 //If there is only 2 atoms in the tuple and one of them is the container, we don't create any edge. 
                 return 0;
             }
-            indexContainer = containerType.getIndex() - 1;
-            AlloyAtom containerAtom = tuple.getAtoms().get(indexContainer);
-            if (indexContainer == 0) {
-                //The container is the starting atom of the relation.
-                atomStart = tuple.getAtoms().get(1); //First atom after the container (starting atom for the edge).
-            } else if (indexContainer == edgeArity - 1) {
-                //The container is the ending atom of the relation.
-                atomEnd = tuple.getAtoms().get(edgeArity - 2);
-            }
+            AlloyAtom containerAtom = tuple.getAtoms().get(0);
+            //The container is the starting atom of the relation.
+            atomStart = tuple.getAtoms().get(1); //First atom after the container (starting atom for the edge).
             edgeArity--; //If we have to create an edge for a containment relation, the arity is 1 lower.
         }
 
@@ -523,14 +523,12 @@ public final class StaticGraphMaker {
                     // Label of the edge: if it represents a containment relation, we have to adapt the label.
                     // we do not add the label of the container in the [] of the label.
                     boolean comma = false;
-                    for (int i = 1; i < atoms.size() - 1; i++) {
-                        if (!(i == indexContainer)) {
-                            if (comma) {
-                                moreLabel.append(", ");
-                            }
-                            moreLabel.append(atomname(atoms.get(i), false));
-                            comma = true;
+                    for (int i = 2; i < atoms.size() - 1; i++) {
+                        if (comma) {
+                          moreLabel.append(", ");
                         }
+                        moreLabel.append(atomname(atoms.get(i), false));
+                        comma = true;
                     }
                     if (label.length() == 0) { /* label=moreLabel.toString(); */ } else {
                         label = label + (" [" + moreLabel + "]");

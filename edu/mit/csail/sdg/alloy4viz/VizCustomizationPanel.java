@@ -572,41 +572,25 @@ public final class VizCustomizationPanel extends JPanel {
                 vizState.edgeStyle.put(rel, (DotStyle) value);
             }
         };
-
-        OurCombobox container = new OurCombobox(true, rel.getIndexedTypes().toArray(), 100, 35, vizState.subVisible.get(rel)) { 			//[N7-M.Quentin]
-            private static final long serialVersionUID = 0;                                                                            //[N7-M.Quentin]
-
-            @Override
-            public String do_getText(Object value) {
-                return value == null ? "None" : ((IndexedAlloyType) value).toString();
-            }
-
-            ;  //[N7-M.Quentin]
-         @Override
-            public void do_changed(Object value) {
-                vizState.subVisible.put(rel, (IndexedAlloyType) value);
-            }
-        ;               //[N7-M.Quentin]
-        };                                                                                                                     				//[N7-M.Quentin]
-        JLabel containerLabel = OurUtil.label("Use as container:");                                                            				//[N7-M.Quentin]
-        JPanel containerPanel = OurUtil.makeH(containerLabel, 5, container);                                                   			 	//[N7-M.Quentin]
-        
         JPanel visible = vizState.edgeVisible.pick(rel, "Show as arcs", "Show relation as arcs");
         JPanel attr = vizState.attribute.pick(rel, "Show as attribute", "Additionally display this relation as an attribute on the nodes' labels");
         JPanel back = vizState.layoutBack.pick(rel, "Layout backwards", "Layout graph as if arcs were reversed");
         JPanel merge = vizState.mergeArrows.pick(rel, "Merge arrows", "Merge opposing arrows between the same nodes as one bidirectional arrow");
         JPanel constraint = vizState.constraint.pick(rel, "Influence layout", "Whether this edge influences the graph layout");
-        JPanel panel1 = OurUtil.makeVR(wcolor, containerPanel, visible, attr); //[N7-M.Quentin]
-        JPanel panel2 = OurUtil.makeVR(wcolor, constraint, back, merge); //[N7-M.Quentin]
+        JPanel contains = vizState.containmentRel.pick(rel, "Show as containment", "Show relation as containment relation.");
+       
+        JPanel panel1 = OurUtil.makeVR(wcolor, contains, visible, attr); //[N7-R.Bossut, M.Quentin]
+        JPanel panel2 = OurUtil.makeVR(wcolor, constraint, back, merge); //[N7-R.Bossut, M.Quentin]
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
-        
+       
+        /*
         // If we are in a containing relation, then show as arc doesn't work anymore
         String s = (container.getSelectedItem() != null) ? container.getSelectedItem().toString() : "None";
         if ( !s.equals("None") ) {
             visible.setEnabled(false);
-        }
+        }*/ //TODO redo this using contains.
     }
 
     //=============================================================================================================//
@@ -851,9 +835,10 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel constraintCBE = vizState.constraint.pick("Influence layout", "Whether this edge influences the graph layout");
         JPanel attrCBE = vizState.attribute.pick("Show as attributes", "Show relations as attributes on nodes");
         JPanel laybackCBE = vizState.layoutBack.pick("Layout backwards", "Layout graph as if arcs were reversed");
+        JPanel containsCBE = vizState.containmentRel.pick("Show as containment", "Show relations as containment relations.");
         parent.add(makelabel(" Default Relation Settings:"));
         parent.add(OurUtil.makeH(wcolor, 10, colorComboE, 8, outlineComboE, 2, null));
-        JPanel a = OurUtil.makeVL(wcolor, dispCBE, attrCBE, constraintCBE, 10), b = OurUtil.makeVL(wcolor, laybackCBE, mergeCBE);
+        JPanel a = OurUtil.makeVL(wcolor, dispCBE, attrCBE, constraintCBE, 10), b = OurUtil.makeVL(wcolor, laybackCBE, mergeCBE, containsCBE);
         parent.add(OurUtil.makeHT(wcolor, 10, a, 10, b, 2, null));
     }
 

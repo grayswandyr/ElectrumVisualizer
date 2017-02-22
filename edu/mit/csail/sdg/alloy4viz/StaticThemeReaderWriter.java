@@ -530,6 +530,10 @@ public final class StaticThemeReaderWriter {
         if (has(xml, "label")) {
             view.label.put(x, xml.getAttribute("label"));
         }
+        //[N7-G.Dupont]
+        if (has(xml, "iscontainer")) {
+            view.containmentRel.put(x, getbool(xml, "iscontainer"));
+        }
     }
 
     /**
@@ -545,6 +549,8 @@ public final class StaticThemeReaderWriter {
         writeBool(out, "layout", view.layoutBack.get(x), defaultView.layoutBack.get(x));
         writeBool(out, "attribute", view.attribute.get(x), defaultView.attribute.get(x));
         writeBool(out, "constraint", view.constraint.get(x), defaultView.constraint.get(x));
+        //[N7-G.Dupont]
+        writeBool(out, "iscontainer", view.containmentRel.get(x), defaultView.containmentRel.get(x));
         if (view.weight.get(x) != defaultView.weight.get(x)) {
             out.write(" weight=\"" + view.weight.get(x) + "\"");
         }
