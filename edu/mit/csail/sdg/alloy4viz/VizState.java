@@ -84,8 +84,9 @@ public final class VizState {
         edgeColor.putAll(old.edgeColor);
         edgeStyle.putAll(old.edgeStyle);
         edgeVisible.putAll(old.edgeVisible);
-        subVisible.putAll(old.subVisible); // [N7-M.Quentin]
-        depthMax = old.depthMax; //[N7-R.Bossut]
+        //[N7-R.Bossut, M.Quentin]
+        containmentRel.putAll(old.containmentRel);
+        depthMax = old.depthMax;
 	
         changedSinceLastSave = false;
     }
@@ -136,9 +137,10 @@ public final class VizState {
         edgeStyle.put(null, DotStyle.SOLID);
         edgeVisible.clear();
         edgeVisible.put(null, true);
-        subVisible.clear();
-        subVisible.put(null, null); // [N7-M.Quentin]
-        depthMax = 1; // [N7-R.Bossut]
+        //[N7-R.Bossut, M.Quentin]
+        containmentRel.clear();
+        containmentRel.put(null, false);
+        depthMax = 1;
 	
         // Provide some nice defaults for "Int" and "seq/Int" type
         AlloyType sigint = AlloyType.INT;
@@ -558,7 +560,7 @@ public final class VizState {
     public final MMap<DotStyle> nodeStyle = new MMap<DotStyle>();
     public final MMap<DotStyle> edgeStyle = new MMap<DotStyle>();
     public final MMap<DotShape> shape = new MMap<DotShape>();
-    public final MMap<IndexedAlloyType> subVisible = new MMap<IndexedAlloyType>(); //[N7-<Quentin>]
+    public final MMap<Boolean> containmentRel = new MMap<Boolean>(true, false); //[N7-R.Bossut, M.Quentin]
     public final MMap<Boolean> attribute = new MMap<Boolean>(true, false);
     public final MMap<Boolean> mergeArrows = new MMap<Boolean>(true, false);
     public final MMap<Boolean> constraint = new MMap<Boolean>(true, false);
