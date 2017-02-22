@@ -1039,6 +1039,10 @@ public final strictfp class Graph {
             e.layout_arrowHead();
             e.repositionLabel(sp);
         }
+        for(GraphEdge e : portEdges){
+            e.layout_arrowHead();
+            e.repositionLabel(sp);
+        }
     }
 
     //============================================================================================================================//
