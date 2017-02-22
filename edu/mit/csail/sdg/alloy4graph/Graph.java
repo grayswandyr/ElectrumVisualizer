@@ -1075,6 +1075,7 @@ public final strictfp class Graph {
      * Re-establish top/left/width/height for a subgraph.
      */
     public void recalcBoundSub(boolean fresh){
+System.out.println("BEFORE recalcBoundSub(): top="+top+" ; left="+left+" ; Height="+totalHeight+" ; Width="+totalWidth);
         if (nodes.size() == 0) {
             top = 0;
             bottom = 10;
@@ -1094,10 +1095,12 @@ public final strictfp class Graph {
         int maxX = nodes.get(0).x() + nodes.get(0).getWidth() / 2 + nodes.get(0).getReserved() + 5;
         for (GraphNode n : nodes) {
             int min = n.x() - n.getWidth() / 2 - 5;
+System.out.println("   [" + n.uuid + "] min = " + min); 
             if (minX > min) {
                 minX = min;
             }
             int max = n.x() + n.getWidth() / 2 + n.getReserved() + 5;
+System.out.println("   [" + n.uuid + "] max = " + max); 
             if (maxX < max) {
                 maxX = max;
             }
@@ -1116,13 +1119,17 @@ public final strictfp class Graph {
         left = minX - 20;
         totalWidth = maxX - minX + 20;
         // Find the topmost and bottommost pixel
+        top = Integer.MAX_VALUE;
+        bottom = Integer.MIN_VALUE;
         for (int layer = layers() - 1; layer >= 0; layer--) {
             for (GraphNode n : layer(layer)) {
                 int ytop = n.y() - n.getHeight() / 2 - 5;
+//System.out.println("   [" + n.uuid + "] ytop = " + ytop); 
                 if (top > ytop) {
                     top = ytop;
                 }
                 int ybottom = n.y() + n.getHeight() / 2 + 5;
+//System.out.println("   [" + n.uuid + "] ybottom = " + ybottom); 
                 if (bottom < ybottom) {
                     bottom = ybottom;
                 }
@@ -1148,8 +1155,9 @@ public final strictfp class Graph {
                 totalHeight = legendHeight;
             }
         }
-        top = saveTop;
-        left = saveLeft;
+System.out.println("AFTER recalcBoundSub(): top="+top+" ; left="+left+" ; Height="+totalHeight+" ; Width="+totalWidth+"\n");
+        //top = saveTop;
+        //left = saveLeft;
     }
 
     //============================================================================================================================//

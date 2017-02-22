@@ -646,7 +646,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     private void drawRegular(Artist gr, double scale, boolean highlight) {
         final int top = graph.getTop(), left = graph.getLeft();
-        if (father != null) System.out.println("[" + uuid + "] top:" + top + "left:" + left); 
+//if (father != null) System.out.println("[" + uuid + "] top:" + top + "left:" + left); 
         gr.set(style, scale);
         gr.translate(x() - left, y() - top);
         gr.setFont(fontBold);
@@ -760,7 +760,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.draw(poly, true);
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
-
+       
+        subGraph.recalcBoundSub(false);
         subGraph.draw(gr, scale, uuid, true);
 
         /*
