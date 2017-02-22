@@ -681,7 +681,7 @@ public final strictfp class Graph {
             double left = a.x() - a.getWidth() / 2, right = a.x() - a.getWidth() / 2;
             for (GraphEdge e : a.outs) {
                 if (!(e.b() instanceof GraphNode) || !(e.a() instanceof GraphNode)) {
-                    break;
+                    continue;
                 }
                 GraphNode b = (GraphNode) e.b();
                 if (b.x() >= right) {
@@ -719,7 +719,7 @@ public final strictfp class Graph {
             double left = b.x() - b.getWidth() / 2, right = b.x() - b.getWidth() / 2;
             for (GraphEdge e : b.ins) {
                 if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
-                    break;
+                    continue;
                 }
                 GraphNode a = (GraphNode) e.a();
                 if (a.x() <= left) {
@@ -1054,6 +1054,11 @@ public final strictfp class Graph {
             for (GraphEdge e : n.selfs) {
                 e.resetPath();
                 e.layout_arrowHead();
+            }
+            for (GraphPort port : n.ports){
+                for (GraphEdge e : port.outs){
+                    e.resetPath();
+                }
             }
         }
         if (i > 0) {
