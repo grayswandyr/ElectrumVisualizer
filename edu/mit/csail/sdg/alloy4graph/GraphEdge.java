@@ -28,6 +28,7 @@ import static java.lang.StrictMath.toRadians;
 import java.awt.Color;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
@@ -452,6 +453,17 @@ public final strictfp class GraphEdge {
                 cy = b.y() + ((GraphNode) b).getFather().y() - ((GraphNode) b).getHeight() / 2;
                 bx = (ax + cx) / 2;
                 by = (ay + cy) / 2;
+            ///////////////////////// Find the intersection between the edge end and the graph ///////////////////////////
+            double a = (cy - ay) / (cx - ax), b = cy - ((cy - ay) / (cx - ax)) * cx;
+            for (int l = (int) Math.min(cx, ax); l < (int) Math.max(cx, ax); l++) {
+                for (GraphNode node : ((GraphNode) this.b).graph.nodes) {
+                    if (node.getBoundingBox(0, 0).contains(l, a*l+b)) {
+                        System.out.println("x: " + l + " y: " + a*l+b);
+                    }
+                }
+            }
+            
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////    
             } else {
                 bx = ax / 2;
                 by = ay / 2;

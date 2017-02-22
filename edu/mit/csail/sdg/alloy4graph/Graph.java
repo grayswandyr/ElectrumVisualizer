@@ -1424,12 +1424,6 @@ public final strictfp class Graph {
         } else if (!(highlight instanceof GraphNode) && highlight != null) {
             group = highlight;
         }
-        //Draws all the nodes first
-        for (GraphNode n : nodes) {
-            if (highFirstNode != n && highLastNode != n) {
-                n.draw(gr, scale, n == highlight);
-            }
-        }
         // Since drawing an edge will automatically draw all segments if they're connected via dummy nodes,
         // we must make sure we only draw out edges from non-dummy-nodes
         // Draws the unselected edges
@@ -1469,6 +1463,11 @@ public final strictfp class Graph {
                 highFirstEdge.draw(gr, scale, highFirstEdge, group);
             }
         }
+        for (GraphNode n : nodes) {
+            if (highFirstNode != n && highLastNode != n) {
+                n.draw(gr, scale, n == highlight);
+            }
+        }
         if (highFirstNode != null) {
             highFirstNode.draw(gr, scale, true);
         }
@@ -1478,6 +1477,12 @@ public final strictfp class Graph {
         if (highFirstEdge != null) {
             highFirstEdge.drawLabel(gr, highFirstEdge.color(), new Color(255, 255, 255, 160));
         }
+        //////////////////////////// Draw the hidden part of the edges /////////////////////////
+        
+        
+        
+        
+        ///////////////////////////////////////////////////////////////////////////////////////
         // show legends?
         if (!showLegends || legends.size() == 0) {
             return;
