@@ -86,7 +86,8 @@ public final class VizState {
         edgeVisible.putAll(old.edgeVisible);
         subVisible.putAll(old.subVisible); // [N7-M.Quentin]
         depthMax = old.depthMax; //[N7-R.Bossut]
-				changedSinceLastSave = false;
+	
+        changedSinceLastSave = false;
     }
 
     /**
@@ -138,7 +139,8 @@ public final class VizState {
         subVisible.clear();
         subVisible.put(null, null); // [N7-M.Quentin]
         depthMax = 1; // [N7-R.Bossut]
-				// Provide some nice defaults for "Int" and "seq/Int" type
+	
+        // Provide some nice defaults for "Int" and "seq/Int" type
         AlloyType sigint = AlloyType.INT;
         label.put(sigint, "");
         number.put(sigint, true);
@@ -477,9 +479,9 @@ public final class VizState {
         }
     }
 
-		/*============================================================================================*/
+    /*============================================================================================*/
     //[N7-R.Bossut]
-		/**
+    /**
      * The graph's maximum depth level that can be shown.
      */
     private int depthMax = 1;

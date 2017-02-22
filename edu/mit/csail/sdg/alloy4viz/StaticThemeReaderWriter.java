@@ -121,6 +121,10 @@ public final class StaticThemeReaderWriter {
         if (has(x, "fontsize")) {
             now.setFontSize(getint(x, "fontsize"));
         }
+        // [N7-G.Dupont]
+        if (has(x, "maxdepth")) {
+            now.setDepthMax(getint(x, "maxdepth"));
+        }
         if (has(x, "nodetheme")) {
             now.setNodePalette(parseDotPalette(x, "nodetheme"));
         }
@@ -185,6 +189,10 @@ public final class StaticThemeReaderWriter {
         }
         if (view.getFontSize() != defaultView.getFontSize()) {
             out.write(" fontsize=\"" + view.getFontSize() + "\"");
+        }
+        //[N7-G.Dupont]
+        if (view.getDepthMax() != defaultView.getDepthMax()) {
+            out.write(" maxdepth=\"" + view.getDepthMax() + "\"");
         }
         out.write(">\n");
         if (view.getProjectedTypes().size() > 0) {

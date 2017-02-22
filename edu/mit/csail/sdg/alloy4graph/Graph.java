@@ -1039,6 +1039,12 @@ public final strictfp class Graph {
         }
         left = minX - 20;
         totalWidth = maxX - minX + 20;
+        // [N7-R.Bossut, M.Quentin] TODO - maybe it will change.
+        // When in a subgraph, we have to find the min and the max, without taking the existing top and bottom in account.
+        if (nodes.get(0).getFather() != null){
+            top = Integer.MAX_VALUE;
+            bottom = Integer.MIN_VALUE;
+        }
         // Find the topmost and bottommost pixel
         for (int layer = layers() - 1; layer >= 0; layer--) {
             for (GraphNode n : layer(layer)) {
@@ -1074,87 +1080,6 @@ public final strictfp class Graph {
         }
     }
 
-
-    /** 
-     * Re-establish top/left/width/height for a subgraph.
-     */
-    public void recalcBoundSub(boolean fresh){
-        if (nodes.size() == 0) {
-            top = 0;
-            bottom = 10;
-            totalHeight = 10;
-            left = 0;
-            totalWidth = 10;
-            return;
-        }
-        int saveTop = top;
-        int saveLeft = left;
-        if (fresh) {
-            top = nodes.get(0).y() - nodes.get(0).getHeight() / 2 - 5;
-            bottom = nodes.get(0).y() + nodes.get(0).getHeight() / 2 + 5;
-        }
-        // Find the leftmost and rightmost pixel
-        int minX = nodes.get(0).x() - nodes.get(0).getWidth() / 2 - 5;
-        int maxX = nodes.get(0).x() + nodes.get(0).getWidth() / 2 + nodes.get(0).getReserved() + 5;
-        for (GraphNode n : nodes) {
-            int min = n.x() - n.getWidth() / 2 - 5;
-            if (minX > min) {
-                minX = min;
-            }
-            int max = n.x() + n.getWidth() / 2 + n.getReserved() + 5;
-            if (maxX < max) {
-                maxX = max;
-            }
-        }
-        for (GraphEdge e : edges) {
-            if (e.getLabelW() > 0 && e.getLabelH() > 0) {
-                int x1 = e.getLabelX(), x2 = x1 + e.getLabelW() - 1;
-                if (minX > x1) {
-                    minX = x1;
-                }
-                if (maxX < x2) {
-                    maxX = x2;
-                }
-            }
-        }
-        left = minX - 20;
-        totalWidth = maxX - minX + 20;
-        // Find the topmost and bottommost pixel
-        for (int layer = layers() - 1; layer >= 0; layer--) {
-            for (GraphNode n : layer(layer)) {
-                int ytop = n.y() - n.getHeight() / 2 - 5;
-                if (top > ytop) {
-                    top = ytop;
-                }
-                int ybottom = n.y() + n.getHeight() / 2 + 5;
-                if (bottom < ybottom) {
-                    bottom = ybottom;
-                }
-            }
-        }
-        totalHeight = bottom - top;
-        int widestLegend = 0, legendHeight = 30;
-        for (Pair<String, Color> e : legends.values()) {
-            if (e.b == null) {
-                continue; // that means this legend is not visible
-            }
-            int widthOfLegend = (int) getBounds(true, e.a).getWidth();
-            if (widestLegend < widthOfLegend) {
-                widestLegend = widthOfLegend;
-            }
-            legendHeight += ad;
-        }
-        if (widestLegend > 0) {
-            left -= (widestLegend + 10);
-            totalWidth += (widestLegend * 2 + 10);
-            if (totalHeight < legendHeight) {
-                bottom = bottom + (legendHeight - totalHeight);
-                totalHeight = legendHeight;
-            }
-        }
-        top = saveTop;
-        left = saveLeft;
-    }
 
     //============================================================================================================================//
     /**
@@ -1401,8 +1326,8 @@ public final strictfp class Graph {
     //This will be use for recursive find (in order to find the deepest node at this x and y).
     public Object subFind(double scale, double x, double y) {
         int h = getTop() + 10 - ad;
-        x = x / scale + getLeft();
-        y = y / scale + getTop();
+        x = x / scale;
+        y = y / scale;
         for (Map.Entry<Comparable<?>, Pair<String, Color>> e : legends.entrySet()) {
             if (e.getValue().b == null) {
                 continue;
