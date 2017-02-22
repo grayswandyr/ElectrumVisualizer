@@ -138,7 +138,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         
         /**
          * [N7] @Louis Fauvarque
-         * Added the distinction between the normal edges and the edges 
+         * Added the distinction between the normal edges and the edges with ports
          */
         if (!(a instanceof GraphPort || b instanceof GraphPort)) {
             a.graph.edgelist.add(this);
