@@ -690,6 +690,10 @@ public final strictfp class Graph {
             layerPH[layer] = maxHeight;
             startY -= maxHeight/2 + GraphNode.yJumpNode;
         }
+        //relayout_edges(true);
+        left = -totalWidth/2;
+        top = -totalHeight/2;
+        recalcBound(false);
    }
     
     /** 
@@ -1495,6 +1499,12 @@ public final strictfp class Graph {
         } else if (!(highlight instanceof GraphNode) && highlight != null) {
             group = highlight;
         }
+        //Draws all the nodes first
+        for (GraphNode n : nodes) {
+            if (highFirstNode != n && highLastNode != n) {
+                n.draw(gr, scale, n == highlight);
+            }
+        }
         // Since drawing an edge will automatically draw all segments if they're connected via dummy nodes,
         // we must make sure we only draw out edges from non-dummy-nodes
         // Draws the unselected edges
@@ -1532,11 +1542,6 @@ public final strictfp class Graph {
             // Draws the selected edge
             if (highFirstEdge != null) {
                 highFirstEdge.draw(gr, scale, highFirstEdge, group);
-            }
-        }
-        for (GraphNode n : nodes) {
-            if (highFirstNode != n && highLastNode != n) {
-                n.draw(gr, scale, n == highlight);
             }
         }
         if (highFirstNode != null) {
