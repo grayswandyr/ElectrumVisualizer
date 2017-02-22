@@ -29,6 +29,7 @@ import java.awt.Color;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 
 /**
  * Mutable; represents a graphical edge.
@@ -445,15 +446,14 @@ public final strictfp class GraphEdge {
                     n++;
                 }
             }
-            //double cx = ((GraphNode) b).getFather().x(), cy = ((GraphNode) b).getFather().y(), bx = (ax + cx) / 2, by = (ay + cy) / 2;
             double cx = 0, cy = 0, bx = 0, by = 0;
             if (((GraphNode) b).getFather() != null) {
-                cx = - b.x() + ((GraphNode) b).getFather().x(); 
-                cy = - b.y() + ((GraphNode) b).getFather().y(); 
-                bx = (ax + cx) / 2; 
+                cx = b.x() + ((GraphNode) b).getFather().x();
+                cy = b.y() + ((GraphNode) b).getFather().y() - ((GraphNode) b).getHeight() / 2;
+                bx = (ax + cx) / 2;
                 by = (ay + cy) / 2;
             } else {
-                bx = ax / 2; 
+                bx = ax / 2;
                 by = ay / 2;
             }
             path = new Curve(ax, ay);
@@ -630,14 +630,14 @@ public final strictfp class GraphEdge {
                 drawArrowhead(gr, scale, highEdge, highGroup);
             }
             // If we are drawing an edge between a node from the graph, and a node from one of its subgraph
-        } else {
+        } else if (((GraphNode) a).getFather() == null ^ ((GraphNode) b).getFather() == null) {
 
             if (style != DotStyle.BLANK) {
                 final int top = (((GraphNode) a).getFather() != null) ? b.graph.getTop() : a.graph.getTop(), left = (((GraphNode) a).getFather() != null) ? b.graph.getLeft() : a.graph.getLeft();
                 final int subTop = (((GraphNode) a).getFather() != null) ? a.graph.getTop() : b.graph.getTop(), subLeft = (((GraphNode) a).getFather() != null) ? a.graph.getLeft() : b.graph.getLeft();
 
                 gr.translate(-left, -top);
-                gr.translate(-subLeft, -subTop);
+                //gr.translate(-subLeft, -subTop);
 
                 if (highEdge == this) { // Change the color of the selected edge and turn it into a bold edge
                     gr.setColor(color);
@@ -655,27 +655,23 @@ public final strictfp class GraphEdge {
                     // Concatenate this path and its connected segments into a single VizPath object, then draw it
                     Curve p = null;
                     GraphEdge e = this;
-                    /*
-                     while (e.a.shape() == null) {
-                     e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
-                     }
-                     while (true) {
-                     p = (p == null) ? e.path() : p.join(e.path());
-                     if (e.b.shape() != null) {
-                     break;
-                     }
-                     e = e.b.outs.get(0);
-                     }*/
 
-                    p = e.path();
-                    //e = e.b.outs.get(0);
-                    //p.join(e.path());
+                    while (e.a.shape() == null) {
+                        e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
+                    }
+                    while (true) {
+                        p = (p == null) ? e.path() : p.join(e.path());
+                        if (e.b.shape() != null) {
+                            break;
+                        }
+                        e = e.b.outs.get(0);
+                    }
 
                     gr.drawSmoothly(p);
                 }
 
                 gr.set(DotStyle.SOLID, scale);
-                gr.translate(subLeft, subTop);
+                //gr.translate(subLeft, subTop);
                 gr.translate(left, top);
 
                 if (highEdge == null && highGroup == null && label.length() > 0) {
@@ -684,7 +680,71 @@ public final strictfp class GraphEdge {
                 drawArrowhead(gr, scale, highEdge, highGroup);
 
             }
+            // If we are drawing an edge between two different subGraphes
+        } else {
+            /*
+             final ArrayList<Integer> leftList = new ArrayList<Integer>();
+             final ArrayList<Integer> topList = new ArrayList<Integer>();
+            
+             if (style != DotStyle.BLANK) {
+             //final int top = (((GraphNode) a).getFather() != null) ? b.graph.getTop() : a.graph.getTop(), left = (((GraphNode) a).getFather() != null) ? b.graph.getLeft() : a.graph.getLeft();
+             //final int subTop = (((GraphNode) a).getFather() != null) ? a.graph.getTop() : b.graph.getTop(), subLeft = (((GraphNode) a).getFather() != null) ? a.graph.getLeft() : b.graph.getLeft();
+                
+             int size = 0;
+             while (((GraphNode) a).getFather() != null) {
+             int left = ((GraphNode) a).getFather().graph.getLeft();
+             int top = ((GraphNode) a).getFather().graph.getTop();
+                    
+             gr.translate(-left, -top);
+             leftList.add(left);
+             topList.add(top);
+             size++;
+             }
+            
+             if (highEdge == this) { // Change the color of the selected edge and turn it into a bold edge
+             gr.setColor(color);
+             gr.set(DotStyle.BOLD, scale);
+             } else if ((highEdge == null && highGroup == null) || highGroup == group) {
+             gr.setColor(color);
+             gr.set(style, scale);
+             } else {
+             gr.setColor(Color.LIGHT_GRAY);
+             gr.set(style, scale);
+             }
+             if (a == b) {
+             gr.draw(path);
+             } else {
+             // Concatenate this path and its connected segments into a single VizPath object, then draw it
+             Curve p = null;
+             GraphEdge e = this;
+                    
+             while (e.a.shape() == null) {
+             e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
+             }
+             while (true) {
+             p = (p == null) ? e.path() : p.join(e.path());
+             if (e.b.shape() != null) {
+             break;
+             }
+             e = e.b.outs.get(0);
+             }
 
+             gr.drawSmoothly(p);
+             }
+
+             gr.set(DotStyle.SOLID, scale);
+                
+             for (int i = size; i > 0; i--) {
+             gr.translate(leftList.get(i), topList.get(i));
+             }
+
+             if (highEdge == null && highGroup == null && label.length() > 0) {
+             drawLabel(gr, color, null);
+             }
+             drawArrowhead(gr, scale, highEdge, highGroup);
+
+             }
+             */
         }
     }
 

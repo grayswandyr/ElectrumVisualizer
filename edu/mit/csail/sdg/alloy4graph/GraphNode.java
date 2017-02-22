@@ -739,6 +739,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         // We have'nt reach the depth max yet, we can draw the subgraph.
         
         final int top = graph.getTop(), left = graph.getLeft();
+        final int subTop = subGraph.getTop(), subLeft = subGraph.getLeft();
         gr.set(style, scale);
         gr.translate(x() - left, y() - top);
         gr.setFont(fontBold);
@@ -760,9 +761,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.draw(poly, true);
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
-       
-        subGraph.recalcBoundSub(false);
+
+        gr.translate(subLeft, subTop);
         subGraph.draw(gr, scale, uuid, true);
+        gr.translate(-subLeft, -subTop);
 
         /*
          if (poly2 != null) {
