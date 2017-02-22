@@ -302,7 +302,7 @@ public final class StaticGraphMaker {
                         AlloyAtom atomEnd = null;
                         AlloyRelation relEnd = null;
                         
-                        // Get the 2 relations and their extremities
+                        // Get the right relation and its extremity
                         // NB : grel.getStart() is a port
                         for(GraphRelation grel : relList) {
                             if(grel.getStart()==tuple.getEnd()) {
@@ -311,7 +311,7 @@ public final class StaticGraphMaker {
                             }
                         }
                         
-                        // Create the 2 nodes and the 2 ports
+                        // Create the 2 nodes and the port
                         if(atomStart!=null && atomEnd!=null && relEnd!=null) {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
@@ -331,7 +331,7 @@ public final class StaticGraphMaker {
                         AlloyRelation relStart = null;
                         AlloyAtom atomEnd = tuple.getEnd();
                         
-                        // Get the 2 relations and their extremities
+                        // Get the relation and its extremity
                         // NB : grel.getStart() is a port
                         for(GraphRelation grel : relList) {
                             if(grel.getStart()==tuple.getStart()) {
@@ -340,7 +340,7 @@ public final class StaticGraphMaker {
                             }
                         }
                         
-                        // Create the 2 nodes and the 2 ports
+                        // Create the 2 nodes and the port
                         if(atomStart!=null && atomEnd!=null && relStart!=null) {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
