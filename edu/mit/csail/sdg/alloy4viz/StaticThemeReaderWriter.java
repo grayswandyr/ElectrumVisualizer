@@ -542,7 +542,7 @@ public final class StaticThemeReaderWriter {
                 view.edgeColor.put(x, dc);
         }
         if (has(xml, "hidelabel")) {
-            view.labelVisible.put(x, getbool(xml, "hidelabel"));
+            view.portHideLabel.put(x, getbool(xml, "hidelabel"));
         }
         if (has(xml, "shape")) {
             view.portShape.put(x, parseDotShape(xml));
@@ -583,7 +583,7 @@ public final class StaticThemeReaderWriter {
         
         if (isport) { // [N7-G.Dupont]
             writeBool(out, "isport", view.isPort.get(x), defaultView.isPort.get(x));
-            writeBool(out, "hidelabel", view.labelVisible.get(x), defaultView.labelVisible.get(x));
+            writeBool(out, "hidelabel", view.portHideLabel.get(x), defaultView.portHideLabel.get(x));
             writeOrientation(out, view.orientations.get(x), defaultView.orientations.get(x));
             writeDotShape(out, view.portShape.get(x), defaultView.portShape.get(x));
             writeDotColor(out, view.portColor.get(x), defaultView.portColor.get(x));
