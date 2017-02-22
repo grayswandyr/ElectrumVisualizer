@@ -446,7 +446,16 @@ public final strictfp class GraphEdge {
                 }
             }
             //double cx = ((GraphNode) b).getFather().x(), cy = ((GraphNode) b).getFather().y(), bx = (ax + cx) / 2, by = (ay + cy) / 2;
-            double cx = - b.x() + ((GraphNode) b).getFather().x(), cy = - b.y() + ((GraphNode) b).getFather().y(), bx = (ax + cx) / 2, by = (ay + cy) / 2;
+            double cx = 0, cy = 0, bx = 0, by = 0;
+            if (((GraphNode) b).getFather() != null) {
+                cx = - b.x() + ((GraphNode) b).getFather().x(); 
+                cy = - b.y() + ((GraphNode) b).getFather().y(); 
+                bx = (ax + cx) / 2; 
+                by = (ay + cy) / 2;
+            } else {
+                bx = ax / 2; 
+                by = ay / 2;
+            }
             path = new Curve(ax, ay);
             if (n > 1 && (n & 1) == 1) {
                 if (i < n / 2) {
