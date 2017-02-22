@@ -164,11 +164,15 @@ public final class StaticGraphMaker {
         final boolean hidePrivate = view.hidePrivate();
         final boolean hideMeta = view.hideMeta();
         final Map<AlloyRelation, Color> magicColor = new TreeMap<AlloyRelation, Color>();
+        final Map<AlloyRelation, Color> magicPortColor = new TreeMap<AlloyRelation, Color>(); // [N7] @Julien Richer Ports magic colors
         final Map<AlloyRelation, Integer> rels = new TreeMap<AlloyRelation, Integer>();
         this.graph = graph;
         this.view = view;
         instance = StaticProjector.project(originalInstance, proj);
         model = instance.model;
+        
+        
+        
         
         /**
          * [N7] Modified by @Louis Fauvarque @Julien Richer
@@ -183,29 +187,23 @@ public final class StaticGraphMaker {
             view.nodeVisible.put(port.getType(), Boolean.FALSE);
         }
         
-        for (AlloyRelation rel : model.getRelations()) {
-            rels.put(rel, null);
-        }
-        List<Color> colors;
-        if (view.getEdgePalette() == DotPalette.CLASSIC) {
-            colors = colorsClassic;
-        } else if (view.getEdgePalette() == DotPalette.STANDARD) {
-            colors = colorsStandard;
-        } else if (view.getEdgePalette() == DotPalette.MARTHA) {
-            colors = colorsMartha;
+        // Ports magic colors
+        List<Color> portColors;
+        if (view.getPortPalette() == DotPalette.CLASSIC) {
+            portColors = colorsClassic;
+        } else if (view.getPortPalette() == DotPalette.STANDARD) {
+            portColors = colorsStandard;
+        } else if (view.getPortPalette() == DotPalette.MARTHA) {
+            portColors = colorsMartha;
         } else {
-            colors = colorsNeon;
+            portColors = colorsNeon;
         }
-        int ci = 0;
-        for (AlloyRelation rel : model.getRelations()) {
-            DotColor c = view.edgeColor.resolve(rel);
-            Color cc = (c == DotColor.MAGIC) ? colors.get(ci) : c.getColor(view.getEdgePalette());
-            int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel)) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
-            rels.put(rel, count);
-            magicColor.put(rel, cc);
-            if (count > 0) {
-                ci = (ci + 1) % (colors.size());
-            }
+        int cj = 0;
+        for (AlloyRelation rel : portRelations) {
+            DotColor c = view.portColor.resolve(rel);
+            Color cc = (c == DotColor.MAGIC) ? portColors.get(cj) : c.getColor(view.getPortPalette());
+            magicPortColor.put(rel, cc);
+            cj = (cj + 1) % (portColors.size());
         }
         
         /**
@@ -222,6 +220,7 @@ public final class StaticGraphMaker {
         Set<AlloyTuple> tupleSet = null;
         
         for(AlloyRelation rel : portRelations){
+            Color magicol = magicPortColor.get(rel);
             tupleSet = instance.relation2tuples(rel);
             for(AlloyTuple tuple : tupleSet){
                 // Create a new GraphRelation and stock it in the list
@@ -233,8 +232,8 @@ public final class StaticGraphMaker {
                     GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getEnd());
                     if (node != null) {
                         Orientation defaultOri = GraphPort.AvailableOrientations.get(node.shape())[0];
-                        createPort(tuple.getStart(), node, rel, tuple.getStart().toString(), defaultOri, colors.get(ci));
-                        ci = (ci + 1) % (colors.size());
+                        GraphPort port = createPort(tuple.getStart(), node, rel, tuple.getStart().toString(), defaultOri);
+                        setPortColor(port,rel,magicol);
                     }
                 }
                 // Input port
@@ -242,8 +241,8 @@ public final class StaticGraphMaker {
                     GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getStart());
                     if (node != null) {
                         Orientation defaultOri = GraphPort.AvailableOrientations.get(node.shape())[0];
-                        createPort(tuple.getEnd(), node, rel, tuple.getEnd().toString(), defaultOri, colors.get(ci));
-                        ci = (ci + 1) % (colors.size());
+                        GraphPort port = createPort(tuple.getEnd(), node, rel, tuple.getEnd().toString(), defaultOri);
+                        setPortColor(port,rel,magicol);
                     }
                 }
             }
@@ -251,12 +250,13 @@ public final class StaticGraphMaker {
         
         // All relations
         for(AlloyRelation rel : relations){
+            Color magicol = magicPortColor.get(rel);
             // Non port relations
             if(!isIn(portRelations,rel)){
                 tupleSet = instance.relation2tuples(rel);
                 // Tuples of the relation
                 for(AlloyTuple tuple : tupleSet){
-                    // We check that each side of the tuple is a port
+                    // Check that each side of the tuple is a port
                     if(isPort(portRelations,tuple.getStart()) && isPort(portRelations,tuple.getEnd())){
                         AlloyAtom atomStart = null;
                         AlloyRelation relStart = null;
@@ -281,23 +281,25 @@ public final class StaticGraphMaker {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
                             
+                            // Output port
                             if (startNode != null) {
                                 Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
-                                createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri, colors.get(ci));
-                                ci = (ci + 1) % (colors.size());
+                                createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
                             }
                             
+                            // Input port
                             if (endNode != null) {
                                 Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
-                                createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri, colors.get(ci));
-                                ci = (ci + 1) % (colors.size());
+                                createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
                             }
 
                             // Create the blank edge between the 2 nodes connected through the 2 ports
                             if (startNode != null && endNode != null)
                                 new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
                         }
-                    } else if(!isPort(portRelations,tuple.getStart()) && isPort(portRelations,tuple.getEnd())){
+                    }
+                    // Check that start is a node and end is a port
+                    else if(!isPort(portRelations,tuple.getStart()) && isPort(portRelations,tuple.getEnd())){
                         AlloyAtom atomStart = tuple.getStart();
                         AlloyAtom atomEnd = null;
                         AlloyRelation relEnd = null;
@@ -316,17 +318,20 @@ public final class StaticGraphMaker {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
                             
+                            // Input port
                             if (endNode != null) {
                                 Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
-                                createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri, colors.get(ci));
-                                ci = (ci + 1) % (colors.size());
+                                GraphPort port = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                                setPortColor(port,rel,magicol);
                             }
 
-                            // Create the blank edge between the 2 nodes connected through the 2 ports
+                            // Create the blank edge between the 2 nodes connected through the port
                             if (startNode != null && endNode != null)
                                 new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
                         }
-                    } else if(isPort(portRelations,tuple.getStart()) && !isPort(portRelations,tuple.getEnd())){
+                    }
+                    // Check that start is a port and end is a node
+                    else if(isPort(portRelations,tuple.getStart()) && !isPort(portRelations,tuple.getEnd())){
                         AlloyAtom atomStart = null;
                         AlloyRelation relStart = null;
                         AlloyAtom atomEnd = tuple.getEnd();
@@ -345,13 +350,14 @@ public final class StaticGraphMaker {
                             GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                             GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
                             
+                            // Output port
                             if (startNode != null) {
                                 Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
-                                createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri, colors.get(ci));
-                                ci = (ci + 1) % (colors.size());
+                                GraphPort port = createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
+                                setPortColor(port,rel,magicol);
                             }
 
-                            // Create the blank edge between the 2 nodes connected through the 2 ports
+                            // Create the blank edge between the 2 nodes connected through the port
                             if (startNode != null && endNode != null)
                                 new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), null).setStyle(DotStyle.BLANK);
                         }
@@ -360,6 +366,30 @@ public final class StaticGraphMaker {
             }
         }
 
+        for (AlloyRelation rel : model.getRelations()) {
+            rels.put(rel, null);
+        }
+        List<Color> colors;
+        if (view.getEdgePalette() == DotPalette.CLASSIC) {
+            colors = colorsClassic;
+        } else if (view.getEdgePalette() == DotPalette.STANDARD) {
+            colors = colorsStandard;
+        } else if (view.getEdgePalette() == DotPalette.MARTHA) {
+            colors = colorsMartha;
+        } else {
+            colors = colorsNeon;
+        }
+        int ci = 0;
+        for (AlloyRelation rel : model.getRelations()) {
+            DotColor c = view.edgeColor.resolve(rel);
+            Color cc = (c == DotColor.MAGIC) ? colors.get(ci) : c.getColor(view.getEdgePalette());
+            int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel)) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
+            rels.put(rel, count);
+            magicColor.put(rel, cc);
+            if (count > 0) {
+                ci = (ci + 1) % (colors.size());
+            }
+        }
         
         for (AlloyAtom atom : instance.getAllAtoms()) {
             List<AlloySet> sets = instance.atom2sets(atom);
@@ -519,8 +549,9 @@ public final class StaticGraphMaker {
      * [N7] @Julien Richer
      * Return the port for a specific AlloyAtom (create it if it doesn't exist
      * yet).
+     * Color has to be set with the following setPortColor method
      */
-    private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori, Color magicColor) {
+    private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori) {
 
         if (node == null) {
             return null;
@@ -572,19 +603,6 @@ public final class StaticGraphMaker {
             port.setOrientation(ori);
         }
         
-        // Set the port color
-        DotColor color = view.portColor.resolve(rel);
-        if (color == DotColor.MAGIC && magicColor != null) {
-            port.setColor(magicColor);
-        }
-        else if(color!=null) {
-            port.setColor(color.getColor(view.getPortPalette()));
-        }
-        else {
-            // Default color
-            port.setColor(Color.red);
-        }
-        
         // Set the port shape
         DotShape shape = view.portShape.resolve(rel);
         if(shape!=null) {
@@ -599,6 +617,25 @@ public final class StaticGraphMaker {
         port.setHideLabel(view.portHideLabel.resolve(rel));
         
         return port;
+    }
+    
+    /**
+     * [N7] @Julien Richer
+     * Set the port color
+     */
+    private void setPortColor(GraphPort port, AlloyRelation rel, Color magicColor) {
+        // Set the port color
+        DotColor color = view.portColor.resolve(rel);
+        if (color == DotColor.MAGIC && magicColor != null) {
+            port.setColor(magicColor);
+        }
+        else if(color!=null) {
+            port.setColor(color.getColor(view.getPortPalette()));
+        }
+        else {
+            // Default color
+            port.setColor(Color.red);
+        }
     }
 
     /**

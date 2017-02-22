@@ -622,10 +622,10 @@ public final class VizCustomizationPanel extends JPanel {
         
         
         // Combobox to define the color of a port
-        OurCombobox colorBox = new OurCombobox(true, DotColor.values(), 105, 35, vizState.portColor.get(rel)) {
+        OurCombobox colorBox = new OurCombobox(true, DotColor.valuesWithout(DotColor.MAGIC), 105, 35, vizState.portColor.get(rel)) {
             @Override
             public String do_getText(Object value) {
-                return value == null ? "Inherit" : ((DotColor) value).toString();
+                return value == null ? "Magic" : ((DotColor) value).toString();
             }
             
             @Override
