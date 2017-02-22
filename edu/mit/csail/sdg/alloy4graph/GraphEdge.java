@@ -548,7 +548,10 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
      */
     private void drawArrowhead(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
         if (this.getStyle() != DotStyle.BLANK) { // Modified @Louis Fauvarque
-            final double tipLength = ad * 0.6D;
+            // Set the arrow head's size
+            // [N7] @Julien Richer => doubled tipLength
+            final double tipLength = ad * 0.6D * 2D;
+            
             final int top = a.graph.getTop(), left = a.graph.getLeft();
             // Check to see if this edge is highlighted or not
             double fan = (this.getStyle() == DotStyle.BOLD ? bigFan : smallFan);
