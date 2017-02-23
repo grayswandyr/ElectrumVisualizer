@@ -431,7 +431,6 @@ public final strictfp class GraphEdge {
         if ( size > 0 ) {
             ay = yauxList.get(size-1);
             ax = (ay - coeffb) / coeffa;
-            System.out.println("Label: " + this.label + " x: " + ax + " y: " + ay);
         }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////    
         if (a == b) {

@@ -123,7 +123,17 @@ public abstract class AbstractGraphNode {
     public void setY(int y) {
         centerY = y;
     }
-    
+
+    /**
+     * Moves the node following the given displacement.
+     * @param dx displacement for x.
+     * @param dy displacement for y
+     */
+    public void move(int dx, int dy){
+      centerX += dx;
+      centerY += dy;
+    }
+
     /**
      * Get the shape of the element
      * @return shape of the element
