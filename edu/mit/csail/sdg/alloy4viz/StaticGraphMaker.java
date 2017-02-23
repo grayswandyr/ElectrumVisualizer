@@ -477,7 +477,8 @@ public final class StaticGraphMaker {
         AlloyAtom atomEnd = tuple.getEnd();
         int edgeArity = tuple.getArity();
         //Check if this is a containment relation.
-        if (view.containmentRel.resolve(rel)) {
+        boolean isContainment = view.containmentRel.resolve(rel);
+        if (isContainment) {
             if (edgeArity < 3) {
                 //If there is only 2 atoms in the tuple and one of them is the container, we don't create any edge. 
                 return 0;
@@ -514,12 +515,14 @@ public final class StaticGraphMaker {
                     // Label of the edge: if it represents a containment relation, we have to adapt the label.
                     // we do not add the label of the container in the [] of the label.
                     boolean comma = false;
-                    for (int i = 2; i < atoms.size() - 1; i++) {
+                    for (int i = 1; i < atoms.size() - 1; i++) {
+                      if (!(isContainment && i == 1)){
                         if (comma) {
                           moreLabel.append(", ");
                         }
                         moreLabel.append(atomname(atoms.get(i), false));
                         comma = true;
+                      }
                     }
                     if (label.length() == 0) { /* label=moreLabel.toString(); */ } else {
                         label = label + (" [" + moreLabel + "]");
