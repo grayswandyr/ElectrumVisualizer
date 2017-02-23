@@ -416,22 +416,41 @@ public final strictfp class GraphEdge {
     void resetPath() {
         double ax = a.x(), ay = a.y();
         ///////////////////////// Find the intersection between the edge end and the graph ///////////////////////////
+        double startX = ax, startY = ay; //The coordinates of the point where we start drawing
         double axaux = (((GraphNode) b).getFather() != null) ? b.x() + ((GraphNode) b).getFather().x() : b.x();
-        double ayaux = (((GraphNode) b).getFather() != null) ? b.y() + ((GraphNode) b).getFather().y() - ((GraphNode) b).getHeight() / 2 : b.y();
+        double ayaux = (((GraphNode) b).getFather() != null) ? b.y() + ((GraphNode) b).getFather().y() : b.y();
         ArrayList<Integer> yauxList = new ArrayList<Integer>();
         int size = 0;
-        double coeffa = (ayaux - ay) / (axaux - ax), coeffb = ayaux - ((ayaux - ay) / (axaux - ax)) * axaux;
-        for (int l = (int) ay; l < (int) ayaux; l++) {
-            if (((GraphNode) a).getBoundingBox(0, 0).contains((l - coeffb) / coeffa, l)) {
-                // Problem because l is rounded
-                yauxList.add(l);
-                size++;
+        if (ayaux > ay) { // If the edge goes from a layer to a biggest one
+            ayaux -= ((GraphNode) b).getHeight() / 2;
+            double coeffa = (ayaux - ay) / (axaux - ax), coeffb = ayaux - ((ayaux - ay) / (axaux - ax)) * axaux;
+            for (int l = (int) ay; l < (int) ayaux; l++) {
+                if (((GraphNode) a).getBoundingBox(0, 0).contains((l - coeffb) / coeffa, l)) {
+                    // Problem because l is rounded
+                    yauxList.add(l);
+                    size++;
+                }
             }
-        }
-        if ( size > 0 ) {
-            ay = yauxList.get(size-1);
-            ax = (ay - coeffb) / coeffa;
-            System.out.println("Label: " + this.label + " x: " + ax + " y: " + ay);
+            if ( size > 0 ) {
+                startY = yauxList.get(size-1);
+                startX = (startY - coeffb) / coeffa;
+                System.out.println("Label: " + this.label + " x: " + ax + " y: " + ay);
+            }
+        } else { // If the edge goes from a layer to a smallest one
+            ayaux += ((GraphNode) b).getHeight() / 2;
+            double coeffa = (ayaux - ay) / (axaux - ax), coeffb = ayaux - ((ayaux - ay) / (axaux - ax)) * axaux;
+            for (int l = (int) ayaux; l < (int) ay; l++) {
+                if (((GraphNode) a).getBoundingBox(0, 0).contains((l - coeffb) / coeffa, l)) {
+                    // Problem because l is rounded
+                    yauxList.add(l);
+                    size++;
+                }
+            }
+            if ( size > 0 ) {
+                startY = yauxList.get(size-1);
+                startX = (startY - coeffb) / coeffa;
+                System.out.println("Label: " + this.label + " x: " + ax + " y: " + ay);
+            }
         }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////    
         if (a == b) {
@@ -448,6 +467,8 @@ public final strictfp class GraphEdge {
                 }
                 double h = a.getHeight() / 2D * 0.7D, k = 0.55238D, wa = (a.getWidth() / 2.0D), wb = w - wa;
                 e.path = new Curve(ax, ay);
+                e.path.startDrawX = startX;
+                e.path.startDrawY = startY;
                 e.path.cubicTo(ax, ay - k * h, ax + wa - k * wa, ay - h, ax + wa, ay - h);
                 e.path.cubicTo(ax + wa + k * wb, ay - h, ax + wa + wb, ay - k * h, ax + wa + wb, ay);
                 e.path.cubicTo(ax + wa + wb, ay + k * h, ax + wa + k * wb, ay + h, ax + wa, ay + h);
@@ -477,6 +498,8 @@ public final strictfp class GraphEdge {
                 by = ay / 2;
             }
             path = new Curve(ax, ay);
+            path.startDrawX = startX;
+            path.startDrawY = startY;
             if (n > 1 && (n & 1) == 1) {
                 if (i < n / 2) {
                     bx = bx - (n / 2 - i) * 10;
@@ -506,6 +529,8 @@ public final strictfp class GraphEdge {
             }
             double cx = b.x(), cy = b.y(), bx = (ax + cx) / 2, by = (ay + cy) / 2;
             path = new Curve(ax, ay);
+            path.startDrawX = startX;
+            path.startDrawY = startY;
             if (n > 1 && (n & 1) == 1) {
                 if (i < n / 2) {
                     bx = bx - (n / 2 - i) * 10;
@@ -651,10 +676,13 @@ public final strictfp class GraphEdge {
             }
             // If we are drawing an edge between a node from the graph, and a node from one of its subgraph
         } else if (((GraphNode) a).getFather() == null ^ ((GraphNode) b).getFather() == null) {
-
+            
             if (style != DotStyle.BLANK) {
-                final int top = (((GraphNode) a).getFather() != null) ? b.graph.getTop() : a.graph.getTop(), left = (((GraphNode) a).getFather() != null) ? b.graph.getLeft() : a.graph.getLeft();
-                final int subTop = (((GraphNode) a).getFather() != null) ? a.graph.getTop() : b.graph.getTop(), subLeft = (((GraphNode) a).getFather() != null) ? a.graph.getLeft() : b.graph.getLeft();
+                GraphNode graphNode = (((GraphNode) a).getFather() != null) ? (GraphNode) b : (GraphNode) a;
+                GraphNode subGraphNode = (((GraphNode) b).getFather() != null) ? (GraphNode) b : (GraphNode) a;
+                
+                final int top = graphNode.graph.getTop(), left = graphNode.graph.getLeft();
+                final int subTop = subGraphNode.graph.getTop(), subLeft = subGraphNode.graph.getLeft();
 
                 gr.translate(-left, -top);
                 //gr.translate(-subLeft, -subTop);
