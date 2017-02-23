@@ -646,7 +646,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     private void drawRegular(Artist gr, double scale, boolean highlight) {
         final int top = graph.getTop(), left = graph.getLeft();
-//if (father != null) System.out.println("[" + uuid + "] top:" + top + "left:" + left); 
         gr.set(style, scale);
         gr.translate(x() - left, y() - top);
         gr.setFont(fontBold);
@@ -749,7 +748,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
             gr.setColor(color);
         }
         
-        // It is not supposed to be here, but it does not work without it.
         imbricatedNodeBounds();
 
         if (highlight) {
@@ -1069,7 +1067,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
 
         portBounds(); // [N7-G.Dupont]
 
-        imbricatedNodeBounds(); // [N7-M.Quentin]
+        if (hasChild()) imbricatedNodeBounds(); // [N7-M.Quentin]
 
         switch (shape()) {
             case HOUSE: {
@@ -1334,10 +1332,23 @@ public strictfp class GraphNode extends AbstractGraphNode {
             if (!layout){
                 subGraph.layoutSubGraph(this);
                 layout = true;
+            }else{
+                subGraph.recalcBound(true);
             }
-            this.updown = subGraph.getTotalHeight() / 2;
-            this.side = subGraph.getTotalWidth() / 2;
 
+            // Compute the max width of the labels 
+            int maxLabelWidth = 0;
+            List<String> labels = getLabels();
+            for (int l = 0; l < labels.size(); l++) {
+              maxLabelWidth = Math.max(maxLabelWidth, (int) getBounds(true, labels.get(l)).getWidth());
+            }
+
+            int height = subGraph.getTotalHeight() + getLabelHeight();
+            int width = Math.max(subGraph.getTotalWidth(), maxLabelWidth) + GraphNode.xJumpNode;
+            
+            this.updown = height / 2;
+            this.side = width / 2;
+            
             //TODO 
             //Find the dimension of the figure
             //TODO

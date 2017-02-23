@@ -183,13 +183,8 @@ public final class StaticGraphMaker {
         //Creation of a Map to store atoms that are instances of a containment relation.
         // The key of the Map is an AlloyAtom which is the container of the containmentTuple.
         // The value is a List of List of AlloyAtoms; each List represents the rest of a containmentTuple (contained in key).
-        boolean isContainment;
         for (AlloyRelation rel : model.getRelations()) {
-            if (view.containmentRel.get(rel) == null)
-                isContainment = false;
-            else
-                isContainment = view.containmentRel.get(rel);
-            if (isContainment) {
+            if (view.containmentRel.resolve(rel)) {
                 //The relation is a containment one.
                 for (AlloyTuple tuple : instance.relation2tuples(rel)) {
                     ArrayList<AlloyAtom> atoms = new ArrayList<AlloyAtom>(tuple.getAtoms());
@@ -435,6 +430,7 @@ public final class StaticGraphMaker {
         } else {
             containingNode = createNode(hidePrivate, hideMeta, father, containedInGraph, maxDepth);
         }
+        if (containingNode == null) return null;
         if (!(directChilds == null)) { //If the given atom has childrens, we have to create corresponding node.
             for (List<AlloyAtom> childs : directChilds) {
                 for (AlloyAtom child : childs) {
@@ -481,11 +477,7 @@ public final class StaticGraphMaker {
         AlloyAtom atomEnd = tuple.getEnd();
         int edgeArity = tuple.getArity();
         //Check if this is a containment relation.
-        boolean isContainment;
-        if (view.containmentRel.get(rel) == null)
-            isContainment = false;
-        else
-            isContainment = view.containmentRel.get(rel);
+        boolean isContainment = view.containmentRel.resolve(rel);
         if (isContainment) {
             if (edgeArity < 3) {
                 //If there is only 2 atoms in the tuple and one of them is the container, we don't create any edge. 
@@ -523,12 +515,14 @@ public final class StaticGraphMaker {
                     // Label of the edge: if it represents a containment relation, we have to adapt the label.
                     // we do not add the label of the container in the [] of the label.
                     boolean comma = false;
-                    for (int i = 2; i < atoms.size() - 1; i++) {
+                    for (int i = 1; i < atoms.size() - 1; i++) {
+                      if (!(isContainment && i == 1)){
                         if (comma) {
                           moreLabel.append(", ");
                         }
                         moreLabel.append(atomname(atoms.get(i), false));
                         comma = true;
+                      }
                     }
                     if (label.length() == 0) { /* label=moreLabel.toString(); */ } else {
                         label = label + (" [" + moreLabel + "]");

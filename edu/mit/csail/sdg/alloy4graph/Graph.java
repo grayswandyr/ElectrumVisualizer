@@ -649,7 +649,7 @@ public final strictfp class Graph {
             this.totalWidth = Math.max(layerWidth[j], this.totalWidth);
         }
 
-        // Compute the max width of the labels 
+  /*      // Compute the max width of the labels 
         int maxLabelWidth = 0;
         List<String> labels = father.getLabels();
         for (int l = 0; l < labels.size(); l++) {
@@ -657,7 +657,8 @@ public final strictfp class Graph {
         }
 
         totalHeight += father.getLabelHeight();
-        totalWidth = Math.max(this.totalWidth, maxLabelWidth) + GraphNode.xJumpNode;
+        totalWidth = Math.max(this.totalWidth, maxLabelWidth) + GraphNode.xJumpNode;*/ //TODO : suppress this part if we can change it.
+        totalWidth += GraphNode.xJumpNode; //Not sure this is needed : TODO
 
         // The two integers corresponding to the coordinates wehre we start to draw each layer
         int startX;
@@ -691,9 +692,9 @@ public final strictfp class Graph {
             startY -= maxHeight/2 + GraphNode.yJumpNode;
         }
         //relayout_edges(true);
-        left = -totalWidth/2;
-        top = -totalHeight/2;
-        recalcBound(false);
+        //left = -totalWidth/2;
+        //top = -totalHeight/2;
+        recalcBound(true);
    }
     
     /** 
@@ -1039,12 +1040,6 @@ public final strictfp class Graph {
         }
         left = minX - 20;
         totalWidth = maxX - minX + 20;
-        // [N7-R.Bossut, M.Quentin] TODO - maybe it will change.
-        // When in a subgraph, we have to find the min and the max, without taking the existing top and bottom in account.
-        if (nodes.get(0).getFather() != null){
-            top = Integer.MAX_VALUE;
-            bottom = Integer.MIN_VALUE;
-        }
         // Find the topmost and bottommost pixel
         for (int layer = layers() - 1; layer >= 0; layer--) {
             for (GraphNode n : layer(layer)) {
