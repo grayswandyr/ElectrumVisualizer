@@ -31,6 +31,7 @@ import java.util.TreeMap;
 
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Util;
+import java.awt.geom.AffineTransform;
 
 /**
  * Mutable; represents a graph.
@@ -40,7 +41,7 @@ import edu.mit.csail.sdg.alloy4.Util;
  */
 public final strictfp class Graph {
 
-   //================================ adjustable options ========================================================================//
+    //================================ adjustable options ========================================================================//
     /**
      * Minimum horizontal distance between adjacent nodes.
      */
@@ -74,7 +75,7 @@ public final strictfp class Graph {
      */
     private final int ad = Artist.getMaxAscentAndDescent();
 
-   //=============================== fields ======================================================================================//
+    //=============================== fields ======================================================================================//
     /**
      * The default magnification.
      */
@@ -109,6 +110,11 @@ public final strictfp class Graph {
      * The height of each layer.
      */
     int[] layerPH = null;
+  
+    /**
+     * Whether we must show ports labels.
+     */
+    private boolean showPortsLabels = false;
 
     /**
      * The list of layers; must stay in sync with GraphNode.graph and
@@ -132,6 +138,18 @@ public final strictfp class Graph {
     final List<GraphEdge> edgelist = new ArrayList<GraphEdge>();
 
     /**
+     * [N7] @Louis Fauvarque
+     * The list of the edges between the ports.
+     */
+    final List<GraphEdge> portEdgeList = new ArrayList<GraphEdge>();
+    
+    /**
+     * An unmodifiable view of the list of edges between two ports.
+     */
+    
+    public final List<GraphEdge> portEdges = Collections.unmodifiableList(portEdgeList);
+    
+    /**
      * An unmodifiable view of the list of nodes.
      */
     public final List<GraphNode> nodes = Collections.unmodifiableList(nodelist);
@@ -146,7 +164,7 @@ public final strictfp class Graph {
      */
     private final List<GraphNode> emptyListOfNodes = Collections.unmodifiableList(new ArrayList<GraphNode>(0));
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Constructs an empty Graph object.
      */
@@ -183,6 +201,17 @@ public final strictfp class Graph {
     }
 
     /**
+     * Get/set value of showPortsLabels.
+     */
+    public void setShowPortsLabels(boolean v) {
+        this.showPortsLabels = v;
+    }
+    
+    public boolean showPortsLabels() {
+        return this.showPortsLabels;
+    }
+
+    /**
      * Returns an unmodifiable view of the list of nodes in the given layer
      * (0..#layer-1); return an empty list if no such layer.
      */
@@ -214,7 +243,7 @@ public final strictfp class Graph {
      * Sort the list of nodes according to the order in the given list.
      */
     void sortNodes(Iterable<GraphNode> newOrder) {
-      // The nodes that are common to this.nodelist and newOrder are moved to the front of the list, in the given order.
+        // The nodes that are common to this.nodelist and newOrder are moved to the front of the list, in the given order.
         // The nodes that are in this.nodelist but not in newOrder are moved to the back in an unspecified order.
         // The nodes that are in newOrder but not in this.nodelist are ignored.
         int i = 0, n = nodelist.size();
@@ -262,19 +291,20 @@ public final strictfp class Graph {
         legends.put(object, new Pair<String, Color>(label, color));
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #1: assign a total order on the nodes.
      */
     private void layout_assignOrder() {
-      // This is an implementation of the GR algorithm described by Peter Eades, Xuemin Lin, and William F. Smyth
+        // This is an implementation of the GR algorithm described by Peter Eades, Xuemin Lin, and William F. Smyth
         // in "A Fast & Effective Heuristic for the Feedback Arc Set Problem"
         // in Information Processing Letters, Volume 47, Number 6, Pages 319-323, 1993
         final int num = nodes.size();
         if ((Integer.MAX_VALUE - 1) / 2 < num) {
             throw new OutOfMemoryError();
         }
-      // Now, allocate 2n+1 bins labeled -n .. n
+
+        // Now, allocate 2n+1 bins labeled -n .. n
         // Note: inside this method, whenever we see #in and #out, we ignore repeated edges.
         // Note: since Java ArrayList always start at 0, we'll index it by adding "n" to it.
         final List<List<GraphNode>> bins = new ArrayList<List<GraphNode>>(2 * num + 1);
@@ -289,13 +319,22 @@ public final strictfp class Graph {
             int ni = n.pos();
             LinkedList<GraphNode> in = new LinkedList<GraphNode>(), out = new LinkedList<GraphNode>();
             for (GraphEdge e : n.ins) {
-                GraphNode a = e.a();
+                AbstractGraphNode aa = e.a();
+                if (!(aa instanceof GraphNode)) {
+                    throw new IllegalArgumentException("This graph contains a port: " + aa + " ! This is not supposed to happen.");
+                }
+                GraphNode a = (GraphNode) aa;
                 if (!in.contains(a)) {
                     in.add(a);
                 }
             }
             for (GraphEdge e : n.outs) {
-                GraphNode b = e.b();
+                AbstractGraphNode ab = e.b();
+                if (!(ab instanceof GraphNode)) {
+                    throw new IllegalArgumentException("This graph contains a port: " + ab + " ! This is not supposed to happen.");
+                }
+                GraphNode b = (GraphNode) ab;
+
                 if (!out.contains(b)) {
                     out.add(b);
                 }
@@ -304,7 +343,7 @@ public final strictfp class Graph {
             grOUT.add(out);
             grBIN[ni] = (out.size() == 0) ? 0 : (in.size() == 0 ? (2 * num) : (out.size() - in.size() + num));
             bins.get(grBIN[ni]).add(n);
-         // bin[0]     = { v | #out=0 }
+            // bin[0]     = { v | #out=0 }
             // bin[n + d] = { v | d=#out-#in and #out!=0 and #in!=0 } for -n < d < n
             // bin[n + n] = { v | #in=0 and #out>0 }
         }
@@ -351,19 +390,23 @@ public final strictfp class Graph {
         sortNodes(Util.fastJoin(s1, s2));
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #2: reverses all backward edges.
      */
     private void layout_backEdges() {
         for (GraphEdge e : edges) {
-            if (e.a().pos() < e.b().pos()) {
+            if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
+                throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+            }
+            GraphNode a = (GraphNode) e.a(), b = (GraphNode) e.b();
+            if (a.pos() < b.pos()) {
                 e.set(e.bhead(), e.ahead()).reverse();
             }
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #3: assign the nodes into one or more layers, then return the
      * number of layers.
@@ -373,11 +416,14 @@ public final strictfp class Graph {
         final int n = nodes.size();
         int[] len = new int[n];
         for (GraphNode x : nodes) {
-         // Since we ensured that arrows only ever go from a node with bigger pos() to a node with smaller pos(),
+            // Since we ensured that arrows only ever go from a node with bigger pos() to a node with smaller pos(),
             // we can compute the "len" array in O(n) time by visiting each node IN THE SORTED ORDER
             int max = 0;
             for (GraphEdge e : x.outs) {
-                GraphNode y = e.b();
+                if (!(e.b() instanceof GraphNode)) {
+                    throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                }
+                GraphNode y = (GraphNode) e.b();
                 int yLen = len[y.pos()] + 1;
                 if (max < yLen) {
                     max = yLen;
@@ -396,7 +442,10 @@ public final strictfp class Graph {
                 if (x.ins.size() > 0) {
                     int closestLayer = layers() + 1;
                     for (GraphEdge e : x.ins) {
-                        int y = e.a().layer();
+                        if (!(e.a() instanceof GraphNode)) {
+                            throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                        }
+                        int y = ((GraphNode) e.a()).layer();
                         if (closestLayer > y) {
                             closestLayer = y;
                         }
@@ -415,7 +464,7 @@ public final strictfp class Graph {
         return layers();
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #4: add dummy nodes so that each edge only goes between
      * adjacent layers.
@@ -423,19 +472,23 @@ public final strictfp class Graph {
     private void layout_dummyNodesIfNeeded() {
         for (final GraphEdge edge : new ArrayList<GraphEdge>(edges)) {
             GraphEdge e = edge;
-            GraphNode a = e.a(), b = e.b();
+            if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
+                throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+            }
+            GraphNode a = (GraphNode) e.a(), b = (GraphNode) e.b();
             while (a.layer() - b.layer() > 1) {
                 GraphNode tmp = a;
-                a = new GraphNode(a.graph, e.uuid).set((DotShape) null);
+                a = new GraphNode(a.graph, e.uuid);
+                a.setShape(DotShape.DUMMY);
                 a.setLayer(tmp.layer() - 1);
                 // now we have three nodes in the vertical order of "tmp", "a", then "b"
                 e.change(a);                                                                           // let old edge go from "tmp" to "a"
-                e = new GraphEdge(a, b, e.uuid, "", e.ahead(), e.bhead(), e.style(), e.color(), e.group); // let new edge go from "a" to "b"
+                e = new GraphEdge(a, b, e.uuid, "", e.ahead(), e.bhead(), e.getStyle(), e.getColor(), e.group); // let new edge go from "a" to "b"
             }
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #5: decide the order of the nodes within each layer.
      */
@@ -454,7 +507,10 @@ public final strictfp class Graph {
                 int count = 0;
                 double sum = 0;
                 for (GraphEdge e : n.outs) {
-                    GraphNode nn = e.b();
+                    if (!(e.b() instanceof GraphNode)) {
+                        throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                    }
+                    GraphNode nn = (GraphNode) e.b();
                     if (map.put(nn, nn) == null) {
                         count++;
                         sum += bc[nn.pos()];
@@ -486,12 +542,12 @@ public final strictfp class Graph {
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Layout step #6: decide the exact X position of each component.
      */
     private void layout_xAssignment(List<GraphNode> nodes) {
-      // This implementation uses the iterative approach described in the paper "Layout of Bayesian Networks"
+        // This implementation uses the iterative approach described in the paper "Layout of Bayesian Networks"
         // by Kim Marriott, Peter Moulder, Lucas Hope, and Charles Twardy
         final int n = nodes.size();
         if (n == 0) {
@@ -615,7 +671,7 @@ public final strictfp class Graph {
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * For each edge coming out of this layer of nodes, add bends to it if it
      * currently overlaps some nodes inappropriately.
@@ -626,12 +682,15 @@ public final strictfp class Graph {
             GraphNode a = top.get(i);
             double left = a.x() - a.getWidth() / 2, right = a.x() - a.getWidth() / 2;
             for (GraphEdge e : a.outs) {
-                GraphNode b = e.b();
+                if (!(e.b() instanceof GraphNode) || !(e.a() instanceof GraphNode)) {
+                    continue;
+                }
+                GraphNode b = (GraphNode) e.b();
                 if (b.x() >= right) {
                     for (int j = i + 1; j < top.size(); j++) { // This edge goes from top-left to bottom-right
                         GraphNode c = top.get(j);
                         if (c.shape() == null) {
-                            continue; // You can intersect thru a dummy node
+                            continue; // You can intersect through a dummy node
                         }
                         double ctop = c.y() - c.getHeight() / 2, cleft = c.x() - c.getWidth() / 2, cbottom = c.y() + c.getHeight() / 2;
                         e.path().bendDown(cleft, ctop - room, cbottom + room, 3);
@@ -640,7 +699,7 @@ public final strictfp class Graph {
                     for (int j = i - 1; j >= 0; j--) { // This edge goes from top-right to bottom-left
                         GraphNode c = top.get(j);
                         if (c.shape() == null) {
-                            continue; // You can intersect thru a dummy node
+                            continue; // You can intersect through a dummy node
                         }
                         double ctop = c.y() - c.getHeight() / 2, cright = c.x() + c.getWidth() / 2, cbottom = c.y() + c.getHeight() / 2;
                         e.path().bendDown(cright, ctop - room, cbottom + room, 3);
@@ -650,7 +709,7 @@ public final strictfp class Graph {
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * For each edge going into this layer of nodes, add bends to it if it
      * currently overlaps some nodes inappropriately.
@@ -661,12 +720,15 @@ public final strictfp class Graph {
             GraphNode b = bottom.get(i);
             double left = b.x() - b.getWidth() / 2, right = b.x() - b.getWidth() / 2;
             for (GraphEdge e : b.ins) {
-                GraphNode a = e.a();
+                if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
+                    continue;
+                }
+                GraphNode a = (GraphNode) e.a();
                 if (a.x() <= left) {
                     for (int j = i - 1; j >= 0; j--) { // This edge goes from top-left to bottom-right
                         GraphNode c = bottom.get(j);
                         if (c.shape() == null) {
-                            continue; // You can intersect thru a dummy node
+                            continue; // You can intersect through a dummy node
                         }
                         double ctop = c.y() - c.getHeight() / 2, cright = c.x() + c.getWidth() / 2, cbottom = c.y() + c.getHeight() / 2;
                         e.path().bendUp(cright, ctop - room, cbottom + room, 3);
@@ -675,7 +737,7 @@ public final strictfp class Graph {
                     for (int j = i + 1; j < bottom.size(); j++) { // This edge goes from top-right to bottom-left
                         GraphNode c = bottom.get(j);
                         if (c.shape() == null) {
-                            continue; // You can intersect thru a dummy node
+                            continue; // You can intersect through a dummy node
                         }
                         double ctop = c.y() - c.getHeight() / 2, cleft = c.x() - c.getWidth() / 2, cbottom = c.y() + c.getHeight() / 2;
                         e.path().bendUp(cleft, ctop - room, cbottom + room, 3);
@@ -685,7 +747,7 @@ public final strictfp class Graph {
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Returns true if a direct line between a and b will not intersect any
      * other node.
@@ -707,7 +769,7 @@ public final strictfp class Graph {
         return true;
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * (Re-)perform the layout.
      */
@@ -770,12 +832,12 @@ public final strictfp class Graph {
 
         relayout_edges(true);
 
-      // Since we're doing layout for the first time, we need to explicitly set top and bottom, since
+        // Since we're doing layout for the first time, we need to explicitly set top and bottom, since
         // otherwise "recalcBound" will merely "extend top and bottom" as needed.
         recalcBound(true);
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Re-establish top/left/width/height.
      */
@@ -853,7 +915,7 @@ public final strictfp class Graph {
         }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Assuming everything was laid out already, but at least one node just
      * moved, this re-layouts ALL edges.
@@ -865,7 +927,10 @@ public final strictfp class Graph {
                 for (GraphNode n : nodes) {
                     if (n.shape() == null) {
                         GraphEdge e1 = n.ins.get(0), e2 = n.outs.get(0);
-                        if (!free(e1.a(), e2.b())) {
+                        if (!(e1.a() instanceof GraphNode) || !(e2.b() instanceof GraphNode)) {
+                            throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                        }
+                        if (!free((GraphNode) e1.a(), (GraphNode) e2.b())) {
                             continue;
                         }
                         double slope = (e2.b().x() - e1.a().x()) / ((double) (e2.b().y() - e1.a().y()));
@@ -879,9 +944,15 @@ public final strictfp class Graph {
         if (straighten) {
             for (GraphEdge e : edges) {
                 if (e.a().shape() != null && e.b().shape() == null) {
-                    GraphNode a = e.a(), b;
+                    if (!(e.a() instanceof GraphNode)) {
+                        throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                    }
+                    GraphNode a = (GraphNode) e.a(), b;
                     for (GraphEdge ee = e;;) {
-                        b = ee.b();
+                        if (!(ee.b() instanceof GraphNode)) {
+                            throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                        }
+                        b = (GraphNode) ee.b();
                         if (b.shape() != null) {
                             break;
                         }
@@ -892,7 +963,10 @@ public final strictfp class Graph {
                     }
                     double slope = (b.x() - a.x()) / ((double) (b.y() - a.y()));
                     for (GraphEdge ee = e;;) {
-                        b = ee.b();
+                        if (!(ee.b() instanceof GraphNode)) {
+                            throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                        }
+                        b = (GraphNode) ee.b();
                         if (b.shape() != null) {
                             break;
                         }
@@ -940,6 +1014,16 @@ public final strictfp class Graph {
         for (GraphEdge e : edges) {
             e.resetPath();
         }
+
+        /**
+         * [N7] @Louis Fauvarque
+         * Resets the port edges
+         */
+        
+        for (GraphEdge e : portEdges){
+            e.resetPath();
+        }
+        
         // Now, scan layer-by-layer to find edges that intersect nodes improperly, and bend them accordingly
         for (int layer = layers() - 1; layer > 0; layer--) {
             List<GraphNode> top = layer(layer), bottom = layer(layer - 1);
@@ -958,9 +1042,14 @@ public final strictfp class Graph {
             e.layout_arrowHead();
             e.repositionLabel(sp);
         }
+        
+        for(GraphEdge e : portEdges){
+            e.layout_arrowHead();
+            e.repositionLabel(sp);
+        }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Assuming everything was laid out already, but nodes in layer[i] just
      * moved horizontally, this re-layouts edges to+from layer i.
@@ -974,12 +1063,28 @@ public final strictfp class Graph {
                 e.resetPath();
                 e.layout_arrowHead();
             }
+
+            for (GraphPort port : n.ports){
+                for (GraphEdge e : port.outs){
+                    e.resetPath();
+                }
+            }
         }
         if (i > 0) {
             List<GraphNode> top = layer(i), bottom = layer(i - 1);
             for (GraphNode n : top) {
                 for (GraphEdge e : n.outs) {
                     e.resetPath();
+                }
+                
+                /**
+                 * [N7] @Louis Fauvarque
+                 * Refresh the port edges
+                 */
+                for (GraphPort port : n.ports) {
+                    for (GraphEdge e : port.outs) {
+                        e.resetPath();
+                    }
                 }
             }
             checkUpperCollision(top);
@@ -991,6 +1096,16 @@ public final strictfp class Graph {
             for (GraphNode n : top) {
                 for (GraphEdge e : n.outs) {
                     e.resetPath();
+                }
+
+                /**
+                 * [N7] @Louis Fauvarque
+                 * Refresh the port edges
+                 */
+                for (GraphPort port : n.ports) {
+                    for (GraphEdge e : port.outs) {
+                        e.resetPath();
+                    }
                 }
             }
             checkUpperCollision(top);
@@ -1008,9 +1123,14 @@ public final strictfp class Graph {
             e.layout_arrowHead();
             e.repositionLabel(sp);
         }
+
+        for (GraphEdge e : portEdges) {
+            e.layout_arrowHead();
+            e.repositionLabel(sp);
+        }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Locates the node or edge at the given (X,Y) location.
      */
@@ -1031,6 +1151,13 @@ public final strictfp class Graph {
             }
         }
         for (GraphNode n : nodes) {
+            // [N7-G.Dupont] Added finding in the ports of each nodes
+            for (GraphPort p : n.ports) {
+                if (p.contains(x, y)) {
+                    return p;
+                }
+            }
+            
             if (n.shape() == null && Math.abs(n.x() - x) < 10 && Math.abs(n.y() - y) < 10) {
                 return n;
             }
@@ -1064,7 +1191,7 @@ public final strictfp class Graph {
         return null;
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Assuming layout has been performed, this draws the graph with the given
      * magnification scale.
@@ -1073,6 +1200,9 @@ public final strictfp class Graph {
         if (nodes.size() == 0) {
             return; // The rest of this procedure assumes there is at least one node
         }
+        
+        final AffineTransform at = gr.getTransform();
+        
         Object group = null;
         GraphNode highFirstNode = null, highLastNode = null;
         GraphEdge highFirstEdge = null, highLastEdge = null;
@@ -1086,12 +1216,14 @@ public final strictfp class Graph {
             while (highLastEdge.b().shape() == null) {
                 highLastEdge = highLastEdge.b().outs.get(0);
             }
-            highFirstNode = highFirstEdge.a();
-            highLastNode = highLastEdge.b();
+            if ((highFirstEdge.a() instanceof GraphNode) && (highLastEdge.b() instanceof GraphNode)) {
+                highFirstNode = (GraphNode) highFirstEdge.a();
+                highLastNode = (GraphNode) highLastEdge.b();
+            }
         } else if (!(highlight instanceof GraphNode) && highlight != null) {
             group = highlight;
         }
-      // Since drawing an edge will automatically draw all segments if they're connected via dummy nodes,
+        // Since drawing an edge will automatically draw all segments if they're connected via dummy nodes,
         // we must make sure we only draw out edges from non-dummy-nodes
         int maxAscent = Artist.getMaxAscent();
         for (GraphNode n : nodes) {
@@ -1106,17 +1238,49 @@ public final strictfp class Graph {
                         e.draw(gr, scale, highFirstEdge, group);
                     }
                 }
+                
+                /**
+                 * [N7] @Louis Fauvarque
+                 * Draw the Edges between the ports
+                 */
+                for (GraphPort port : n.ports) {
+                    for (GraphEdge e : port.outs) {
+                        if (e.group != group && e != null) {
+                            e.draw(gr, scale, highFirstEdge, group);
+                        }
+                    }
+                    for (GraphEdge e : port.selfs) {
+                        if (e.group != group && e != null) {
+                            e.draw(gr, scale, highFirstEdge, group);
+                        }
+                    }
+                }
             }
         }
         if (group != null) {
             for (GraphNode n : nodes) {
                 if (n.shape() != null) {
                     for (GraphEdge e : n.outs) {
-                        if (e.group == group && e != highFirstEdge) {
+                        if (e.group == group && e != highFirstEdge && e != null) {
                             e.draw(gr, scale, highFirstEdge, group);
                         }
                     }
                     for (GraphEdge e : n.selfs) {
+                        if (e.group == group && e != highFirstEdge && e != null) {
+                            e.draw(gr, scale, highFirstEdge, group);
+                        }
+                    }
+                }
+                /**
+                 * [N7] @Louis Fauvarque
+                 */
+                for (GraphPort port : n.ports) {
+                    for (GraphEdge e : port.outs) {
+                        if (e.group == group && e != highFirstEdge) {
+                            e.draw(gr, scale, highFirstEdge, group);
+                        }
+                    }
+                    for (GraphEdge e : port.selfs) {
                         if (e.group == group && e != highFirstEdge) {
                             e.draw(gr, scale, highFirstEdge, group);
                         }
@@ -1129,17 +1293,23 @@ public final strictfp class Graph {
         }
         for (GraphNode n : nodes) {
             if (highFirstNode != n && highLastNode != n) {
-                n.draw(gr, scale, n == highlight);
+                n.setHighlight(n == highlight); // [N7-G.Dupont]
+                n.draw(gr, scale);
+                n.setHighlight(false); // [N7-G.Dupont]
             }
         }
         if (highFirstNode != null) {
-            highFirstNode.draw(gr, scale, true);
+            highFirstNode.setHighlight(true); // [N7-G.Dupont]
+            highFirstNode.draw(gr, scale);
+            highFirstNode.setHighlight(false); // [N7-G.Dupont]
         }
         if (highLastNode != null && highLastNode != highFirstNode) {
-            highLastNode.draw(gr, scale, true);
+            highLastNode.setHighlight(true); // [N7-G.Dupont]
+            highLastNode.draw(gr, scale);
+            highFirstNode.setHighlight(false); // [N7-G.Dupont]
         }
         if (highFirstEdge != null) {
-            highFirstEdge.drawLabel(gr, highFirstEdge.color(), new Color(255, 255, 255, 160));
+            highFirstEdge.drawLabel(gr, highFirstEdge.getColor(), new Color(255, 255, 255, 160));
         }
         // show legends?
         if (!showLegends || legends.size() == 0) {
@@ -1176,9 +1346,15 @@ public final strictfp class Graph {
             gr.drawString(e.getValue().a, 8, y + maxAscent);
             y = y + ad;
         }
+        
+        // [N7-G.Dupont] Draw tooltips
+        gr.setTransform(at); // Reset transformation
+        for (GraphNode gn : this.nodelist) {
+            gn.drawTooltips(gr);
+        }
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Helper method that encodes a String for printing into a DOT file.
      */
@@ -1197,7 +1373,7 @@ public final strictfp class Graph {
         return out.toString();
     }
 
-   //============================================================================================================================//
+    //============================================================================================================================//
     /**
      * Returns a DOT representation of this graph.
      */

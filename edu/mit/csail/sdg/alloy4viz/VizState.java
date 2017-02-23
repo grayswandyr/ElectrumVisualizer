@@ -33,6 +33,9 @@ import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
+import java.util.*;
+
+import edu.mit.csail.sdg.alloy4graph.GraphPort;
 
 /**
  * Mutable; this stores an unprojected model as well as the current theme
@@ -67,6 +70,7 @@ public final class VizState {
         fontSize = old.fontSize;
         nodePalette = old.nodePalette;
         edgePalette = old.edgePalette;
+        portPalette = old.portPalette; // [N7] @Julien Richer
         nodeColor.putAll(old.nodeColor);
         nodeStyle.putAll(old.nodeStyle);
         nodeVisible.putAll(old.nodeVisible);
@@ -84,6 +88,23 @@ public final class VizState {
         edgeColor.putAll(old.edgeColor);
         edgeStyle.putAll(old.edgeStyle);
         edgeVisible.putAll(old.edgeVisible);
+        
+        // [N7] @Julien Richer
+        // Ports relations
+        isPort.putAll(old.isPort);
+        
+        // Ports orientations
+        orientations.putAll(old.orientations);
+        
+        // Ports colors
+        portColor.putAll(old.portColor);
+        
+        // Ports shapes
+        portShape.putAll(old.portShape);
+        
+        // Ports labels visible
+        portHideLabel.putAll(old.portHideLabel);
+        
         changedSinceLastSave = false;
     }
 
@@ -99,6 +120,7 @@ public final class VizState {
         fontSize = 12;
         nodePalette = DotPalette.CLASSIC;
         edgePalette = DotPalette.CLASSIC;
+        portPalette = DotPalette.CLASSIC; // [N7] @Julien Richer
         nodeColor.clear();
         nodeColor.put(null, DotColor.WHITE);
         nodeStyle.clear();
@@ -133,6 +155,28 @@ public final class VizState {
         edgeStyle.put(null, DotStyle.SOLID);
         edgeVisible.clear();
         edgeVisible.put(null, true);
+        
+        // [N7] @Julien Richer
+        // Ports relations
+        isPort.clear();
+        isPort.put(null, false);
+        
+        // Ports orientations
+        orientations.clear();
+        orientations.put(null, GraphPort.Orientation.North);
+        
+        // Ports colors
+        portColor.clear();
+        portColor.put(null, DotColor.MAGIC);
+        
+        // Ports shapes
+        portShape.clear();
+        portShape.put(null, DotShape.BOX);
+        
+        // Ports labels visible
+        portHideLabel.clear();
+        portHideLabel.put(null, true);
+
         // Provide some nice defaults for "Int" and "seq/Int" type
         AlloyType sigint = AlloyType.INT;
         label.put(sigint, "");
@@ -331,6 +375,15 @@ public final class VizState {
     public ConstSet<AlloyType> getProjectedTypes() {
         return ConstSet.make(projectedTypes);
     }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Add a type to be considered as a port
+     * 
+     */
+    public void addPortType(final AlloyType type){
+        projectedTypes.add(type);
+    }
 
     /**
      * Returns true iff the type is not univ, and it is a toplevel type.
@@ -517,6 +570,29 @@ public final class VizState {
             edgePalette = x;
         }
     }
+    
+    /*============================================================================================*/
+    /**
+     * The default port palette.
+     */
+    private DotPalette portPalette;
+
+    /**
+     * Gets the default edge palette.
+     */
+    public DotPalette getPortPalette() {
+        return portPalette;
+    }
+
+    /**
+     * Sets the default edge palette.
+     */
+    public void setPortPalette(DotPalette x) {
+        if (portPalette != x && x != null) {
+            change();
+            portPalette = x;
+        }
+    }
 
     /*============================================================================================*/
     // An important invariant to maintain: every map here must map null to a nonnull value.
@@ -537,6 +613,22 @@ public final class VizState {
     public final MMap<Boolean> hideUnconnected = new MMap<Boolean>(true, false);
     public final MMap<Boolean> showAsAttr = new MMap<Boolean>(true, false);
     public final MMap<Boolean> showAsLabel = new MMap<Boolean>(true, false);
+    
+    // [N7] @Julien Richer
+    // Ports relations
+    public final MMap<Boolean> isPort = new MMap<Boolean>(true, false);
+    
+    // Ports orientations
+    public final MMap<GraphPort.Orientation> orientations = new MMap<GraphPort.Orientation>();
+    
+    // Ports colors
+    public final MMap<DotColor> portColor = new MMap<DotColor>();
+    
+    // Ports shapes
+    public final MMap<DotShape> portShape = new MMap<DotShape>();
+    
+    // Ports labels visible
+    public final MMap<Boolean> portHideLabel = new MMap<Boolean>(true, false);
 
     public final class MInt {
 
@@ -607,6 +699,10 @@ public final class VizState {
             changeIf(map.put(x, v), v);
         }
     }
+    
+    public interface Callback<T> {
+        void call(T a);
+    }
 
     public final class MMap<T> {
 
@@ -633,7 +729,44 @@ public final class VizState {
             map.putAll(x.map);
             change();
         }
+        
+        
+        /**
+         * [N7] @Julien Richer
+         * Prints the map in the console
+         */
+        public void printMap() {
+            System.out.println("--START--");
+            
+            Set listKeys = map.keySet();
+            Iterator iter = listKeys.iterator();
 
+            while(iter.hasNext()) {
+            	Object key = iter.next();
+            	System.out.println(key+"=>"+map.get(key));
+            }
+            
+            System.out.println("--END--");
+        }
+        
+
+        /**
+         * [N7] Modified by @Louis Fauvarque
+         * Returns an ArrayList containing all the key whose elements match the value
+         * @param value
+         * @return 
+         */
+        public ArrayList<AlloyRelation> getKeysFromValue(T value){
+            ArrayList<AlloyElement> matchtemp = new ArrayList<AlloyElement>(map.keySet());
+            ArrayList<AlloyRelation> match = new ArrayList<AlloyRelation>();
+            for(AlloyElement elt : matchtemp){
+                if(resolve(elt) == value){
+                    match.add((AlloyRelation) elt);
+                }
+            }
+            return match;
+        }
+        
         public T get(AlloyElement obj) {
             return map.get(obj);
         }
@@ -673,8 +806,12 @@ public final class VizState {
                 }
             };
         }
-
+        
         OurCheckbox pick(final AlloyElement obj, final String label, final String tooltip) {
+            return this.pick(obj, label, tooltip, null);
+        }
+
+        OurCheckbox pick(final AlloyElement obj, final String label, final String tooltip, Callback cb) {
             T a = get(obj), b = resolve(obj);
             Icon icon = a == null ? (Boolean.TRUE.equals(b) ? OurCheckbox.INH_ON : OurCheckbox.INH_OFF) : (Boolean.TRUE.equals(a) ? OurCheckbox.ALL_ON : OurCheckbox.ALL_OFF);
             return new OurCheckbox(label, tooltip, icon) {
@@ -690,6 +827,7 @@ public final class VizState {
                         a = null;
                     }
                     MMap.this.put(obj, a);
+                    if (cb != null) cb.call(resolve(obj));
                     return a == null ? (Boolean.TRUE.equals(resolve(obj)) ? INH_ON : INH_OFF) : (Boolean.TRUE.equals(a) ? ALL_ON : ALL_OFF);
                 }
             };
@@ -743,5 +881,20 @@ public final class VizState {
             return false;
         }
         return nodeVisible.resolve(a.getType());
+    }
+    
+    // [N7] @Julien Richer
+    public boolean labelVisible(AlloyAtom a, AlloyInstance i) {
+      // If it's in 1 or more set, then TRUE if at least one of them is TRUE.
+        // If it's in 0 set, then travel up the chain of AlloyType and return the first non-null value.
+        if (i.atom2sets(a).size() > 0) {
+            for (AlloySet s : i.atom2sets(a)) {
+                if (portHideLabel.resolve(s)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return portHideLabel.resolve(a.getType());
     }
 }

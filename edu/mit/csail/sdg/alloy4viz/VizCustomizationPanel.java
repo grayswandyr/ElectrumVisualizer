@@ -55,6 +55,9 @@ import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
 
+import edu.mit.csail.sdg.alloy4graph.GraphPort;
+import java.awt.Component;
+
 /**
  * GUI panel for making customization changes.
  *
@@ -176,7 +179,7 @@ public final class VizCustomizationPanel extends JPanel {
         if (divider != null && divider.getDividerLocation() > dim.width) {
             dim.width = divider.getDividerLocation();
         }
-        dim.height = 150;
+        dim.height = 200;
         zoomPane.setPreferredSize(dim);
         dim.width = 450;
         zoomPane.setMinimumSize(dim);
@@ -374,7 +377,7 @@ public final class VizCustomizationPanel extends JPanel {
                 vizState.nodeColor.put(elt, (DotColor) value);
             }
         };
-        JComboBox shape = new OurCombobox(true, DotShape.values(), 125, 35, vizState.shape.get(elt)) {
+        JComboBox shape = new OurCombobox(true, DotShape.valuesWithout(DotShape.DUMMY), 125, 35, vizState.shape.get(elt)) {
             private static final long serialVersionUID = 0;
 
             @Override
@@ -577,11 +580,137 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel back = vizState.layoutBack.pick(rel, "Layout backwards", "Layout graph as if arcs were reversed");
         JPanel merge = vizState.mergeArrows.pick(rel, "Merge arrows", "Merge opposing arrows between the same nodes as one bidirectional arrow");
         JPanel constraint = vizState.constraint.pick(rel, "Influence layout", "Whether this edge influences the graph layout");
-        JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, constraint);
-        JPanel panel2 = OurUtil.makeVR(wcolor, back, merge);
+        
+        
+        /**
+         * [N7] @Julien Richer
+         * Ports settings
+         */
+        
+        // Combobox to define the orientation of a port
+        
+        // Get the shape of the node linked to the port
+        AlloyType type = rel.getTypes().get(0);
+        DotShape nodeShape = vizState.shape.resolve(type);
+        
+        OurCombobox orientBox = new OurCombobox(true, GraphPort.AvailableOrientations.get(nodeShape), 105, 35, vizState.orientations.get(rel)) {
+            @Override
+            public String do_getText(Object value) {
+                return value == null ? "Inherit" : ((GraphPort.Orientation) value).toString();
+            }
+            
+            @Override
+            public Icon do_getIcon(Object value) {
+                if (value == null) {
+                    value = vizState.orientations.get(null);
+                }
+                return value == null ? null : ((GraphPort.Orientation) value).getIcon();
+            }
+            
+            @Override
+            public void do_changed(Object value) {
+                vizState.orientations.put(rel, (GraphPort.Orientation) value);
+            }
+        };
+        
+        JPanel orientPanel = OurUtil.makeH(wcolor, orientBox);
+        orientPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        orientPanel.setAlignmentY(0.5f);
+        orientPanel.setAlignmentX(0.5f);
+        orientPanel.setToolTipText("Choose the orientation of the port on the node.");
+        
+        
+        // Combobox to define the color of a port
+        OurCombobox colorBox = new OurCombobox(true, DotColor.valuesWithout(DotColor.MAGIC), 105, 35, vizState.portColor.get(rel)) {
+            @Override
+            public String do_getText(Object value) {
+                return value == null ? "Magic" : ((DotColor) value).toString();
+            }
+            
+            @Override
+            public Icon do_getIcon(Object value) {
+                if (value == null) {
+                    value = vizState.portColor.get(null);
+                }
+                return value == null ? null : ((DotColor) value).getIcon(vizState.getPortPalette());
+            }
+            
+            @Override
+            public void do_changed(Object value) {
+                vizState.portColor.put(rel, (DotColor) value);
+            }
+        };
+        
+        JPanel colorPanel = OurUtil.makeH(wcolor, colorBox);
+        colorPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        colorPanel.setAlignmentY(0.5f);
+        colorPanel.setAlignmentX(0.5f);
+        colorPanel.setToolTipText("Choose the color of the port on the node.");
+        
+        
+        // Combobox to define the shape of a port
+        final OurCombobox shapeBox = new OurCombobox(true, GraphPort.AvailableShapes, 105, 35, vizState.portShape.get(rel)) {
+            @Override
+            public String do_getText(Object value) {
+                return value == null ? "Inherit" : ((DotShape) value).toString();
+            }
+            
+            @Override
+            public Icon do_getIcon(Object value) {
+                if (value == null) {
+                    value = vizState.portShape.get(null);
+                }
+                return value == null ? null : ((DotShape) value).getIcon();
+            }
+            
+            @Override
+            public void do_changed(Object value) {
+                vizState.portShape.put(rel, (DotShape) value);
+            }
+        };
+
+        JPanel shapePanel = OurUtil.makeH(wcolor, shapeBox);
+        shapePanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        shapePanel.setAlignmentY(0.5f);
+        shapePanel.setAlignmentX(0.5f);
+        shapePanel.setToolTipText("Choose the shape of the port on the node.");
+        
+        
+        // Checkbox to set/unset ports labels visible
+        OurCheckbox portLabel = vizState.portHideLabel.pick(rel, "Hide ports labels", "Set ports labels visibility");
+        
+        
+        // Initialization of the ports settings activation
+        orientBox.setEnabled(vizState.isPort.resolve(rel));
+        colorBox.setEnabled(vizState.isPort.resolve(rel));
+        shapeBox.setEnabled(vizState.isPort.resolve(rel));
+        portLabel.setEnabled(vizState.isPort.resolve(rel));
+        visible.setEnabled(!vizState.isPort.resolve(rel));
+        
+        
+        // Checkbox to define relations as ports relations
+        OurCheckbox port = vizState.isPort.pick(rel, "Show as ports", "Define the relation as a node/port relation", new VizState.Callback<Boolean>() {
+            public void call(Boolean a) {
+                orientBox.setEnabled(a);
+                colorBox.setEnabled(a);
+                shapeBox.setEnabled(a);
+                portLabel.setEnabled(a);
+                visible.setEnabled(!a);
+            }
+        });
+
+        
+        // Panels layout
+        JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, port, portLabel);
+        JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, constraint);
+        
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel1, 15, panel2, 2, null));
+
+        JPanel panelPort = OurUtil.makeHB(wcolor, orientPanel, colorPanel, shapePanel);
+
+        parent.add(OurUtil.makeVL(wcolor, panelPort));
     }
 
    //=============================================================================================================//
@@ -596,6 +725,11 @@ public final class VizCustomizationPanel extends JPanel {
         JLabel pLabel = OurUtil.label("Hide private sigs/relations:");
         JLabel mLabel = OurUtil.label("Hide meta sigs/relations:");
         JLabel fLabel = OurUtil.label("Font Size:");
+
+        // [N7] @JulienRicher
+        JLabel hideLabel = OurUtil.label("Hide ports labels:");
+        JLabel pPaletteLabel = OurUtil.label("Port Color Palette:");
+        
         JComboBox fontSize = new OurCombobox(false, fontSizes.toArray(), 60, 32, vizState.getFontSize()) {
             private static final long serialVersionUID = 0;
 
@@ -661,12 +795,50 @@ public final class VizCustomizationPanel extends JPanel {
                 return (!x ? ON : OFF);
             }
         };
+        
+        /**
+         * [N7] @Julien Richer
+         * Checkbox to set/unset ports labels visible
+         */
+        OurCheckbox portHideLabel = new OurCheckbox("", "Set ports labels visibility", vizState.portHideLabel.get(null) ? OurCheckbox.ON : OurCheckbox.OFF) {
+            private static final long serialVersionUID = 0;
+
+            public Icon do_action() {
+                boolean old = vizState.portHideLabel.get(null);
+                vizState.portHideLabel.put(null, !old);
+                return !old ? ON : OFF;
+            }
+        };
+        
+        JPanel hideLabelPanel = OurUtil.makeH(wcolor, portHideLabel);
+        
+        /**
+         * [N7] @Julien Richer
+         * Combobox to set port palette
+         */
+        JComboBox portpal = new OurCombobox(false, DotPalette.values(), 100, 32, vizState.getPortPalette()) {
+            private static final long serialVersionUID = 0;
+
+            @Override
+            public String do_getText(Object value) {
+                return ((DotPalette) value).getDisplayedText();
+            }
+
+            @Override
+            public void do_changed(Object value) {
+                vizState.setPortPalette((DotPalette) value);
+            }
+        };
+        
+        
         parent.add(makelabel(" General Graph Settings:"));
         parent.add(OurUtil.makeH(wcolor, new Dimension(6, 6)));
         parent.add(OurUtil.makeH(wcolor, 25, nLabel, 5, nodepal, 8, aLabel, 5, name, 2, null));
         parent.add(OurUtil.makeH(wcolor, 25, eLabel, 5, edgepal, 8, fLabel, 5, fontSize, 2, null));
+        parent.add(OurUtil.makeH(wcolor, 25, pPaletteLabel, 5, portpal, 2, null)); // [N7] @Julien Richer
         parent.add(OurUtil.makeH(wcolor, 25, pLabel, 5, priv, 2, null));
         parent.add(OurUtil.makeH(wcolor, 25, mLabel, 5, meta, 2, null));
+        parent.add(OurUtil.makeH(wcolor, 25, hideLabel, 5, hideLabelPanel, 2, null)); // [N7] @Julien Richer
     }
 
    //=============================================================================================================//
@@ -693,7 +865,7 @@ public final class VizCustomizationPanel extends JPanel {
                 vizState.nodeColor.put(null, (DotColor) value);
             }
         };
-        JComboBox shape = new OurCombobox(false, DotShape.values(), 135, 35, vizState.shape.get(null)) {
+        JComboBox shape = new OurCombobox(false, DotShape.valuesWithout(DotShape.DUMMY), 135, 35, vizState.shape.get(null)) {
             private static final long serialVersionUID = 0;
 
             @Override
@@ -792,7 +964,6 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel a = OurUtil.makeVL(wcolor, dispCBE, attrCBE, constraintCBE, 10), b = OurUtil.makeVL(wcolor, laybackCBE, mergeCBE);
         parent.add(OurUtil.makeHT(wcolor, 10, a, 10, b, 2, null));
     }
-
    //=============================================================================================================//
     /**
      * Convenient helper method that returns a description of an AlloyType (and

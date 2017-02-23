@@ -42,8 +42,12 @@ public enum DotStyle {
     /**
      * Bold line.
      */
-    BOLD("Bold", "bold");
+    BOLD("Bold", "bold"),
 
+    /** Blank line
+     * Modified @Louis Fauvarque
+     */
+    BLANK("Blank","blank");
     /**
      * The description of this line style.
      */
@@ -105,6 +109,21 @@ public enum DotStyle {
             }
         }
         return null;
+    }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Returns the list of values that the user is allowed to select from.
+     */
+    public static Object[] valuesWithout(DotStyle exclude) {
+        Object[] ans = new Object[values().length - 1];
+        int i = 0;
+        for (DotStyle d : values()) {
+            if (d != exclude) {
+                ans[i++] = d;
+            }
+        }
+        return ans;
     }
 
     /**

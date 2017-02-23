@@ -66,6 +66,18 @@ import java.io.FileOutputStream;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
+import edu.mit.csail.sdg.alloy4viz.AlloyAtom;
+import edu.mit.csail.sdg.alloy4viz.AlloyInstance;
+import edu.mit.csail.sdg.alloy4viz.AlloyRelation;
+import edu.mit.csail.sdg.alloy4viz.AlloyTuple;
+import edu.mit.csail.sdg.alloy4viz.StaticGraphMaker;
+import edu.mit.csail.sdg.alloy4viz.VizState;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.JCheckBoxMenuItem;
+
 /**
  * This class displays the graph.
  *
@@ -100,6 +112,11 @@ public final strictfp class GraphViewer extends JPanel {
      * is none.
      */
     private Object selected = null;
+    
+    /**
+     * [N7-G.Dupont] Hovered port.
+     */
+    private GraphPort hoveredPort = null;
 
     /**
      * The button that initialized the drag-and-drop; this value is undefined
@@ -145,6 +162,10 @@ public final strictfp class GraphViewer extends JPanel {
         if (selected instanceof GraphEdge) {
             return ((GraphEdge) selected).uuid;
         }
+        // [N7-G.Dupont] Added port support
+        if (highlight instanceof GraphPort) {
+            return ((GraphPort) highlight).uuid;
+        }
         return null;
     }
 
@@ -158,6 +179,10 @@ public final strictfp class GraphViewer extends JPanel {
         }
         if (highlight instanceof GraphEdge) {
             return ((GraphEdge) highlight).uuid;
+        }
+        // [N7-G.Dupont] Added port support
+        if (highlight instanceof GraphPort) {
+            return ((GraphPort) highlight).uuid;
         }
         return null;
     }
@@ -193,23 +218,141 @@ public final strictfp class GraphViewer extends JPanel {
 
     /**
      * Construct a GraphViewer that displays the given graph.
+     * @param graph : The graph to display
+     * @param instance : The instance of the model
+     * @param view : The State of the model
      */
-    public GraphViewer(final Graph graph) {
+    public GraphViewer(final Graph graph, AlloyInstance instance, VizState view, StaticGraphMaker sgm) {
         OurUtil.make(this, BLACK, WHITE, new EmptyBorder(0, 0, 0, 0));
         setBorder(null);
         this.scale = graph.defaultScale;
         this.graph = graph;
+        
         graph.layout();
+        
+        /**
+         * [N7] @Julien Richer @Louis Fauvarque
+         * Add the edges linked to ports
+         * 
+         * WARNING : ArrayList becomes a reserved group type for Edges linked with ports
+         */
+        
+        // Create the port edges
+        ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
+        Set<AlloyRelation> relations = instance.model.getRelations();
+        
+        Set<AlloyTuple> tupleSet = null;
+        for (AlloyRelation rel : relations) {
+            if (!portRelations.contains(rel)) {
+                tupleSet = instance.relation2tuples(rel);
+                for (AlloyTuple tuple : tupleSet) {
+                    AlloyAtom start = tuple.getStart();
+                    AlloyAtom end = tuple.getEnd();
+                    String uuid = "Port[" + tuple + "]";
+                    
+                    // [N7-G.Dupont] Add a proper label to the arcs
+                    String label = view.label.get(rel);
+                    if (tuple.getArity() > 2) {
+                        StringBuilder moreLabel = new StringBuilder();
+                        List<AlloyAtom> atoms = tuple.getAtoms();
+                        for (int i = 1; i < atoms.size() - 1; i++) {
+                            if (i > 1) {
+                                moreLabel.append(", ");
+                            }
+                            moreLabel.append(sgm.atomname(atoms.get(i), false));
+                        }
+                        if (label.length() == 0) { 
+                            //label=moreLabel.toString();
+                        } else {
+                            label = label + (" [" + moreLabel + "]");
+                        }
+                    }
+                    
+                    // Build edges between ports
+                    AbstractGraphNode startgn = null, endgn = null;
+                    // From port to port
+                    if (sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)) {
+                        startgn = sgm.getPortFromAtom(start);
+                        endgn = sgm.getPortFromAtom(end);
+                    }
+                    // From node to port
+                    else if (!sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)){
+                        startgn = sgm.getNodeFromAtom(start);
+                        endgn = sgm.getPortFromAtom(end);
+                    }
+                    // From port to node
+                    else if (sgm.isPort(portRelations, start) && !sgm.isPort(portRelations, end)){
+                        startgn = sgm.getPortFromAtom(start);
+                        endgn = sgm.getNodeFromAtom(end);
+                    }
+                    
+                    if (startgn != null && endgn != null) {
+                        for (GraphNode n : graph.nodes) {
+                            if (n.shape() == null) {
+                                Object group = n.ins.get(0).group;
+                                if(group instanceof ArrayList){
+                                    ArrayList<AbstractGraphNode> groupN = (ArrayList<AbstractGraphNode>) group;
+                                    if(groupN.get(0) == startgn && groupN.get(1) == endgn){
+                                        GraphEdge e;
+                                        if (n.ins.get(0).a().shape() == null) {
+                                            e = new GraphEdge(n.ins.get(0).a(),n,uuid,label,rel);
+                                        } else {
+                                            e = new GraphEdge(startgn,n,uuid,label,rel);
+                                        }
+                                        e.setStyle(view.edgeStyle.resolve(rel));
+                        
+                                        DotColor color = view.edgeColor.resolve(rel);
+                                        e.setColor(color.getColor(view.getEdgePalette()));
+                
+                                        e.resetPath();
+                                        n.ins.get(0).a().outs.remove(n.ins.get(0));
+                                        n.ins.remove(n.ins.get(0));
+                                        
+                                        if(n.outs.get(0).b().shape() != null){
+                                            GraphEdge elast = new GraphEdge(n,endgn,uuid,label,rel);
+                                            elast.setStyle(view.edgeStyle.resolve(rel));
+                        
+                                            DotColor colorlast = view.edgeColor.resolve(rel);
+                                            elast.setColor(colorlast.getColor(view.getEdgePalette()));
+                
+                                            elast.resetPath();
+                                            n.outs.get(0).b().ins.remove(n.outs.get(0));
+                                            n.outs.remove(n.outs.get(0));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if(Math.abs(startgn.layer() - endgn.layer()) <= 1){
+                            GraphEdge e = new GraphEdge(startgn, endgn, uuid, label, rel);                        
+                            e.setStyle(view.edgeStyle.resolve(rel));
+
+                            DotColor color = view.edgeColor.resolve(rel);
+                            e.setColor(color.getColor(view.getEdgePalette()));
+
+                            e.resetPath();
+                        }
+                    }
+                }
+            }
+        }
+        
+
+        // GUI related
         final JMenuItem zoomIn = new JMenuItem("Zoom In");
         final JMenuItem zoomOut = new JMenuItem("Zoom Out");
         final JMenuItem zoomToFit = new JMenuItem("Zoom to Fit");
         final JMenuItem print = new JMenuItem("Export to PNG");
         final JMenuItem printVect = new JMenuItem("Export as vectorial image..."); // [N7-G. Dupont]
+
         pop.add(zoomIn);
         pop.add(zoomOut);
         pop.add(zoomToFit);
+        pop.addSeparator();
         pop.add(print);
         pop.add(printVect);
+        
         ActionListener act = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Container c = getParent();
@@ -268,11 +411,42 @@ public final strictfp class GraphViewer extends JPanel {
                 if (pop.isVisible()) {
                     return;
                 }
+                
+                // [N7-G.Dupont]
                 Object obj = alloyFind(ev.getX(), ev.getY());
-                if (highlight != obj) {
-                    highlight = obj;
-                    alloyRepaint();
+                boolean needRepaint = false;
+                
+                if (hoveredPort != null && obj != hoveredPort) {
+                    hoveredPort.setHovered(false);
+                    hoveredPort = null;
+                    needRepaint = true;
                 }
+                
+                if (highlight != null && obj != highlight) {
+                    if (highlight instanceof AbstractGraphElement)
+                        ((AbstractGraphElement)highlight).setHighlight(false);
+                    highlight = null;
+                    needRepaint = true;
+                }
+                
+                if (obj instanceof GraphPort) {
+                    hoveredPort = (GraphPort)obj;
+                    hoveredPort.setHovered(true);
+                    needRepaint = true;
+                }
+                
+                if (obj != null) {
+                    if (highlight != null && highlight instanceof AbstractGraphElement)
+                        ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
+                    highlight = obj;
+                    if (obj instanceof AbstractGraphElement)
+                        ((AbstractGraphElement)highlight).setHighlight(true); //[N7-G.Dupont]
+                    
+                    needRepaint = true;
+                }
+                
+                if (needRepaint)
+                    alloyRepaint();
             }
 
             @Override
@@ -300,6 +474,8 @@ public final strictfp class GraphViewer extends JPanel {
                 graph.recalcBound(true);
                 selected = null;
                 highlight = obj;
+                if (highlight instanceof AbstractGraphElement)
+                    ((AbstractGraphElement)highlight).setHighlight(true); //[N7-G.Dupont]
                 alloyRepaint();
             }
 
@@ -308,25 +484,31 @@ public final strictfp class GraphViewer extends JPanel {
                 dragButton = 0;
                 int mod = ev.getModifiers();
                 if ((mod & BUTTON3_MASK) != 0) {
+                    // Right button clicked
                     selected = alloyFind(ev.getX(), ev.getY());
+                    if (highlight instanceof AbstractGraphElement) ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = null;
                     alloyRepaint();
                     pop.show(GraphViewer.this, ev.getX(), ev.getY());
                 } else if ((mod & BUTTON1_MASK) != 0 && (mod & CTRL_MASK) != 0) {
-                  // This lets Ctrl+LeftClick bring up the popup menu, just like RightClick,
+                    // Left button clicked + Ctrl key modifier
+                    // This lets Ctrl+LeftClick bring up the popup menu, just like RightClick,
                     // since many Mac mouses do not have a right button.
                     selected = alloyFind(ev.getX(), ev.getY());
+                    if (highlight instanceof AbstractGraphElement)  ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = null;
                     alloyRepaint();
                     pop.show(GraphViewer.this, ev.getX(), ev.getY());
                 } else if ((mod & BUTTON1_MASK) != 0) {
+                    // Left button clicked
                     dragButton = 1;
                     selected = alloyFind(oldMouseX = ev.getX(), oldMouseY = ev.getY());
+                    if (highlight instanceof AbstractGraphElement)  ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = null;
                     alloyRepaint();
-                    if (selected instanceof GraphNode) {
-                        oldX = ((GraphNode) selected).x();
-                        oldY = ((GraphNode) selected).y();
+                    if (selected instanceof AbstractGraphNode) {
+                        oldX = ((AbstractGraphNode) selected).x();
+                        oldY = ((AbstractGraphNode) selected).y();
                     }
                 }
             }
@@ -334,6 +516,8 @@ public final strictfp class GraphViewer extends JPanel {
             @Override
             public void mouseExited(MouseEvent ev) {
                 if (highlight != null) {
+                    if (highlight instanceof AbstractGraphElement)
+                        ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = null;
                     alloyRepaint();
                 }
@@ -550,14 +734,6 @@ public final strictfp class GraphViewer extends JPanel {
                 alloyRefresh(1, ratio, w1, w2, h1, h2, d1, d2, msg);
             }
         });
-        /*b3.addActionListener(new ActionListener() {
-         public void actionPerformed(ActionEvent e) {
-         b1.setSelected(false); b2.setSelected(false);
-         if (!b3.isSelected()) b3.setSelected(true);
-         w1.setEnabled(false); h1.setEnabled(false); d1.setEnabled(false); dp1.setEnabled(true); msg.setText(" ");
-         w1.setBackground(WHITE); h1.setBackground(WHITE); d1.setBackground(WHITE);
-         }
-         });*/
         // Ask whether the user wants to change the width, height, and DPI
         double myScale;
         while (true) {
@@ -585,11 +761,7 @@ public final strictfp class GraphViewer extends JPanel {
                         continue;
                     }
                 }
-            } /*else if (b3.isSelected()) {
-             try { dpi=Double.parseDouble(dp1.getText()); } catch(NumberFormatException ex) { dpi=(-1); }
-             if (dpi<50 || dpi>3000) { OurDialog.alert("The DPI must be between 50 and 3000."); continue; }
-             myScale=0; // This field is unused for PDF generation
-             } */ else {
+            } else {
                 dpi = 72;
                 myScale = scale;
             }
@@ -597,9 +769,6 @@ public final strictfp class GraphViewer extends JPanel {
         }
         // Ask the user for a filename
         File filename;
-        /*if (b3.isSelected())
-         filename = OurDialog.askFile(false, null, ".pdf", "PDF file");
-         else*/
         filename = OurDialog.askFile(false, null, ".png", "PNG file");
         if (filename == null) {
             return;
@@ -610,9 +779,6 @@ public final strictfp class GraphViewer extends JPanel {
         // Attempt to write the PNG or PDF file
         try {
             System.gc(); // Try to avoid possible premature out-of-memory exceptions
-          /*if (b3.isSelected())
-             alloySaveAsPDF(filename.getAbsolutePath(), (int)dpi);
-             else*/
             alloySaveAsPNG(filename.getAbsolutePath(), myScale, dpi, dpi);
             synchronized (GraphViewer.class) {
                 oldDPI = dpi;
@@ -772,14 +938,14 @@ public final strictfp class GraphViewer extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.scale(scale, scale);
         Object sel = (selected != null ? selected : highlight);
-        GraphNode c = null;
-        if (sel instanceof GraphNode && ((GraphNode) sel).shape() == null) {
-            c = (GraphNode) sel;
+        AbstractGraphNode c = null;
+        if (sel instanceof AbstractGraphNode && ((AbstractGraphNode) sel).shape() == null) {
+            c = (AbstractGraphNode) sel;
             sel = c.ins.get(0);
         }
         graph.draw(new Artist(g2), scale, sel, true);
         if (c != null) {
-            gr.setColor(((GraphEdge) sel).color());
+            gr.setColor(((GraphEdge) sel).getColor());
             gr.fillArc(c.x() - 5 - graph.getLeft(), c.y() - 5 - graph.getTop(), 10, 10, 0, 360);
         }
         g2.setTransform(oldAF);

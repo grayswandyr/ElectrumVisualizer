@@ -1173,8 +1173,12 @@ public final class VizGUI implements ComponentListener {
     }
 
     /**
+<<<<<<< HEAD
      * Load the XML instance. [N7] Code taken from the original Alloy 4 source
      * code
+=======
+     * Load the XML instance.
+>>>>>>> ports
      */
     public void importXML(final String fileName, boolean forcefully) {
         final String xmlFileName = Util.canon(fileName);
@@ -1189,7 +1193,6 @@ public final class VizGUI implements ComponentListener {
             } catch (Throwable e) {
                 xmlLoaded.remove(fileName);
                 xmlLoaded.remove(xmlFileName);
-
                 OurDialog.alert("Cannot read or parse Alloy instance: " + xmlFileName + "\n\nError: " + e.getMessage());
                 if (xmlLoaded.size() > 0) {
                     importXML(xmlLoaded.get(xmlLoaded.size() - 1), false);
@@ -1235,6 +1238,7 @@ public final class VizGUI implements ComponentListener {
     public void loadXML(final String fileName, boolean forcefully, int state) {
         //String dfileName = splitTemporalFileName(state, fileName);  // [HASLab]
         String dfileName = fileName; // [N7-G. Dupont] Temporary fix (for the project to compile)
+
         final String xmlFileName = Util.canon(dfileName);
         File f = new File(xmlFileName);
         if (forcefully || !xmlFileName.equals(this.xmlFileName)) {

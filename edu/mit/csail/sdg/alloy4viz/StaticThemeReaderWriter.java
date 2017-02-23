@@ -31,6 +31,7 @@ import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
+import edu.mit.csail.sdg.alloy4graph.GraphPort;
 
 /**
  * This utility class contains methods to read and write VizState
@@ -168,6 +169,8 @@ public final class StaticThemeReaderWriter {
         out.write("<view");
         writeDotPalette(out, "nodetheme", view.getNodePalette(), defaultView.getNodePalette());
         writeDotPalette(out, "edgetheme", view.getEdgePalette(), defaultView.getEdgePalette());
+        writeDotPalette(out, "porttheme", view.getPortPalette(), defaultView.getPortPalette()); //[N7-G.Dupont]
+
         if (view.useOriginalName() != defaultView.useOriginalName()) {
             out.write(" useOriginalAtomNames=\"");
             out.write(view.useOriginalName() ? "yes" : "no");
@@ -409,6 +412,10 @@ public final class StaticThemeReaderWriter {
     private static void parseNodeViz(XMLNode xml, VizState view, AlloyNodeElement x) {
         /*
          * <node visible="inherit/yes/no"  label=".."  color=".."  shape=".."  style=".."
+<<<<<<< HEAD
+=======
+         * isport="inherit/yes/no" orientation="iherit/n/ne/nw/s/se/sw/e/w"
+>>>>>>> ports
          * showlabel="inherit/yes/no"  showinattr="inherit/yes/no"
          * hideunconnected="inherit/yes/no" nubmeratoms="inherit/yes/no">
          *      zero or more SET or TYPE
@@ -439,13 +446,16 @@ public final class StaticThemeReaderWriter {
             }
         }
         if (has(xml, "style")) {
-            view.nodeStyle.put(x, parseDotStyle(xml));
+            DotStyle ds = parseDotStyle(xml);
+            view.nodeStyle.put(x, ds);
         }
         if (has(xml, "color")) {
-            view.nodeColor.put(x, parseDotColor(xml));
+            DotColor dc = parseDotColor(xml);
+            view.nodeColor.put(x, dc);
         }
         if (has(xml, "shape")) {
-            view.shape.put(x, parseDotShape(xml));
+            DotShape ds = parseDotShape(xml);
+            view.shape.put(x, ds);
         }
         if (has(xml, "label")) {
             view.label.put(x, xml.getAttribute("label"));
@@ -458,6 +468,7 @@ public final class StaticThemeReaderWriter {
     private static String writeNodeViz(VizState view, VizState defaultView, AlloyNodeElement x) throws IOException {
         StringWriter sw = new StringWriter();
         PrintWriter out = new PrintWriter(sw);
+
         writeBool(out, "visible", view.nodeVisible.get(x), defaultView.nodeVisible.get(x));
         writeBool(out, "hideunconnected", view.hideUnconnected.get(x), defaultView.hideUnconnected.get(x));
         if (x == null || x instanceof AlloySet) {
@@ -472,9 +483,11 @@ public final class StaticThemeReaderWriter {
         writeDotStyle(out, view.nodeStyle.get(x), defaultView.nodeStyle.get(x));
         writeDotShape(out, view.shape.get(x), defaultView.shape.get(x));
         writeDotColor(out, view.nodeColor.get(x), defaultView.nodeColor.get(x));
+
         if (x != null && !view.label.get(x).equals(defaultView.label.get(x))) {
             Util.encodeXMLs(out, " label=\"", view.label.get(x), "\"");
         }
+
         if (out.checkError()) {
             throw new IOException("PrintWriter IO Exception!");
         }
@@ -495,6 +508,16 @@ public final class StaticThemeReaderWriter {
          * Each attribute, if omitted, means "no change".
          * Note: BOOLEAN is tristate.
          */
+        
+        // [N7-G.Dupont]
+        Boolean isport = null;
+        if (has(xml, "isport")) {
+            isport = getbool(xml, "isport");
+            view.isPort.put(x, isport);
+        }
+        
+        if (isport == null) isport = false;
+        
         if (has(xml, "visible")) {
             view.edgeVisible.put(x, getbool(xml, "visible"));
         }
@@ -511,10 +534,24 @@ public final class StaticThemeReaderWriter {
             view.constraint.put(x, getbool(xml, "constraint"));
         }
         if (has(xml, "style")) {
-            view.edgeStyle.put(x, parseDotStyle(xml));
+            DotStyle ds = parseDotStyle(xml);
+            view.edgeStyle.put(x, ds);
         }
         if (has(xml, "color")) {
-            view.edgeColor.put(x, parseDotColor(xml));
+            DotColor dc = parseDotColor(xml);
+            if (isport)
+                view.portColor.put(x, dc);
+            else
+                view.edgeColor.put(x, dc);
+        }
+        if (has(xml, "hidelabel")) {
+            view.portHideLabel.put(x, getbool(xml, "hidelabel"));
+        }
+        if (has(xml, "shape")) {
+            view.portShape.put(x, parseDotShape(xml));
+        }
+        if (has(xml, "orientation")) {
+            view.orientations.put(x, parseOrientation(xml));
         }
         if (has(xml, "weight")) {
             view.weight.put(x, getint(xml, "weight"));
@@ -530,8 +567,34 @@ public final class StaticThemeReaderWriter {
     private static String writeEdgeViz(VizState view, VizState defaultView, AlloyRelation x) throws IOException {
         StringWriter sw = new StringWriter();
         PrintWriter out = new PrintWriter(sw);
-        writeDotColor(out, view.edgeColor.get(x), defaultView.edgeColor.get(x));
-        writeDotStyle(out, view.edgeStyle.get(x), defaultView.edgeStyle.get(x));
+        
+        //[N7-G.Dupont] Registering port
+        Boolean isport = null;
+        
+        if (x != null) {
+            if (view.isPort.get(x) != null)
+                isport = view.isPort.get(x);
+            else if (defaultView.isPort.get(x) != null)
+                isport = defaultView.isPort.get(x);
+        }
+        
+        if (isport == null) isport = false;
+        else System.out.println("Edge " + x + " is a port");
+        
+        if (x == null)
+            writeOrientation(out, GraphPort.Orientation.North, null);
+        
+        if (isport) { // [N7-G.Dupont]
+            writeBool(out, "isport", view.isPort.get(x), defaultView.isPort.get(x));
+            writeBool(out, "hidelabel", view.portHideLabel.get(x), defaultView.portHideLabel.get(x));
+            writeOrientation(out, view.orientations.get(x), defaultView.orientations.get(x));
+            writeDotShape(out, view.portShape.get(x), defaultView.portShape.get(x));
+            writeDotColor(out, view.portColor.get(x), defaultView.portColor.get(x));
+        } else {
+            writeDotColor(out, view.edgeColor.get(x), defaultView.edgeColor.get(x));
+            writeDotStyle(out, view.edgeStyle.get(x), defaultView.edgeStyle.get(x));
+        }
+        
         writeBool(out, "visible", view.edgeVisible.get(x), defaultView.edgeVisible.get(x));
         writeBool(out, "merge", view.mergeArrows.get(x), defaultView.mergeArrows.get(x));
         writeBool(out, "layout", view.layoutBack.get(x), defaultView.layoutBack.get(x));
@@ -649,6 +712,32 @@ public final class StaticThemeReaderWriter {
         } else {
             out.write(value ? "=\"yes\"" : "=\"no\"");
         }
+    }
+    
+    /*============================================================================================*/
+    /**
+     * Parse the orientation.
+     */
+    private static GraphPort.Orientation parseOrientation(XMLNode node) {
+        return GraphPort.Orientation.parse(node.getAttribute("orientation"));
+    }
+    
+    /**
+     * Writes the orientation.
+     */
+    private static void writeOrientation(PrintWriter out, GraphPort.Orientation value, GraphPort.Orientation defaultValue) throws IOException {
+        if (value == null && defaultValue == null) {
+            return;
+        }
+        if (value != null && defaultValue != null && value.equals(defaultValue)) {
+            return;
+        }
+        out.write(" orientation=\"");
+        if (value == null)
+            out.write("inherit");
+        else
+            out.write(value.shortName());
+        out.write("\"");
     }
 
     /*============================================================================================*/

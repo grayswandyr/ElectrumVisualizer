@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 
 import edu.mit.csail.sdg.alloy4.ErrorFatal;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4graph.AbstractGraphNode;
 import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotDirection;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
@@ -35,7 +36,11 @@ import edu.mit.csail.sdg.alloy4graph.DotStyle;
 import edu.mit.csail.sdg.alloy4graph.Graph;
 import edu.mit.csail.sdg.alloy4graph.GraphEdge;
 import edu.mit.csail.sdg.alloy4graph.GraphNode;
+import edu.mit.csail.sdg.alloy4graph.GraphPort;
+import edu.mit.csail.sdg.alloy4graph.GraphPort.Orientation;
+import edu.mit.csail.sdg.alloy4graph.GraphRelation;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
+import java.util.*;
 
 /**
  * This utility class generates a graph for a particular index of the
@@ -72,6 +77,13 @@ public final class StaticGraphMaker {
      * corresponds to.
      */
     private final Map<GraphNode, AlloyAtom> nodes = new LinkedHashMap<GraphNode, AlloyAtom>();
+    
+    /**
+     * [N7] @Julien Richer
+     * The map that contains all nodes and what the AlloyAtom that each port
+     * corresponds to.
+     */
+    private final Map<GraphPort, AlloyAtom> ports = new LinkedHashMap<GraphPort, AlloyAtom>();
 
     /**
      * This maps each atom to the node representing it; if an atom doesn't have
@@ -79,6 +91,12 @@ public final class StaticGraphMaker {
      */
     private final Map<AlloyAtom, GraphNode> atom2node = new LinkedHashMap<AlloyAtom, GraphNode>();
 
+    /**
+     * [N7] @Louis Fauvarque
+     * This maps each port to the atom representing it
+     */
+    private final Map<AlloyAtom, GraphPort> atom2port = new LinkedHashMap<AlloyAtom,GraphPort>();
+    
     /**
      * This stores a set of additional labels we want to add to an existing
      * node.
@@ -100,11 +118,12 @@ public final class StaticGraphMaker {
             proj = new AlloyProjection();
         }
         Graph graph = new Graph(view.getFontSize() / 12.0D);
-        new StaticGraphMaker(graph, instance, view, proj);
+
+        StaticGraphMaker sgm = new StaticGraphMaker(graph, instance, view, proj);
         if (graph.nodes.size() == 0) {
             new GraphNode(graph, "", "Due to your theme settings, every atom is hidden.", "Please click Theme and adjust your settings.");
         }
-        return new GraphViewer(graph);
+        return new GraphViewer(graph,instance,view, sgm);
     }
 
     /**
@@ -143,11 +162,223 @@ public final class StaticGraphMaker {
         final boolean hidePrivate = view.hidePrivate();
         final boolean hideMeta = view.hideMeta();
         final Map<AlloyRelation, Color> magicColor = new TreeMap<AlloyRelation, Color>();
+        final Map<AlloyRelation, Color> magicPortColor = new TreeMap<AlloyRelation, Color>(); // [N7] @Julien Richer Ports magic colors
         final Map<AlloyRelation, Integer> rels = new TreeMap<AlloyRelation, Integer>();
         this.graph = graph;
         this.view = view;
         instance = StaticProjector.project(originalInstance, proj);
         model = instance.model;
+        
+        /**
+         * [N7] Modified by @Louis Fauvarque @Julien Richer
+         * Make the ports not visible
+         * Create blank arrows to link the nodes that are connected through ports
+         */
+        
+        ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
+        ArrayList<AlloyAtom> portList = getPorts(portRelations, instance);
+        
+        for (AlloyAtom port : portList) {
+            view.nodeVisible.put(port.getType(), Boolean.FALSE);
+        }
+        
+        // Ports magic colors
+        List<Color> portColors;
+        if (view.getPortPalette() == DotPalette.CLASSIC) {
+            portColors = colorsClassic;
+        } else if (view.getPortPalette() == DotPalette.STANDARD) {
+            portColors = colorsStandard;
+        } else if (view.getPortPalette() == DotPalette.MARTHA) {
+            portColors = colorsMartha;
+        } else {
+            portColors = colorsNeon;
+        }
+        int cj = 0;
+        for (AlloyRelation rel : portRelations) {
+            DotColor c = view.portColor.resolve(rel);
+            Color cc = (c == DotColor.MAGIC) ? portColors.get(cj) : c.getColor(view.getPortPalette());
+            magicPortColor.put(rel, cc);
+            cj = (cj + 1) % (portColors.size());
+        }
+        
+        /**
+         * For each portRelation :
+         * Add the non port atom to the box list
+         * And keep to which port they are connected (Hashmap)
+         * 
+         * WARNING : ArrayList becomes a reserved group type for Edges linked with ports
+         */
+        
+        // List of GraphRelations that link a node, one of its ports and the relation between them
+        // (relation,port,node)
+        List<GraphRelation> relList = new ArrayList<GraphRelation>();
+        
+        Set<AlloyRelation> relations = view.getCurrentModel().getRelations();
+        Set<AlloyTuple> tupleSet = null;
+        
+        for(AlloyRelation rel : portRelations){
+            Color magicol = magicPortColor.get(rel);
+            tupleSet = instance.relation2tuples(rel);
+            for(AlloyTuple tuple : tupleSet){
+                // Create a new GraphRelation and stock it in the list
+                relList.add(new GraphRelation(rel,tuple.getEnd(),tuple.getStart()));
+                
+                // Create a new port if necessary
+                // Output port
+                if(isPort(portRelations,tuple.getStart())) {
+                    GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getEnd());
+                    if (node != null) {
+                        Orientation defaultOri = GraphPort.AvailableOrientations.get(node.shape())[0];
+                        GraphPort port = createPort(tuple.getStart(), node, rel, tuple.getStart().toString(), defaultOri);
+                        setPortColor(port,rel,magicol);
+                    }
+                }
+                // Input port
+                if(isPort(portRelations,tuple.getEnd())) {
+                    GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getStart());
+                    if (node != null) {
+                        Orientation defaultOri = GraphPort.AvailableOrientations.get(node.shape())[0];
+                        GraphPort port = createPort(tuple.getEnd(), node, rel, tuple.getEnd().toString(), defaultOri);
+                        setPortColor(port,rel,magicol);
+                    }
+                }
+            }
+        }
+        
+        // All relations
+        for(AlloyRelation rel : relations){
+            Color magicol = magicPortColor.get(rel);
+            // Non port relations
+            if(!isIn(portRelations,rel)){
+                tupleSet = instance.relation2tuples(rel);
+                // Tuples of the relation
+                for(AlloyTuple tuple : tupleSet){
+                    // Check that each side of the tuple is a port
+                    if(isPort(portRelations,tuple.getStart()) && isPort(portRelations,tuple.getEnd())){
+                        AlloyAtom atomStart = null;
+                        AlloyRelation relStart = null;
+                        AlloyAtom atomEnd = null;
+                        AlloyRelation relEnd = null;
+                        
+                        // Get the 2 relations and their extremities
+                        // NB : grel.getStart() is a port
+                        for(GraphRelation grel : relList) {
+                            if(grel.getStart()==tuple.getStart()) {
+                                atomStart = grel.getEnd();
+                                relStart = grel.getRelation();
+                            }
+                            if(grel.getStart()==tuple.getEnd()) {
+                                atomEnd = grel.getEnd();
+                                relEnd = grel.getRelation();
+                            }
+                        }
+                        
+                        // Create the 2 nodes and the 2 ports
+                        if(atomStart!=null && atomEnd!=null && relStart!=null && relEnd!=null) {
+                            GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                            GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            GraphPort startPort = null;
+                            GraphPort endPort = null;
+                            
+                            // Output port
+                            if (startNode != null) {
+                                Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
+                                startPort = createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
+                            }
+                            
+                            // Input port
+                            if (endNode != null) {
+                                Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
+                                endPort = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                            }
+
+                            // Create the blank edge between the 2 nodes connected through the 2 ports
+                            if (startNode != null && endNode != null){
+                                ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
+                                couple.add(startPort);
+                                couple.add(endPort);
+                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                            }
+                        }
+                    }
+                    // Check that start is a node and end is a port
+                    else if(!isPort(portRelations,tuple.getStart()) && isPort(portRelations,tuple.getEnd())){
+                        AlloyAtom atomStart = tuple.getStart();
+                        AlloyAtom atomEnd = null;
+                        AlloyRelation relEnd = null;
+                        
+                        // Get the right relation and its extremity
+                        // NB : grel.getStart() is a port
+                        for(GraphRelation grel : relList) {
+                            if(grel.getStart()==tuple.getEnd()) {
+                                atomEnd = grel.getEnd();
+                                relEnd = grel.getRelation();
+                            }
+                        }
+                        
+                        // Create the 2 nodes and the port
+                        if(atomStart!=null && atomEnd!=null && relEnd!=null) {
+                            GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                            GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            GraphPort endPort = null;
+     
+                            // Input port
+                            if (endNode != null) {
+                                Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
+                                endPort = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                                setPortColor(endPort,rel,magicol);
+                            }
+
+                            // Create the blank edge between the 2 nodes connected through the port
+                            if (startNode != null && endNode != null){
+                                ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
+                                couple.add(startNode);
+                                couple.add(endPort);
+                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                            }
+                        }
+                    }
+                    // Check that start is a port and end is a node
+                    else if(isPort(portRelations,tuple.getStart()) && !isPort(portRelations,tuple.getEnd())){
+                        AlloyAtom atomStart = null;
+                        AlloyRelation relStart = null;
+                        AlloyAtom atomEnd = tuple.getEnd();
+                        
+                        // Get the relation and its extremity
+                        // NB : grel.getStart() is a port
+                        for(GraphRelation grel : relList) {
+                            if(grel.getStart()==tuple.getStart()) {
+                                atomStart = grel.getEnd();
+                                relStart = grel.getRelation();
+                            }
+                        }
+                        
+                        // Create the 2 nodes and the port
+                        if(atomStart!=null && atomEnd!=null && relStart!=null) {
+                            GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                            GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            GraphPort startPort = null;
+                            
+                            // Output port
+                            if (startNode != null) {
+                                Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
+                                startPort = createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
+                                setPortColor(startPort,rel,magicol);
+                            }
+
+                            // Create the blank edge between the 2 nodes connected through the port
+                            if (startNode != null && endNode != null){
+                                ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
+                                couple.add(startPort);
+                                couple.add(endNode);
+                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         for (AlloyRelation rel : model.getRelations()) {
             rels.put(rel, null);
         }
@@ -172,6 +403,7 @@ public final class StaticGraphMaker {
                 ci = (ci + 1) % (colors.size());
             }
         }
+
         for (AlloyAtom atom : instance.getAllAtoms()) {
             List<AlloySet> sets = instance.atom2sets(atom);
             if (sets.size() > 0) {
@@ -237,7 +469,12 @@ public final class StaticGraphMaker {
         DotStyle style = view.nodeStyle(atom, instance);
         DotShape shape = view.shape(atom, instance);
         String label = atomname(atom, false);
-        node = new GraphNode(graph, atom, label).set(shape).set(color.getColor(view.getNodePalette())).set(style);
+
+        node = new GraphNode(graph, atom, label);
+        node.setShape(shape);
+        node.setColor(color.getColor(view.getNodePalette()));
+        node.setStyle(style);
+        
         // Get the label based on the sets and relations
         String setsLabel = "";
         boolean showLabelByDefault = view.showAsLabel.get(null);
@@ -268,7 +505,7 @@ public final class StaticGraphMaker {
      * end node is explicitly invisible)
      */
     private boolean createEdge(final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, AlloyTuple tuple, boolean bidirectional, Color magicColor) {
-      // This edge represents a given tuple from a given relation.
+        // This edge represents a given tuple from a given relation.
         //
         // If the tuple's arity==2, then the label is simply the label of the relation.
         //
@@ -311,15 +548,108 @@ public final class StaticGraphMaker {
         int weight = view.weight.get(rel);
         GraphEdge e = new GraphEdge((layoutBack ? end : start), (layoutBack ? start : end), tuple, label, rel);
         if (color == DotColor.MAGIC && magicColor != null) {
-            e.set(magicColor);
+            e.setColor(magicColor);
         } else {
-            e.set(color.getColor(view.getEdgePalette()));
+            e.setColor(color.getColor(view.getEdgePalette()));
         }
-        e.set(style);
+        e.setStyle(style);
         e.set(dir != DotDirection.FORWARD, dir != DotDirection.BACK);
         e.set(weight < 1 ? 1 : (weight > 100 ? 10000 : 100 * weight));
         edges.put(e, tuple);
         return true;
+    }
+    
+    /**
+     * [N7] @Julien Richer
+     * Return the port for a specific AlloyAtom (create it if it doesn't exist
+     * yet).
+     * Color has to be set with the following setPortColor method
+     */
+    private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori) {
+
+        if (node == null) {
+            return null;
+        }
+        
+        GraphPort port = atom2port.get(atom);
+        
+        // Create the port if it does not exist
+        if (port == null) {
+            // Get the label based on the sets and relations
+            String setsLabel = "";
+            boolean showLabelByDefault = view.showAsLabel.get(null);
+            for (AlloySet set : instance.atom2sets(atom)) {
+                String x = view.label.get(set);
+                if (x.length() == 0) {
+                    continue;
+                }
+                Boolean showLabel = view.showAsLabel.get(set);
+                if ((showLabel == null && showLabelByDefault) || (showLabel != null && showLabel.booleanValue())) {
+                    setsLabel += ((setsLabel.length() > 0 ? ", " : "") + x);
+                }
+            }
+            if (setsLabel.length() > 0) {
+                Set<String> list = attribs.get(node);
+                if (list == null) {
+                    attribs.put(node, list = new TreeSet<String>());
+                }
+                list.add("(" + setsLabel + ")");
+            }
+            
+            // Make the port
+            port = new GraphPort(node, null, label, ori);
+            
+            // Add it to the maps
+            ports.put(port, atom);
+            atom2port.put(atom, port);
+            
+            // Erase the node that became a port
+            view.nodeVisible.put(atom.getType(), Boolean.FALSE);
+        }
+
+        // Set the port orientation
+        GraphPort.Orientation orient = view.orientations.get(rel);
+        if(orient!=null) {
+            port.setOrientation(orient);
+        }
+        else {
+            // Default orientation
+            port.setOrientation(ori);
+        }
+        
+        // Set the port shape
+        DotShape shape = view.portShape.resolve(rel);
+        if(shape!=null) {
+            port.setShape(shape);
+        }
+        else {
+            // Default shape
+            port.setShape(DotShape.BOX);
+        }
+        
+        // Set the label visibility
+        port.setHideLabel(view.portHideLabel.resolve(rel));
+        
+        return port;
+    }
+    
+    /**
+     * [N7] @Julien Richer
+     * Set the port color
+     */
+    private void setPortColor(GraphPort port, AlloyRelation rel, Color magicColor) {
+        // Set the port color
+        DotColor color = view.portColor.resolve(rel);
+        if (color == DotColor.MAGIC && magicColor != null) {
+            port.setColor(magicColor);
+        }
+        else if(color!=null) {
+            port.setColor(color.getColor(view.getPortPalette()));
+        }
+        else {
+            // Default color
+            port.setColor(Color.red);
+        }
     }
 
     /**
@@ -362,7 +692,7 @@ public final class StaticGraphMaker {
      * Attach tuple values as attributes to existing nodes.
      */
     private void edgesAsAttribute(AlloyRelation rel) {
-      // If this relation wants to be shown as an attribute,
+        // If this relation wants to be shown as an attribute,
         // then generate the annotations and attach them to each tuple's starting node.
         // Eg.
         //   If (A,B) and (A,C) are both in the relation F,
@@ -436,7 +766,7 @@ public final class StaticGraphMaker {
      * have "show in relational attribute == on", then the return value would be
      * "Person (Set1, Set2)".
      */
-    private String atomname(AlloyAtom atom, boolean showSets) {
+    public String atomname(AlloyAtom atom, boolean showSets) {
         String label = atom.getVizName(view, view.number.resolve(atom.getType()));
         if (!showSets) {
             return label;
@@ -472,5 +802,63 @@ public final class StaticGraphMaker {
             out.append(c);
         }
         return out.toString();
+    }
+
+    /**
+     * [N7] Modified by @Louis Fauvarque Indicate if a relation is in an array
+     * of relations
+     *
+     * @param elementsArray
+     * @param elt
+     * @return boolean res
+     */
+    private boolean isIn(ArrayList<AlloyRelation> elementsArray, AlloyRelation elt) {
+        for (AlloyRelation eltA : elementsArray) {
+            if (eltA != null) {
+                if (eltA.compareTo(elt) == 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * [N7] Modified by @Louis Fauvarque
+     * Indicate if an atom is designed to be a port
+     *
+     * @param portRelations
+     * @param atom
+     * @return true if atom represents a port in portRelations
+     */
+    public boolean isPort(ArrayList<AlloyRelation> portRelations, AlloyAtom atom) {
+        for (AlloyRelation eltA : portRelations) {
+            if (eltA != null) {
+                List<AlloyType> lst = eltA.getTypes();
+                if (lst.contains(atom.getType()) && lst.indexOf(atom.getType()) == lst.lastIndexOf(atom.getType()) && lst.indexOf(atom.getType()) != 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    
+    private ArrayList<AlloyAtom> getPorts(ArrayList<AlloyRelation> portRelations, AlloyInstance instance){
+        ArrayList<AlloyAtom> res = new ArrayList<AlloyAtom>();
+            for(AlloyAtom atom : instance.getAllAtoms()){
+                if(isPort(portRelations, atom)){
+                    res.add(atom);
+                }
+            }
+        return res;
+    }
+    
+    public GraphPort getPortFromAtom(AlloyAtom at){
+        return atom2port.get(at);
+    }
+            
+    public GraphNode getNodeFromAtom(AlloyAtom at){
+        return atom2node.get(at);
     }
 }

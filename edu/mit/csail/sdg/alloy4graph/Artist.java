@@ -30,6 +30,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import edu.mit.csail.sdg.alloy4.OurPDFWriter;
+import java.awt.geom.AffineTransform;
 
 /**
  * This class abstracts the drawing operations so that we can draw the graph
@@ -258,39 +259,91 @@ public final strictfp class Artist {
     }
 
     /**
-     * Saves the current font boldness.
+     * Saves the current font.
      */
-    private boolean fontBoldness = false;
+    private Font currentFont = new Font(Artist.fontName, Font.PLAIN, Artist.fontSize);
 
     /**
      * Changes the current font.
      */
     public void setFont(boolean fontBoldness) {
-        calc();
+        this.currentFont = new Font(Artist.fontName, (fontBoldness ? Font.BOLD : Font.PLAIN), this.currentFont.getSize());
+        calc(this.currentFont.getSize());
         if (gr != null) {
-            gr.setFont(fontBoldness ? cachedBoldFont : cachedPlainFont);
-        } else {
-            this.fontBoldness = fontBoldness;
+            gr.setFont(this.currentFont);
         }
+    }
+    
+    /**
+     * Set font size.
+     * [N7-G. Dupont]
+     * @param fs new font size
+     */
+    public void setFontSize(int fs) {
+        this.currentFont = new Font(Artist.fontName, this.currentFont.getStyle(), fs);
+        calc(this.currentFont.getSize());
+        if (gr != null) {
+            gr.setFont(this.currentFont);
+        }
+    }
+    
+    /**
+     * Get font size.
+     * [N7-G. Dupont]
+     * @return the current font size
+     */
+    public int getFontSize() {
+        return this.currentFont.getSize();
+    }
+    
+    /**
+     * [N7-G.Dupont] Draws the given string at (x, y) with no rotation.
+     */
+    public void drawString(String text, int x, int y) {
+        this.drawString(text, x, y, 0.0);
     }
 
     /**
-     * Draws the given string at (x,y)
+     * [N7-G.Dupont] Draws the given string at (x,y) with given rotation angle in radians.
      */
-    public void drawString(String text, int x, int y) {
+    public void drawString(String text, int x, int y, double theta) {
         if (text.length() == 0) {
             return;
         }
         if (gr != null) {
+            if (theta != 0.0) gr.rotate(theta, x, y); // [N7-G.Dupont] Rotate coordinates
             gr.drawString(text, x, y);
+            if (theta != 0.0) gr.rotate(-theta, x, y); //[N7-G.Dupont] Restore coordinates
             return;
         }
-        calc();
-        Font font = (fontBoldness ? cachedBoldFont : cachedPlainFont);
-        GlyphVector gv = font.createGlyphVector(new FontRenderContext(null, false, false), text);
+        calc(this.currentFont.getSize());
+        GlyphVector gv = this.currentFont.createGlyphVector(new FontRenderContext(null, false, false), text);
+        //[N7-G.Dupont] Problem: rotate the text for PDF ?
         translate(x, y);
         draw(gv.getOutline(), true);
         translate(-x, -y);
+    }
+    
+    /**
+     * [N7-G.Dupont] Retrieve current transformation of the Graphics2D.
+     */
+    public AffineTransform getTransform() {
+        return this.gr.getTransform();
+    }
+    
+    /**
+     * [N7-G.Dupont] Set the current transformation of the Graphics2D.
+     */
+    public void setTransform(AffineTransform at) {
+        this.gr.setTransform(at);
+    }
+    
+    /**
+     * [N7-G.Dupont] Rotate the artist.
+     * @param theta angle to rotate (in radians)
+     */
+    public void rotate(double theta) {
+        this.gr.rotate(theta);
     }
 
     /**
@@ -334,13 +387,17 @@ public final strictfp class Artist {
      * descent.
      */
     private static void calc() {
-        if (cachedMaxDescent >= 0) {
+        Artist.calc(Artist.fontSize);
+    }
+    
+    private static void calc(int fs) {
+        /*if (cachedMaxDescent >= 0) {
             return; // already done
-        }
+        }*/
         BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
         cachedGraphics = (Graphics2D) (image.getGraphics());
-        cachedPlainMetrics = cachedGraphics.getFontMetrics(cachedPlainFont = new Font(fontName, Font.PLAIN, fontSize));
-        cachedBoldMetrics = cachedGraphics.getFontMetrics(cachedBoldFont = new Font(fontName, Font.BOLD, fontSize));
+        cachedPlainMetrics = cachedGraphics.getFontMetrics(cachedPlainFont = new Font(fontName, Font.PLAIN, fs));
+        cachedBoldMetrics = cachedGraphics.getFontMetrics(cachedBoldFont = new Font(fontName, Font.BOLD, fs));
         cachedGraphics.setFont(cachedPlainFont);
         cachedMaxAscent = cachedPlainMetrics.getMaxAscent();
         cachedMaxDescent = cachedPlainMetrics.getMaxDescent();
@@ -369,7 +426,11 @@ public final strictfp class Artist {
      * font size and font boldness settings.
      */
     public static Rectangle2D getBounds(boolean fontBoldness, String string) {
-        calc();
+        return Artist.getBounds(fontBoldness, string, Artist.fontSize);
+    }
+    
+    public static Rectangle2D getBounds(boolean fontBoldness, String string, int fs) {
+        calc(fs);
         return (fontBoldness ? cachedBoldMetrics : cachedPlainMetrics).getStringBounds(string, cachedGraphics);
     }
 }
