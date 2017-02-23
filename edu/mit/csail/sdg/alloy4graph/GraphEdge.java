@@ -415,6 +415,25 @@ public final strictfp class GraphEdge {
      */
     void resetPath() {
         double ax = a.x(), ay = a.y();
+        ///////////////////////// Find the intersection between the edge end and the graph ///////////////////////////
+        double axaux = (((GraphNode) b).getFather() != null) ? b.x() + ((GraphNode) b).getFather().x() : b.x();
+        double ayaux = (((GraphNode) b).getFather() != null) ? b.y() + ((GraphNode) b).getFather().y() - ((GraphNode) b).getHeight() / 2 : b.y();
+        ArrayList<Integer> yauxList = new ArrayList<Integer>();
+        int size = 0;
+        double coeffa = (ayaux - ay) / (axaux - ax), coeffb = ayaux - ((ayaux - ay) / (axaux - ax)) * axaux;
+        for (int l = (int) ay; l < (int) ayaux; l++) {
+            if (((GraphNode) a).getBoundingBox(0, 0).contains((l - coeffb) / coeffa, l)) {
+                // Problem because l is rounded
+                yauxList.add(l);
+                size++;
+            }
+        }
+        if ( size > 0 ) {
+            ay = yauxList.get(size-1);
+            ax = (ay - coeffb) / coeffa;
+            System.out.println("Label: " + this.label + " x: " + ax + " y: " + ay);
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////    
         if (a == b) {
             double w = 0;
             for (int n = a.selfs.size(), i = 0; i < n; i++) {
@@ -453,17 +472,6 @@ public final strictfp class GraphEdge {
                 cy = b.y() + ((GraphNode) b).getFather().y() - ((GraphNode) b).getHeight() / 2;
                 bx = (ax + cx) / 2;
                 by = (ay + cy) / 2;
-            ///////////////////////// Find the intersection between the edge end and the graph ///////////////////////////
-            double a = (cy - ay) / (cx - ax), b = cy - ((cy - ay) / (cx - ax)) * cx;
-            for (int l = (int) Math.min(cx, ax); l < (int) Math.max(cx, ax); l++) {
-                for (GraphNode node : ((GraphNode) this.b).graph.nodes) {
-                    if (node.getBoundingBox(0, 0).contains(l, a*l+b)) {
-                        System.out.println("x: " + l + " y: " + a*l+b);
-                    }
-                }
-            }
-            
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////    
             } else {
                 bx = ax / 2;
                 by = ay / 2;
