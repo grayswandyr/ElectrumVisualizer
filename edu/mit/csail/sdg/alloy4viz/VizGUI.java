@@ -128,7 +128,8 @@ public final class VizGUI implements ComponentListener {
      */
     private final JButton projectionButton, openSettingsButton, closeSettingsButton, magicLayout, loadSettingsButton,
             saveSettingsButton, saveAsSettingsButton, resetSettingsButton, updateSettingsButton, openEvaluatorButton,
-            closeEvaluatorButton, enumerateButton, vizButton, treeButton, txtButton, splitButton/* , dotButton, xmlButton*/;
+            closeEvaluatorButton, enumerateButton, vizButton, treeButton, txtButton, splitButton, timeBackwardButton,
+            timeForwardButton, linkTimeButton/* , dotButton, xmlButton*/;
 
     /**
      * This list must contain all the display mode buttons (that is, vizButton,
@@ -707,10 +708,16 @@ public final class VizGUI implements ComponentListener {
                     "images/24_settings_close2.gif", doResetTheme()));
             /**
              * [N7] @Louis Fauvarque
-             * Adds the button to split the datas
+             * Adds the buttons to split the datas and to manage the projection over Time
              */ 
             toolbar.add(splitButton = OurUtil.button("Split","Splits the screens into two graphs","images/24_split.gif",doSplitGraph()));
+            toolbar.add(linkTimeButton = OurUtil.button("Link Time","Enable the time projection to be controlled by the buttons",null,doLinkTime()));
+            toolbar.add(timeBackwardButton = OurUtil.button("<<","Decreases the index of the Time projection",null,doTimeBackWard()));
+            toolbar.add(timeForwardButton = OurUtil.button(">>","Increases the index of the Time projection",null,doTimeForward()));
             //addTemporalJPanel();//pt.uminho.haslab: the jpanel with temporal states is created
+            linkTimeButton.setVisible(false);
+            timeBackwardButton.setVisible(false);
+            timeForwardButton.setVisible(false);
         } finally {
             wrap = false;
         }
@@ -950,17 +957,31 @@ public final class VizGUI implements ComponentListener {
         switch (currentMode) {
             case Tree:
                 treeButton.setEnabled(false);
-                splitButton.setEnabled(false);
+                splitButton.setVisible(false);
+                linkTimeButton.setVisible(false);
+                timeBackwardButton.setVisible(false);
+                timeForwardButton.setVisible(false);
                 break;
             case TEXT:
                 txtButton.setEnabled(false);
-                splitButton.setEnabled(false);
+                splitButton.setVisible(false);
+                linkTimeButton.setVisible(false);
+                timeBackwardButton.setVisible(false);
+                timeForwardButton.setVisible(false);
                 break;
             // case XML: xmlButton.setEnabled(false); break;
             // case DOT: dotButton.setEnabled(false); break;
             default:
                 vizButton.setEnabled(false);
-                splitButton.setEnabled(true);
+                splitButton.setVisible(true);
+                if(myState.getProjectedTypes().contains(AlloyType.TIME)){
+                    linkTimeButton.setVisible(true);
+                    timeBackwardButton.setVisible(true);
+                    timeForwardButton.setVisible(true);
+                    linkTimeButton.setEnabled(graphc != null);
+                    timeBackwardButton.setEnabled(graphc != null);
+                    timeForwardButton.setEnabled(graphc != null);
+                }
         }
         final boolean isMeta = myState.getOriginalInstance().isMetamodel;
         vizButton.setVisible(frame != null);
@@ -1627,6 +1648,47 @@ public final class VizGUI implements ComponentListener {
         updateDisplay();
         return null;
     }
+    
+    private ActionListener doLinkTime() {
+        if(wrap){
+            return wrapMe();
+        }
+        if(myState == null){
+            return null;
+        }
+        if(graphc != null){
+            graphc.linkTime();
+        }
+        return null;
+    }
+
+    private ActionListener doTimeBackWard() {
+        if(wrap){
+            return wrapMe();
+        }
+        if(myState == null){
+            return null;
+        }
+        if(graphc != null){
+            graphc.backwardTime();
+        }
+        return null;
+    }
+
+    private ActionListener doTimeForward() {
+        if(wrap){
+            return wrapMe();
+        }
+        if(myState == null){
+            return null;
+        }
+        if(graphc != null){
+            graphc.forwardTime();
+        }
+        return null;
+    }
+
+
 
     private Runner doExportDot() {
         if (wrap) {

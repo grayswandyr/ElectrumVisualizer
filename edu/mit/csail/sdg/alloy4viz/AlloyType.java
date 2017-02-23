@@ -53,6 +53,13 @@ public final class AlloyType extends AlloyNodeElement {
      * re-constructing it.
      */
     public static final AlloyType SET = new AlloyType("set", false, false, false, false, false, false);
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * this caches an instance of the "Time" AlloyType, so we don't have to keep
+     * re-constructing it (and it can be used for comparisons)
+     */
+    public static final AlloyType TIME = new AlloyType("Time",false, false, false, false, false, false);
 
     /**
      * Constructs an AlloyType object with that name.

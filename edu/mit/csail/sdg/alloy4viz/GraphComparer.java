@@ -16,6 +16,7 @@ package edu.mit.csail.sdg.alloy4viz;
 
 import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4graph.*;
+import edu.mit.csail.sdg.alloy4viz.VizGraphPanel.TypePanel;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,6 +62,8 @@ public class GraphComparer {
     private Graph graph1, graph2;
     private VizGraphPanel vgp1,vgp2;
     private VizState vizState;
+    int curIndex = 0;
+    boolean timeLinked = false;
 
     public GraphComparer(VizGraphPanel vgp1, VizGraphPanel vgp2, VizState vizState) {
         this.vgp1 = vgp1;
@@ -195,6 +198,61 @@ public class GraphComparer {
             }
         }
         return true;
+    }
+
+    public void forwardTime() {
+        if(timeLinked){
+            TypePanel tp1 = vgp1.getType2Panel().get(AlloyType.TIME);
+            TypePanel tp2 = vgp2.getType2Panel().get(AlloyType.TIME);
+            if(tp2.getAtomCombo().getSelectedIndex() < tp2.getAtomCombo().getItemCount()-1){
+                curIndex++;
+                tp1.getAtomCombo().setSelectedIndex(curIndex);
+                tp2.getAtomCombo().setSelectedIndex(curIndex+1);
+            }
+            vgp1.remakeAll();
+            vgp2.remakeAll();
+            tp1.getLeft().setEnabled(false);
+            tp1.getRight().setEnabled(false);
+            tp2.getLeft().setEnabled(false);
+            tp2.getRight().setEnabled(false);
+        }
+    }
+
+    public void backwardTime() {
+        if(timeLinked){
+            TypePanel tp1 = vgp1.getType2Panel().get(AlloyType.TIME);
+            TypePanel tp2 = vgp2.getType2Panel().get(AlloyType.TIME);
+            if(tp1.getAtomCombo().getSelectedIndex() > 0){
+                curIndex--;
+                tp1.getAtomCombo().setSelectedIndex(curIndex);
+                tp2.getAtomCombo().setSelectedIndex(curIndex+1);
+            }
+            vgp1.remakeAll();
+            vgp2.remakeAll();
+            tp1.getLeft().setEnabled(false);
+            tp1.getRight().setEnabled(false);
+            tp2.getLeft().setEnabled(false);
+            tp2.getRight().setEnabled(false);
+        }
+    }
+
+    public void linkTime() {
+        timeLinked = !timeLinked;
+        TypePanel tp1 = vgp1.getType2Panel().get(AlloyType.TIME);
+        TypePanel tp2 = vgp2.getType2Panel().get(AlloyType.TIME);
+        if(timeLinked){
+            curIndex = 0;
+            if(tp1.getAlloyAtoms().size() > 1){
+                tp1.getAtomCombo().setSelectedIndex(curIndex);
+                tp2.getAtomCombo().setSelectedIndex(curIndex+1);            
+            }
+        }
+        tp1.getAtomCombo().setEnabled(!timeLinked);
+        tp1.getLeft().setEnabled(!timeLinked && (curIndex > 0));
+        tp1.getRight().setEnabled(!timeLinked && (curIndex < tp1.getAtomCombo().getItemCount()-1));
+        tp2.getAtomCombo().setEnabled(!timeLinked);
+        tp2.getLeft().setEnabled(!timeLinked && (curIndex > 0));
+        tp2.getRight().setEnabled(!timeLinked && (curIndex < tp2.getAtomCombo().getItemCount()-1));
     }
 
 }

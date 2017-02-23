@@ -113,6 +113,10 @@ public final class VizGraphPanel extends JPanel {
      */
     private final Map<AlloyType, TypePanel> type2panel = new TreeMap<AlloyType, TypePanel>();
     
+    public Map<AlloyType, TypePanel> getType2Panel(){
+        return type2panel;
+    }
+    
     /**
      * [N7] @Louis Fauvarque
      * Indicates if the panel is the primary panel or the secondeary one
@@ -156,7 +160,20 @@ public final class VizGraphPanel extends JPanel {
          * The combo box showing the possible atoms to choose from.
          */
         private final JComboBox<Object> atomCombo;
+        
+        public JComboBox<Object> getAtomCombo(){
+            return atomCombo;
+        }
 
+        private final JButton right,left;
+        
+        public JButton getLeft(){
+            return left;
+        }
+        
+        public JButton getRight(){
+            return right;
+        }
         /**
          * True if this TypePanel object does not need to be rebuilt.
          */
@@ -187,7 +204,6 @@ public final class VizGraphPanel extends JPanel {
         private TypePanel(AlloyType type, List<AlloyAtom> atoms, AlloyAtom initialValue) {
             super();
             //System.out.println("Combo atoms: " + atoms);
-            final JButton left, right;
             int initialIndex = 0;
             this.type = type;
             atoms = new ArrayList<AlloyAtom>(atoms);
