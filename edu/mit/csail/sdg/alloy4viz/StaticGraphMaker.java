@@ -430,6 +430,7 @@ public final class StaticGraphMaker {
         } else {
             containingNode = createNode(hidePrivate, hideMeta, father, containedInGraph, maxDepth);
         }
+        if (containingNode == null) return null;
         if (!(directChilds == null)) { //If the given atom has childrens, we have to create corresponding node.
             for (List<AlloyAtom> childs : directChilds) {
                 for (AlloyAtom child : childs) {
