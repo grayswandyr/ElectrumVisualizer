@@ -155,7 +155,14 @@ public final strictfp class Artist {
                 c.ctrly1 = cy;
             }
             if (c2 == null) {
-                draw(c, false);
+                if (i==0) {
+                    CubicCurve2D.Double cdrawn = (CubicCurve2D.Double) curve.list.get(0).clone();
+                    cdrawn.x1 = curve.startDrawX;
+                    cdrawn.y1 = curve.startDrawY;
+                    draw(cdrawn, false);
+                } else {
+                    draw(c, false);
+                }
                 return;
             }
             if ((c.x1 < c.x2 && c2.x2 < c2.x1) || (c.x1 > c.x2 && c2.x2 > c2.x1)) {
@@ -176,7 +183,14 @@ public final strictfp class Artist {
                 cy = c2.ctrly1;
                 cx = c2.ctrlx1;
             }
-            draw(c, false);
+            if (i==0) {
+                CubicCurve2D.Double cdrawn = (CubicCurve2D.Double) curve.list.get(0).clone();
+                cdrawn.x1 = curve.startDrawX;
+                cdrawn.y1 = curve.startDrawY;
+                draw(cdrawn, false);
+            } else {
+                draw(c, false);
+            }
         }
     }
 
