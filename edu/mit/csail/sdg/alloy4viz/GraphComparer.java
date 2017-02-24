@@ -120,56 +120,56 @@ public class GraphComparer {
      * of the edges of corresponding group in the first graph
      */
     public void harmonize(){
-        //graph1 = vgp1.getGraph();
-        //graph2 = vgp2.getGraph();
-        HashMap<Object,Color> groupMap = new HashMap<Object,Color>();
-        HashMap<Object,Set<GraphEdge>> treatLater = new HashMap<Object,Set<GraphEdge>>();
-        // We stock the color of each group
-        for(GraphEdge e : graph1.edges){
-            if(e.group != null){
-                groupMap.put(e.group, e.color());
+        if(graph1 != null && graph2 != null){
+            HashMap<Object,Color> groupMap = new HashMap<Object,Color>();
+            HashMap<Object,Set<GraphEdge>> treatLater = new HashMap<Object,Set<GraphEdge>>();
+            // We stock the color of each group
+            for(GraphEdge e : graph1.edges){
+                if(e.group != null){
+                    groupMap.put(e.group, e.color());
+                }
             }
-        }
-        // Then we match the colors for each group matching in each graphs
-        for(GraphEdge e : graph2.edges){
-            if(e.group != null){
-                if(groupMap.containsKey(e.group)){
-                    e.set(groupMap.get(e.group));
-                } else {
-                    if(treatLater.containsKey(e.group)){
-                        treatLater.get(e.group).add(e);
+            // Then we match the colors for each group matching in each graphs
+            for(GraphEdge e : graph2.edges){
+                if(e.group != null){
+                    if(groupMap.containsKey(e.group)){
+                        e.set(groupMap.get(e.group));
                     } else {
-                        HashSet<GraphEdge> hs = new HashSet<GraphEdge>();
-                        hs.add(e);
-                        treatLater.put(e.group, hs);
+                        if(treatLater.containsKey(e.group)){
+                            treatLater.get(e.group).add(e);
+                        } else {
+                            HashSet<GraphEdge> hs = new HashSet<GraphEdge>();
+                            hs.add(e);
+                            treatLater.put(e.group, hs);
+                        }
                     }
                 }
             }
-        }
-        List<Color> colors;
-        if (vizState.getEdgePalette() == DotPalette.CLASSIC) {
-            colors = colorsClassic;
-        } else if (vizState.getEdgePalette() == DotPalette.STANDARD) {
-            colors = colorsStandard;
-        } else if (vizState.getEdgePalette() == DotPalette.MARTHA) {
-            colors = colorsMartha;
-        } else {
-            colors = colorsNeon;
-        }
-        List<Color> availableColors = new ArrayList<Color>(colors);
-        for(Color col : groupMap.values()){
-            availableColors.remove(col);
-            
-        }
-        // Then we put arbitrary colors to the remaining edges in the second graph
-        for(Set<GraphEdge> set : treatLater.values()){
-            Color c = availableColors.get(0);
-            availableColors.remove(c);
-            if(availableColors.isEmpty()){
-                availableColors = new ArrayList<Color>(colors);
+            List<Color> colors;
+            if (vizState.getEdgePalette() == DotPalette.CLASSIC) {
+                colors = colorsClassic;
+            } else if (vizState.getEdgePalette() == DotPalette.STANDARD) {
+                colors = colorsStandard;
+            } else if (vizState.getEdgePalette() == DotPalette.MARTHA) {
+                colors = colorsMartha;
+            } else {
+                colors = colorsNeon;
             }
-            for(GraphEdge e : set){
-                e.set(c);
+            List<Color> availableColors = new ArrayList<Color>(colors);
+            for(Color col : groupMap.values()){
+                availableColors.remove(col);
+
+            }
+            // Then we put arbitrary colors to the remaining edges in the second graph
+            for(Set<GraphEdge> set : treatLater.values()){
+                Color c = availableColors.get(0);
+                availableColors.remove(c);
+                if(availableColors.isEmpty()){
+                    availableColors = new ArrayList<Color>(colors);
+                }
+                for(GraphEdge e : set){
+                    e.set(c);
+                }
             }
         }
     }
