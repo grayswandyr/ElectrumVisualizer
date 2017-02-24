@@ -737,8 +737,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         // [N7-Bossut, Quentin] Draws the subGraph.         
         // We have'nt reach the depth max yet, we can draw the subgraph.
         
-        nestedNodeBounds();
-        
+        //nestedNodeBounds();
         final int top = graph.getTop(), left = graph.getLeft();
         final int subTop = subGraph.getTop(), subLeft = subGraph.getLeft();
         gr.set(style, scale);
@@ -993,6 +992,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * re-layouts nearby nodes/edges as necessary)
      */
     void tweak(int x, int y) {
+System.out.println("Tweak " + uuid);  
         if (x() == x && y() == y) {
             return; // If no change, then return right away
         }
@@ -1016,6 +1016,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else {
             graph.relayout_edges(layer());
         }
+        if (getFather() != null)
+          getFather().nestedNodeBounds();
     }
 
     //===================================================================================================
@@ -1066,7 +1068,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
         // [N7-M.Quentin]
         if (hasChild()){
           nestedNodeBounds();
-          //return;
         }
 
         switch (shape()) {
@@ -1332,6 +1333,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             if (!layout){
                 subGraph.layoutSubGraph(this);
                 layout = true;
+                System.out.println("x=" + x() + " ; y=" + y());
             }
             subGraph.recalcBound(true);
             recenterSubgraph();
@@ -1349,6 +1351,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
             this.updown = height / 2;
             this.side = width / 2;
             
+            subGraph.move((getLabelHeight()-yJumpNode)/2, -xJumpNode/2);
+
             //TODO 
             //Find the dimension of the figure
             //TODO
@@ -1373,9 +1377,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
       if (!hasChild()) {
         return;
       }
-      int displacementTop = y() - subGraph.getTotalHeight()/2 - subGraph.getTop(); 
-      int displacementLeft = x() - subGraph.getTotalWidth()/2 - subGraph.getLeft();
-System.out.println("recenterSubgraph(): dT=" + displacementTop + " ; dL=" + displacementLeft);
+      int displacementTop = (- subGraph.getTotalHeight()/2 - subGraph.getTop()); 
+      int displacementLeft = (- subGraph.getTotalWidth()/2 - subGraph.getLeft());
       subGraph.move(displacementTop, displacementLeft);
     }
 

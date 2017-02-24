@@ -191,6 +191,7 @@ public final strictfp class Graph {
         for (GraphNode n : nodes){
           n.move(dispLeft, dispTop);
         }
+        recalcBound(true);
     }
     
     /**
