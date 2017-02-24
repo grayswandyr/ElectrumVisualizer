@@ -964,6 +964,7 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel a = OurUtil.makeVL(wcolor, dispCBE, attrCBE, constraintCBE, 10), b = OurUtil.makeVL(wcolor, laybackCBE, mergeCBE);
         parent.add(OurUtil.makeHT(wcolor, 10, a, 10, b, 2, null));
     }
+
    //=============================================================================================================//
     /**
      * Convenient helper method that returns a description of an AlloyType (and

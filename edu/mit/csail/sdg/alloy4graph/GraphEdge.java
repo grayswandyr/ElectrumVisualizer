@@ -662,7 +662,9 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         out.append("uuid = \"" + (uuid == null ? "" : esc(uuid.toString())) + "\"");
         out.append(", color = \"#" + color + "\"");
         out.append(", fontcolor = \"#" + color + "\"");
+
         out.append(", style = \"" + this.getStyle().getDotText() + "\"");
+
         out.append(", label = \"" + esc(label) + "\"");
         out.append(", dir = \"" + (ahead && bhead ? "both" : (bhead ? "forward" : "back")) + "\"");
         out.append(", weight = \"" + weight + "\"");

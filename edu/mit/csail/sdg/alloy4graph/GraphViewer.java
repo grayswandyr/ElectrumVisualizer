@@ -950,4 +950,11 @@ public final strictfp class GraphViewer extends JPanel {
         }
         g2.setTransform(oldAF);
     }
+    
+    /**
+     * [N7-G.Dupont] Returns the graph.
+     */
+    public Graph getGraph() {
+        return this.graph;
+    }
 }

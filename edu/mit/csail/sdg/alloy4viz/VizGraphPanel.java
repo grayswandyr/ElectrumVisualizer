@@ -51,6 +51,7 @@ import edu.mit.csail.sdg.alloy4.OurBorder;
 import edu.mit.csail.sdg.alloy4.OurCombobox;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4graph.Graph;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 
 /**
@@ -111,6 +112,26 @@ public final class VizGraphPanel extends JPanel {
      * This is the list of TypePanel(s) we've already constructed.
      */
     private final Map<AlloyType, TypePanel> type2panel = new TreeMap<AlloyType, TypePanel>();
+    
+    public Map<AlloyType, TypePanel> getType2Panel(){
+        return type2panel;
+    }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Indicates if the panel is the primary panel or the secondeary one
+     */
+    private final boolean isSplit;
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Allows to compare the graphs in split mode
+     */
+    private GraphComparer graphc;
+
+    void setGraphc(GraphComparer graphc) {
+        this.graphc = graphc;
+    }
 
     /**
      * Inner class that displays a combo box of possible projection atom
@@ -139,7 +160,21 @@ public final class VizGraphPanel extends JPanel {
          * The combo box showing the possible atoms to choose from.
          */
         private final JComboBox<Object> atomCombo;
+        
+        public JComboBox<Object> getAtomCombo(){
+            return atomCombo;
+        }
 
+        private final JButton right,left;
+        
+        public JButton getLeft(){
+            return left;
+        }
+        
+        public JButton getRight(){
+            return right;
+        }
+        
         /**
          * True if this TypePanel object does not need to be rebuilt.
          */
@@ -169,8 +204,6 @@ public final class VizGraphPanel extends JPanel {
          */
         private TypePanel(AlloyType type, List<AlloyAtom> atoms, AlloyAtom initialValue) {
             super();
-            System.out.println("Combo atoms: " + atoms);
-            final JButton left, right;
             int initialIndex = 0;
             this.type = type;
             atoms = new ArrayList<AlloyAtom>(atoms);
@@ -226,7 +259,13 @@ public final class VizGraphPanel extends JPanel {
                 public final void actionPerformed(ActionEvent e) {
                     left.setEnabled(atomCombo.getSelectedIndex() > 0);
                     right.setEnabled(atomCombo.getSelectedIndex() < atomnames.length - 1);
-                    remakeAll();
+                    if(graphc == null){
+                        remakeAll();
+                    } else {
+                        regenerateProjection();
+                        vizState.getGraph(currentProjection, isSplit);
+                        graphc.compare();
+                    }
                     VizGraphPanel.this.getParent().invalidate();
                     VizGraphPanel.this.getParent().repaint();
                 }
@@ -269,7 +308,9 @@ public final class VizGraphPanel extends JPanel {
      * @param seeDot - true if we want to see the DOT source code, false if we
      * want it rendered as a graph
      */
-    public VizGraphPanel(VizState vizState, boolean seeDot) {
+    public VizGraphPanel(VizState vizState, boolean seeDot, boolean isSplit, GraphComparer graphc) {
+        this.isSplit = isSplit;
+        this.graphc = graphc;
         Border b = new EmptyBorder(0, 0, 0, 0);
         OurUtil.make(this, Color.BLACK, Color.WHITE, b);
         this.seeDot = seeDot;
@@ -318,12 +359,13 @@ public final class VizGraphPanel extends JPanel {
     }
 
     /**
-     * Regenerate the comboboxes and the graph.
+     * [N7] @Louis Fauvarque
+     * Regenerates the projection and the navpanel
      */
-    public void remakeAll() {
+    
+    public void regenerateProjection(){
         Map<AlloyType, AlloyAtom> map = new LinkedHashMap<AlloyType, AlloyAtom>();
         navPanel.removeAll();
-
         for (AlloyType type : vizState.getProjectedTypes()) {
             List<AlloyAtom> atoms = vizState.getOriginalInstance().type2atoms(type);
             TypePanel tp = type2panel.get(type);
@@ -343,7 +385,16 @@ public final class VizGraphPanel extends JPanel {
             map.put(tp.getAlloyType(), tp.getAlloyAtom());
         }
         currentProjection = new AlloyProjection(map);
-        JPanel graph = vizState.getGraph(currentProjection);
+    }
+    
+    /**
+     * Regenerate the comboboxes and the graph.
+     */
+    public void remakeAll() {
+        if(graphc == null){
+            regenerateProjection();
+        }
+        JPanel graph = vizState.getGraph(currentProjection,isSplit);
         if (seeDot && (graph instanceof GraphViewer)) {
             viewer = null;
             JTextArea txt = OurUtil.textarea(graph.toString(), 10, 10, false, true, getFont());
@@ -363,6 +414,14 @@ public final class VizGraphPanel extends JPanel {
         }
     }
 
+    /**
+     * [N7] @Louis Fauvarque
+     * Returns the diplayed graph
+     */
+    public Graph getGraph(){
+        return vizState.getCachedGraph(currentProjection, isSplit);
+    }
+    
     /**
      * Changes the font.
      */
@@ -386,7 +445,16 @@ public final class VizGraphPanel extends JPanel {
     }
 
     public String toDot() {
-        return vizState.getGraph(currentProjection).toString();
+        return vizState.getGraph(currentProjection,isSplit).toString();
+    }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Returns if the panel is the original or the split one
+     */
+    
+    public boolean isSplit(){
+        return isSplit;
     }
 
     /**

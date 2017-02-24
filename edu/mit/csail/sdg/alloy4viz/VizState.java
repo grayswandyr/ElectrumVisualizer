@@ -33,9 +33,12 @@ import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
-import java.util.*;
 
 import edu.mit.csail.sdg.alloy4graph.GraphPort;
+import edu.mit.csail.sdg.alloy4graph.Graph;
+import edu.mit.csail.sdg.alloy4graph.GraphViewer;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Mutable; this stores an unprojected model as well as the current theme
@@ -105,6 +108,7 @@ public final class VizState {
         // Ports labels visible
         portHideLabel.putAll(old.portHideLabel);
         
+        splitPanel = false;
         changedSinceLastSave = false;
     }
 
@@ -204,6 +208,7 @@ public final class VizState {
         // Done
         cache.clear();
         changedSinceLastSave = false;
+        splitPanel = false;
     }
 
     /**
@@ -251,18 +256,52 @@ public final class VizState {
     private LinkedHashMap<AlloyProjection, JPanel> cache = new LinkedHashMap<AlloyProjection, JPanel>();
 
     /**
+     * [N7] @Louis Fauvarque
+     * Caches previously generated graphs for the split panel.
+     */
+    private LinkedHashMap<AlloyProjection, JPanel> cacheSplit = new LinkedHashMap<AlloyProjection, JPanel>();
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Caches the graphs themselves
+     */
+    private LinkedHashMap<AlloyProjection, Graph> cacheGraph = new LinkedHashMap<AlloyProjection, Graph>();
+
+    /**
+     * [N7] @Louis Fauvarque
+     * Caches the graphs themselves for the split panel.
+     */
+    private LinkedHashMap<AlloyProjection, Graph> cacheSplitGraph = new LinkedHashMap<AlloyProjection, Graph>();
+    
+    /**
      * Generate a VizGraphPanel for a given projection choice, using the current
      * settings.
      */
-    public JPanel getGraph(AlloyProjection projectionChoice) {
-        JPanel ans = cache.get(projectionChoice);
+    public JPanel getGraph(AlloyProjection projectionChoice, boolean isSplit) {
+        JPanel ans = null;
+        if(isSplit){
+            ans = cacheSplit.get(projectionChoice);
+        } else {
+            ans = cache.get(projectionChoice);
+        }
         if (ans != null) {
             return ans;
         }
         AlloyInstance inst = originalInstance;
         try {
+            /**
+             * [N7] @Louis Fauvarque
+             * Adds the gestion of the second screen
+             */
             ans = StaticGraphMaker.produceGraph(inst, this, projectionChoice);
-            cache.put(projectionChoice, ans);
+            Graph gr = ((GraphViewer)ans).getGraph();
+            if(isSplit){
+                cacheSplit.put(projectionChoice, ans);
+                cacheSplitGraph.put(projectionChoice,gr);
+            } else {
+                cache.put(projectionChoice, ans);
+                cacheGraph.put(projectionChoice,gr);
+            }
         } catch (Throwable ex) {
             String msg = "An error has occurred: " + ex + "\n\nStackTrace:\n" + MailBug.dump(ex) + "\n";
             JScrollPane scroll = OurUtil.scrollpane(OurUtil.textarea(msg, 0, 0, false, false));
@@ -273,6 +312,19 @@ public final class VizState {
         }
         ans.setBorder(null);
         return ans;
+    }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Returns the cached graph
+     */
+    
+    public Graph getCachedGraph(AlloyProjection projectionChoice, boolean isSplit){
+        if(isSplit){
+            return cacheSplitGraph.get(projectionChoice);
+        } else {
+            return cacheGraph.get(projectionChoice);
+        }
     }
 
     /**
@@ -294,6 +346,9 @@ public final class VizState {
     private void change() {
         changedSinceLastSave = true;
         cache.clear();
+        cacheSplit.clear();
+        cacheGraph.clear();
+        cacheSplitGraph.clear();
     }
 
     /**
@@ -420,6 +475,13 @@ public final class VizState {
             currentModel = StaticProjector.project(originalInstance.model, projectedTypes);
             change();
         }
+        /**
+         * [N7] @Louis Fauvarque
+         * Closes the second panel if there's no type to project on
+         */
+        if(projectedTypes.isEmpty()){
+            splitPanel = false;
+        }
     }
 
     /**
@@ -431,6 +493,7 @@ public final class VizState {
             currentModel = StaticProjector.project(originalInstance.model, projectedTypes);
             change();
         }
+        splitPanel = false;
     }
 
     /*============================================================================================*/
@@ -629,6 +692,8 @@ public final class VizState {
     
     // Ports labels visible
     public final MMap<Boolean> portHideLabel = new MMap<Boolean>(true, false);
+
+    public boolean splitPanel = false;
 
     public final class MInt {
 

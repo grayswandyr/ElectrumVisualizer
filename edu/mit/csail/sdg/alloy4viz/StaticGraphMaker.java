@@ -107,7 +107,6 @@ public final class StaticGraphMaker {
      * The resulting graph.
      */
     private final Graph graph;
-
     /**
      * Produces a single Graph from the given Instance and View and choice of
      * Projection

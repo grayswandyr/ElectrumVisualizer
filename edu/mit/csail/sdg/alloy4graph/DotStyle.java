@@ -48,6 +48,7 @@ public enum DotStyle {
      * Modified @Louis Fauvarque
      */
     BLANK("Blank","blank");
+    
     /**
      * The description of this line style.
      */

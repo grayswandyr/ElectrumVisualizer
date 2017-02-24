@@ -412,10 +412,7 @@ public final class StaticThemeReaderWriter {
     private static void parseNodeViz(XMLNode xml, VizState view, AlloyNodeElement x) {
         /*
          * <node visible="inherit/yes/no"  label=".."  color=".."  shape=".."  style=".."
-<<<<<<< HEAD
-=======
          * isport="inherit/yes/no" orientation="iherit/n/ne/nw/s/se/sw/e/w"
->>>>>>> ports
          * showlabel="inherit/yes/no"  showinattr="inherit/yes/no"
          * hideunconnected="inherit/yes/no" nubmeratoms="inherit/yes/no">
          *      zero or more SET or TYPE
@@ -468,7 +465,6 @@ public final class StaticThemeReaderWriter {
     private static String writeNodeViz(VizState view, VizState defaultView, AlloyNodeElement x) throws IOException {
         StringWriter sw = new StringWriter();
         PrintWriter out = new PrintWriter(sw);
-
         writeBool(out, "visible", view.nodeVisible.get(x), defaultView.nodeVisible.get(x));
         writeBool(out, "hideunconnected", view.hideUnconnected.get(x), defaultView.hideUnconnected.get(x));
         if (x == null || x instanceof AlloySet) {

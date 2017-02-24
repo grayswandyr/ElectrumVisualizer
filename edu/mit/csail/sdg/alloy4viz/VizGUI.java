@@ -128,7 +128,8 @@ public final class VizGUI implements ComponentListener {
      */
     private final JButton projectionButton, openSettingsButton, closeSettingsButton, magicLayout, loadSettingsButton,
             saveSettingsButton, saveAsSettingsButton, resetSettingsButton, updateSettingsButton, openEvaluatorButton,
-            closeEvaluatorButton, enumerateButton, vizButton, treeButton, txtButton/* , dotButton, xmlButton*/;
+            closeEvaluatorButton, enumerateButton, vizButton, treeButton, txtButton, splitButton, timeBackwardButton,
+            timeForwardButton, linkTimeButton/* , dotButton, xmlButton*/;
 
     /**
      * This list must contain all the display mode buttons (that is, vizButton,
@@ -193,6 +194,12 @@ public final class VizGUI implements ComponentListener {
     private VizGraphPanel myGraphPanel = null;
 
     /**
+     * [N7] @Louis Fauvarque
+     */
+    
+    private VizGraphPanel mySplitGraphPanel = null;
+    
+    /**
      * The splitpane between the customization panel and the graph panel.
      */
     private final JSplitPane splitpane;
@@ -239,6 +246,13 @@ public final class VizGUI implements ComponentListener {
     // that file
     private final Map<String, Integer> cacheForXmlState = new HashMap<String, Integer>();
 
+    /**
+     * [N7] @Louis Fauvarque
+     * The graph comparer
+     */
+    
+    private GraphComparer graphc = null;
+    
 	// ==============================================================================================//
     /**
      * The current theme file; "" if there is no theme file loaded.
@@ -692,7 +706,18 @@ public final class VizGUI implements ComponentListener {
                     "Save the current theme customization as a new theme file", "images/24_save.gif", doSaveThemeAs()));
             toolbar.add(resetSettingsButton = OurUtil.button("Reset", "Reset the theme customization",
                     "images/24_settings_close2.gif", doResetTheme()));
+            /**
+             * [N7] @Louis Fauvarque
+             * Adds the buttons to split the datas and to manage the projection over Time
+             */ 
+            toolbar.add(splitButton = OurUtil.button("Split","Splits the screens into two graphs","images/24_split.gif",doSplitGraph()));
+            toolbar.add(linkTimeButton = OurUtil.button("Link Time","Enable the time projection to be controlled by the buttons",null,doLinkTime()));
+            toolbar.add(timeBackwardButton = OurUtil.button("<<","Decreases the index of the Time projection",null,doTimeBackWard()));
+            toolbar.add(timeForwardButton = OurUtil.button(">>","Increases the index of the Time projection",null,doTimeForward()));
             //addTemporalJPanel();//pt.uminho.haslab: the jpanel with temporal states is created
+            linkTimeButton.setVisible(false);
+            timeBackwardButton.setVisible(false);
+            timeForwardButton.setVisible(false);
         } finally {
             wrap = false;
         }
@@ -710,7 +735,7 @@ public final class VizGUI implements ComponentListener {
         if (frame != null) {
             frame.pack();
             if (!Util.onMac() && !Util.onWindows()) {
-				// many Window managers do not respect ICCCM2; this should help
+		// many Window managers do not respect ICCCM2; this should help
                 // avoid the Title Bar being shifted "off screen"
                 if (x < 30) {
                     if (x < 0) {
@@ -932,20 +957,37 @@ public final class VizGUI implements ComponentListener {
         switch (currentMode) {
             case Tree:
                 treeButton.setEnabled(false);
+                splitButton.setVisible(false);
+                linkTimeButton.setVisible(false);
+                timeBackwardButton.setVisible(false);
+                timeForwardButton.setVisible(false);
                 break;
             case TEXT:
                 txtButton.setEnabled(false);
+                splitButton.setVisible(false);
+                linkTimeButton.setVisible(false);
+                timeBackwardButton.setVisible(false);
+                timeForwardButton.setVisible(false);
                 break;
-		// case XML: xmlButton.setEnabled(false); break;
+            // case XML: xmlButton.setEnabled(false); break;
             // case DOT: dotButton.setEnabled(false); break;
             default:
                 vizButton.setEnabled(false);
+                splitButton.setVisible(true);
+                if(myState.getProjectedTypes().contains(AlloyType.TIME)){
+                    linkTimeButton.setVisible(true);
+                    timeBackwardButton.setVisible(true);
+                    timeForwardButton.setVisible(true);
+                    linkTimeButton.setEnabled(graphc != null);
+                    timeBackwardButton.setEnabled(graphc != null);
+                    timeForwardButton.setEnabled(graphc != null);
+                }
         }
         final boolean isMeta = myState.getOriginalInstance().isMetamodel;
         vizButton.setVisible(frame != null);
         treeButton.setVisible(frame != null);
         txtButton.setVisible(frame != null);
-		// dotButton.setVisible(frame!=null);
+	// dotButton.setVisible(frame!=null);
         // xmlButton.setVisible(frame!=null);
         magicLayout.setVisible((settingsOpen == 0 || settingsOpen == 1) && currentMode == VisualizerMode.Viz);
         projectionButton.setVisible((settingsOpen == 0 || settingsOpen == 1) && currentMode == VisualizerMode.Viz);
@@ -961,10 +1003,25 @@ public final class VizGUI implements ComponentListener {
         enumerateMenu.setEnabled(!isMeta && settingsOpen == 0 && enumerator != null);
         enumerateButton.setVisible(!isMeta && settingsOpen == 0 && enumerator != null);
         toolbar.setVisible(true);
-		// Now, generate the graph or tree or textarea that we want to display
+        // Now, generate the graph or tree or textarea that we want to display
         // on the right
         if (frame != null) {
             frame.setTitle(makeVizTitle());
+        }
+        /**
+         * [N7] @Louis Fauvarque
+         * Assure that the comparer is not instanciated
+         */
+        repopulateProjectionPopup();
+        if(!myState.splitPanel && graphc != null){
+            if(graphc.timeLinked){
+                graphc.linkTime();
+                graphc.resetHighlight();
+                linkTimeButton.setEnabled(false);
+                timeBackwardButton.setEnabled(false);
+                timeForwardButton.setEnabled(false);
+            }
+            graphc = null;
         }
         switch (currentMode) {
             case Tree: {
@@ -987,19 +1044,44 @@ public final class VizGUI implements ComponentListener {
                 content = getTextComponent(textualOutput);
                 break;
             }
-		// case XML: {
+            // case XML: {
             // content=getTextComponent(xmlFileName);
             // break;
             // }
             default: {
                 if (myGraphPanel == null) {
-                    myGraphPanel = new VizGraphPanel(myState, false);
+                    myGraphPanel = new VizGraphPanel(myState, false, false, graphc);
                 } else {
+                    myGraphPanel.setGraphc(graphc);
                     myGraphPanel.seeDot(false);
                     myGraphPanel.remakeAll();
                 }
+                /**
+                 * [N7] @Louis Fauvarque
+                 * Creates the second panel if needed
+                 */
+                if (myState.splitPanel) {
+                    if (mySplitGraphPanel == null) {
+                        mySplitGraphPanel = new VizGraphPanel(myState, false, true, graphc);
+                        mySplitGraphPanel.regenerateProjection();
+                        mySplitGraphPanel.remakeAll();
+                        myGraphPanel.setGraphc(graphc);
+                    } else {
+                        mySplitGraphPanel.seeDot(false);
+                        mySplitGraphPanel.regenerateProjection();
+                        mySplitGraphPanel.remakeAll();
+                        myGraphPanel.regenerateProjection();
+                        myGraphPanel.remakeAll();
+                    }
+                    graphc.setGraphPanel1(myGraphPanel);
+                    graphc.setGraphPanel2(mySplitGraphPanel);
+                }
             }
-            content = myGraphPanel;
+            if(!myState.splitPanel){
+                content = myGraphPanel;
+            } else {
+                content = OurUtil.makeH(myGraphPanel,mySplitGraphPanel);
+            }
         }
         // Now that we've re-constructed "content", let's set its font size
         if (currentMode != VisualizerMode.Tree) {
@@ -1066,7 +1148,6 @@ public final class VizGUI implements ComponentListener {
         } else {
             myEvaluatorPanel.requestFocusInWindow();
         }
-        repopulateProjectionPopup();
         if (frame != null) {
             frame.validate();
         } else {
@@ -1173,12 +1254,8 @@ public final class VizGUI implements ComponentListener {
     }
 
     /**
-<<<<<<< HEAD
      * Load the XML instance. [N7] Code taken from the original Alloy 4 source
      * code
-=======
-     * Load the XML instance.
->>>>>>> ports
      */
     public void importXML(final String fileName, boolean forcefully) {
         final String xmlFileName = Util.canon(fileName);
@@ -1308,6 +1385,13 @@ public final class VizGUI implements ComponentListener {
         }
         if (myGraphPanel != null) {
             myGraphPanel.remakeAll();
+        }
+        /**
+         * [N7] @Louis Fauvarque
+         * Resets the split Panel
+         */
+        if (myState.splitPanel && mySplitGraphPanel != null){
+            mySplitGraphPanel.remakeAll();
         }
         addThemeHistory(filename);
         thmFileName = filename;
@@ -1550,6 +1634,74 @@ public final class VizGUI implements ComponentListener {
         saveThemeFile(file.getPath());
         return null;
     }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Splits the graph into two;
+     * @return 
+     */
+    
+    private Runner doSplitGraph(){
+        if(wrap){
+            return wrapMe();
+        }
+        if(myState == null){
+            return null;
+        }
+        // splitPanel == true => the second panel needs to be shown
+        myState.splitPanel = !myState.splitPanel && myState.getProjectedTypes().size() > 0;
+        if(graphc == null){
+            graphc = new GraphComparer(null,null,myState);
+        } else if(!myState.splitPanel){
+            if(graphc.timeLinked){
+                graphc.linkTime();
+            }
+            graphc.resetHighlight();
+            graphc = null;
+            myGraphPanel.setGraphc(graphc);
+        }
+        updateDisplay();
+        return null;
+    }
+    
+    private ActionListener doLinkTime() {
+        if(wrap){
+            return wrapMe();
+        }
+        if(myState == null){
+            return null;
+        }
+        if(graphc != null){
+            graphc.linkTime();
+        }
+        return null;
+    }
+
+    private ActionListener doTimeBackWard() {
+        if(wrap){
+            return wrapMe();
+        }
+        if(myState == null){
+            return null;
+        }
+        if(graphc != null){
+            graphc.backwardTime();
+        }
+        return null;
+    }
+
+    private ActionListener doTimeForward() {
+        if(wrap){
+            return wrapMe();
+        }
+        if(myState == null){
+            return null;
+        }
+        if(graphc != null){
+            graphc.forwardTime();
+        }
+        return null;
+    }
 
     private Runner doExportDot() {
         if (wrap) {
@@ -1744,6 +1896,9 @@ public final class VizGUI implements ComponentListener {
      */
     private Runner doApply() {
         if (!wrap) {
+            if(graphc != null){
+                graphc.compare();
+            }
             updateDisplay();
         }
         return wrapMe();

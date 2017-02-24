@@ -1023,7 +1023,6 @@ public final strictfp class Graph {
         for (GraphEdge e : portEdges){
             e.resetPath();
         }
-        
         // Now, scan layer-by-layer to find edges that intersect nodes improperly, and bend them accordingly
         for (int layer = layers() - 1; layer > 0; layer--) {
             List<GraphNode> top = layer(layer), bottom = layer(layer - 1);

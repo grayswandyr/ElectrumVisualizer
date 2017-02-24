@@ -213,8 +213,15 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * GeneralPath or a Polygon.
      */
     private Shape poly3 = null;
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Indicates if this node needs to be highlighted (for comparative views 
+     * only)
+     */
+    private boolean needHighlight;
 
-    //===================================================================================================  
+   //===================================================================================================
     /**
      * Create a new node with the given list of labels, then add it to the given
      * graph.
@@ -431,7 +438,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.set(this.getStyle(), scale);
         gr.translate(x() - left, y() - top);
         gr.setFont(this.getFontBoldness());
-        if (this.highlight()) {
+        if (this.highlight() || needHighlight) {
             gr.setColor(COLOR_CHOSENNODE);
         } else {
             gr.setColor(this.getColor());
@@ -1137,5 +1144,25 @@ public strictfp class GraphNode extends AbstractGraphNode {
         for (GraphPort p : this.ports) {
             p.setHighlight(h);
         }
+    }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Getter and Setter for needHighlight
+     */
+    
+    public void setNeedHighlight(boolean newval){
+        needHighlight = newval;
+    }
+    
+    public boolean getNeedHighlight(){
+        return needHighlight;
+    }
+    
+    /**
+     * Getter for labels
+     */
+    public List<String> getLabels(){
+        return labels;
     }
 }
