@@ -77,12 +77,6 @@ public class GraphComparer {
     public void compare() {
         graph1 = vgp1.getGraph();
         graph2 = vgp2.getGraph();
-        if(graph1 == null){
-            System.out.println("Graph1 null");
-        }
-        if(graph2 == null){
-            System.out.println("Graph2 null");
-        }
         if (graph1 != null && graph2 != null) {
             for (GraphNode n : graph2.nodes) {
                 n.setHighlight(true);
@@ -102,6 +96,15 @@ public class GraphComparer {
         harmonize();
         vgp1.remakeAll();
         vgp2.remakeAll();
+    }
+    
+    public void resetHighlight(){
+        for (GraphNode n : graph2.nodes) {
+            n.setHighlight(false);
+        }
+        for (GraphNode n : graph1.nodes) {
+            n.setHighlight(false);
+        }
     }
 
     public void setGraphPanel1(VizGraphPanel vgp1) {

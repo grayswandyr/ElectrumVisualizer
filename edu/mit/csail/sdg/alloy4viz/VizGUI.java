@@ -1013,7 +1013,14 @@ public final class VizGUI implements ComponentListener {
          * Assure that the comparer is not instanciated
          */
         repopulateProjectionPopup();
-        if(!myState.splitPanel){
+        if(!myState.splitPanel && graphc != null){
+            if(graphc.timeLinked){
+                graphc.linkTime();
+                graphc.resetHighlight();
+                linkTimeButton.setEnabled(false);
+                timeBackwardButton.setEnabled(false);
+                timeForwardButton.setEnabled(false);
+            }
             graphc = null;
         }
         switch (currentMode) {
@@ -1063,6 +1070,8 @@ public final class VizGUI implements ComponentListener {
                         mySplitGraphPanel.seeDot(false);
                         mySplitGraphPanel.regenerateProjection();
                         mySplitGraphPanel.remakeAll();
+                        myGraphPanel.regenerateProjection();
+                        myGraphPanel.remakeAll();
                     }
                     graphc.setGraphPanel1(myGraphPanel);
                     graphc.setGraphPanel2(mySplitGraphPanel);
@@ -1642,6 +1651,10 @@ public final class VizGUI implements ComponentListener {
         if(graphc == null){
             graphc = new GraphComparer(null,null,myState);
         } else if(!myState.splitPanel){
+            if(graphc.timeLinked){
+                graphc.linkTime();
+            }
+            graphc.resetHighlight();
             graphc = null;
             myGraphPanel.setGraphc(graphc);
         }
@@ -1883,6 +1896,9 @@ public final class VizGUI implements ComponentListener {
      */
     private Runner doApply() {
         if (!wrap) {
+            if(graphc != null){
+                graphc.compare();
+            }
             updateDisplay();
         }
         return wrapMe();
