@@ -631,8 +631,10 @@ public final strictfp class GraphEdge {
      * the current zoom scale, draw the edge.
      */
     void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
+        System.out.println("edge: " + this.label + " From: " + a.uuid + " to: " + b.uuid + " response: " + (a.graph == b.graph));
         // If the edge is between two nodes of the same Graph
         if (a.graph == b.graph) {
+            //System.out.println("edge: " + this.label + " From: " + a.uuid + " to: " + b.uuid);
             if (style != DotStyle.BLANK) {
                 final int top = a.graph.getTop(), left = a.graph.getLeft();
                 gr.translate(-left, -top);
