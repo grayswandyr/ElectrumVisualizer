@@ -232,7 +232,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * If (updown>=0 and shape!=null), this is the bounding polygon. Note: if
      * not null, it must be either a GeneralPath or a Polygon.
      */
-    public /*private*/ Shape poly = null; //TODO set this back to private!
+    private Shape poly = null;
 
     /**
      * If (updown>=0 and shape!=null and poly2!=null), then poly2 will also be
@@ -737,6 +737,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         // [N7-Bossut, Quentin] Draws the subGraph.         
         // We have'nt reach the depth max yet, we can draw the subgraph.
         
+        //nestedNodeBounds();
         final int top = graph.getTop(), left = graph.getLeft();
         final int subTop = subGraph.getTop(), subLeft = subGraph.getLeft();
         gr.set(style, scale);
@@ -748,14 +749,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
             gr.setColor(color);
         }
         
-        imbricatedNodeBounds();
-
-        if (highlight) {
-            gr.setColor(COLOR_CHOSENNODE);
-        } else {
-            gr.setColor(color);
-        }
-
         gr.draw(poly, true);
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
@@ -831,7 +824,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
     /**
      * Draws a container when it subgraph cannot be dran because of the maximum
      * depth level. Draws the node as a regular one and an indicator meaning
-     * that the sugraph is hidden.
+     * that the subgraph is hidden.
      */
     private void drawHidder(Artist gr, double scale, boolean highlight) {
         drawRegular(gr, scale, highlight);
@@ -1019,7 +1012,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else {
             graph.relayout_edges(layer());
         }
-        graph.recalcBound(false);
+        if (getFather() != null)
+          getFather().nestedNodeBounds();
     }
 
     //===================================================================================================
@@ -1067,7 +1061,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
 
         portBounds(); // [N7-G.Dupont]
 
-        if (hasChild()) imbricatedNodeBounds(); // [N7-M.Quentin]
+        // [N7-M.Quentin]
+        if (hasChild()){
+          nestedNodeBounds();
+        }
 
         switch (shape()) {
             case HOUSE: {
@@ -1316,10 +1313,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     /**
-     * [N7- R Bossut, M Quentin] Recalculate the boundaries of the imbricated
+     * [N7- R Bossut, M Quentin] Recalculate the boundaries of the nested
      * nodes given the current boundaries and the ones of its children.
      */
-    void imbricatedNodeBounds() {
+    void nestedNodeBounds() {
 
         if (hasChild() && (maxDepth > 0)) {
 
@@ -1332,9 +1329,9 @@ public strictfp class GraphNode extends AbstractGraphNode {
             if (!layout){
                 subGraph.layoutSubGraph(this);
                 layout = true;
-            }else{
-                subGraph.recalcBound(true);
             }
+            subGraph.recalcBound(true);
+            recenterSubgraph();
 
             // Compute the max width of the labels 
             int maxLabelWidth = 0;
@@ -1349,6 +1346,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
             this.updown = height / 2;
             this.side = width / 2;
             
+            subGraph.move((getLabelHeight()-yJumpNode)/2, -xJumpNode/2);
+
             //TODO 
             //Find the dimension of the figure
             //TODO
@@ -1363,6 +1362,21 @@ public strictfp class GraphNode extends AbstractGraphNode {
         }
 
     }
+
+    //[N7-R.Bossut, M.Quentin]
+    /**
+     * Recenter the subgraph of the node.
+     * Changes top and left attributes of the subgraph so that they are equal to the x and the y of this node.
+     */
+    public void recenterSubgraph(){
+      if (!hasChild()) {
+        return;
+      }
+      int displacementTop = (- subGraph.getTotalHeight()/2 - subGraph.getTop()); 
+      int displacementLeft = (- subGraph.getTotalWidth()/2 - subGraph.getLeft());
+      subGraph.move(displacementTop, displacementLeft);
+    }
+
 
     /**
      * [N7-G Dupont] Recalculate the boundaries of the node given the current

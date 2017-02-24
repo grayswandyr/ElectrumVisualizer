@@ -184,6 +184,16 @@ public final strictfp class Graph {
         return totalHeight;
     }
 
+    /** 
+     * Moves the graph.
+     */
+    public void move(int dispTop, int dispLeft){
+        for (GraphNode n : nodes){
+          n.move(dispLeft, dispTop);
+        }
+        recalcBound(true);
+    }
+    
     /**
      * Returns an unmodifiable view of the list of nodes in the given layer
      * (0..#layer-1); return an empty list if no such layer.
@@ -649,15 +659,6 @@ public final strictfp class Graph {
             this.totalWidth = Math.max(layerWidth[j], this.totalWidth);
         }
 
-  /*      // Compute the max width of the labels 
-        int maxLabelWidth = 0;
-        List<String> labels = father.getLabels();
-        for (int l = 0; l < labels.size(); l++) {
-            maxLabelWidth = Math.max(maxLabelWidth, (int) getBounds(true, labels.get(l)).getWidth());
-        }
-
-        totalHeight += father.getLabelHeight();
-        totalWidth = Math.max(this.totalWidth, maxLabelWidth) + GraphNode.xJumpNode;*/ //TODO : suppress this part if we can change it.
         totalWidth += GraphNode.xJumpNode; //Not sure this is needed : TODO
 
         // The two integers corresponding to the coordinates wehre we start to draw each layer
@@ -692,9 +693,6 @@ public final strictfp class Graph {
             startY -= maxHeight/2 + GraphNode.yJumpNode;
         }
         //relayout_edges(true);
-        //left = -totalWidth/2;
-        //top = -totalHeight/2;
-        recalcBound(true);
    }
     
     /** 
