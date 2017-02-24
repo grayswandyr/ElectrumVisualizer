@@ -64,6 +64,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * Color to use to show a highlighted node.
      */
     private static final Color COLOR_CHOSENNODE = Color.LIGHT_GRAY;
+    
+    private static final Color COLOR_DIFFNODE = new Color(230,230,230);
 
    // =============================== cached for performance ===================================
     /**
@@ -438,8 +440,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.set(this.getStyle(), scale);
         gr.translate(x() - left, y() - top);
         gr.setFont(this.getFontBoldness());
-        if (this.highlight() || needHighlight) {
+        if (this.highlight()) {
             gr.setColor(COLOR_CHOSENNODE);
+        } else if (this.needHighlight) {
+            gr.setColor(COLOR_DIFFNODE);
         } else {
             gr.setColor(this.getColor());
         }
@@ -469,7 +473,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         } else {
             gr.draw(poly, true);
-            gr.setColor(Color.BLACK);
+            if(needHighlight){
+                gr.setColor(Color.RED);
+            } else {
+                gr.setColor(Color.BLACK);
+            }
             gr.draw(poly, false);
             if (poly2 != null) {
                 gr.draw(poly2, false);
