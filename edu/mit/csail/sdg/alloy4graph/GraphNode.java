@@ -753,9 +753,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
 
-//String s = "[drawSubgraph] top=" + subTop + " ; left=" + subLeft;
-//for (GraphNode n : subGraph.nodes) s = s + "\n  [" + n.uuid + "] top=" + (n.y() - n.getHeight()/2) + " ; left=" + (n.x() - n.getWidth()/2); 
-//System.out.println(s);
         gr.translate(subLeft, subTop);
         subGraph.draw(gr, scale, uuid, true);
         gr.translate(-subLeft, -subTop);
@@ -992,7 +989,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * re-layouts nearby nodes/edges as necessary)
      */
     void tweak(int x, int y) {
-System.out.println("Tweak " + uuid);  
         if (x() == x && y() == y) {
             return; // If no change, then return right away
         }
@@ -1333,7 +1329,6 @@ System.out.println("Tweak " + uuid);
             if (!layout){
                 subGraph.layoutSubGraph(this);
                 layout = true;
-                System.out.println("x=" + x() + " ; y=" + y());
             }
             subGraph.recalcBound(true);
             recenterSubgraph();
