@@ -864,6 +864,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         final int yJump = Graph.yJump / 6;
         int i = layer();
         setY(i, y);
+        if (ph == null) return;
         y = y - ph[i] / 2; // y is now the top-most edge of this layer
         for (i++; i < graph.layers(); i++) {
             List<GraphNode> list = graph.layer(i);
@@ -886,6 +887,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         final int yJump = Graph.yJump / 6;
         int i = layer();
         setY(i, y);
+        if (ph == null) return;
         y = y + ph[i] / 2; // y is now the bottom-most edge of this layer
         for (i--; i >= 0; i--) {
             List<GraphNode> list = graph.layer(i);
@@ -1358,7 +1360,9 @@ public strictfp class GraphNode extends AbstractGraphNode {
             p.addPoint(side, updown);
             p.addPoint(-side, updown);
             this.poly = p;
-
+        
+            if (getFather() != null)
+              getFather().nestedNodeBounds();
         }
 
     }
