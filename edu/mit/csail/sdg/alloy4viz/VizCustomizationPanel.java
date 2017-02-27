@@ -577,7 +577,13 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel back = vizState.layoutBack.pick(rel, "Layout backwards", "Layout graph as if arcs were reversed");
         JPanel merge = vizState.mergeArrows.pick(rel, "Merge arrows", "Merge opposing arrows between the same nodes as one bidirectional arrow");
         JPanel constraint = vizState.constraint.pick(rel, "Influence layout", "Whether this edge influences the graph layout");
-        JPanel contains = vizState.containmentRel.pick(rel, "Show as containment", "Show relation as containment relation.");
+        
+        visible.setEnabled(!vizState.containmentRel.resolve(rel));
+        JPanel contains = vizState.containmentRel.pick(rel, "Show as containment", "Show relation as containment relation.", new VizState.Callback<Boolean>() {
+            public void call(Boolean a) {
+                visible.setEnabled(!a);
+            }
+        });
        
         JPanel panel1 = OurUtil.makeVR(wcolor, contains, visible, attr); //[N7-R.Bossut, M.Quentin]
         JPanel panel2 = OurUtil.makeVR(wcolor, constraint, back, merge); //[N7-R.Bossut, M.Quentin]
@@ -834,6 +840,7 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel attrCBE = vizState.attribute.pick("Show as attributes", "Show relations as attributes on nodes");
         JPanel laybackCBE = vizState.layoutBack.pick("Layout backwards", "Layout graph as if arcs were reversed");
         JPanel containsCBE = vizState.containmentRel.pick("Show as containment", "Show relations as containment relations.");
+        
         parent.add(makelabel(" Default Relation Settings:"));
         parent.add(OurUtil.makeH(wcolor, 10, colorComboE, 8, outlineComboE, 2, null));
         JPanel a = OurUtil.makeVL(wcolor, dispCBE, attrCBE, constraintCBE, 10), b = OurUtil.makeVL(wcolor, laybackCBE, mergeCBE, containsCBE);
