@@ -839,7 +839,14 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel constraintCBE = vizState.constraint.pick("Influence layout", "Whether this edge influences the graph layout");
         JPanel attrCBE = vizState.attribute.pick("Show as attributes", "Show relations as attributes on nodes");
         JPanel laybackCBE = vizState.layoutBack.pick("Layout backwards", "Layout graph as if arcs were reversed");
-        JPanel containsCBE = vizState.containmentRel.pick("Show as containment", "Show relations as containment relations.");
+        //JPanel containsCBE = vizState.containmentRel.pick("Show as containment", "Show relations as containment relations.");
+        
+        dispCBE.setEnabled(!vizState.containmentRel.get(null));
+        JPanel containsCBE = vizState.containmentRel.pick("Show as containment", "Show relations as containment relations.", new VizState.Callback<Boolean>() {
+            public void call(Boolean a) {
+                dispCBE.setEnabled(!a);
+            }
+        });
         
         parent.add(makelabel(" Default Relation Settings:"));
         parent.add(OurUtil.makeH(wcolor, 10, colorComboE, 8, outlineComboE, 2, null));

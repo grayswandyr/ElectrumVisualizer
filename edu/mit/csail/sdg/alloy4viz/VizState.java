@@ -32,6 +32,8 @@ import static edu.mit.csail.sdg.alloy4.OurCheckbox.ALL_OFF;
 import static edu.mit.csail.sdg.alloy4.OurCheckbox.ALL_ON;
 import static edu.mit.csail.sdg.alloy4.OurCheckbox.INH_OFF;
 import static edu.mit.csail.sdg.alloy4.OurCheckbox.INH_ON;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.OFF;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.ON;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
@@ -712,6 +714,20 @@ public final class VizState {
                     T old = get(null);
                     boolean ans = (old != null && old.equals(onValue));
                     MMap.this.put(null, ans ? offValue : onValue);
+                    return ans ? OFF : ON;
+                }
+            };
+        }
+        
+        OurCheckbox pick(String label, String tooltip, Callback cb) {
+            return new OurCheckbox(label, tooltip, (Boolean.TRUE.equals(get(null)) ? OurCheckbox.ON : OurCheckbox.OFF)) {
+                private static final long serialVersionUID = 0;
+
+                public Icon do_action() {
+                    T old = get(null);
+                    boolean ans = (old != null && old.equals(onValue));
+                    MMap.this.put(null, ans ? offValue : onValue);
+                    if (cb != null) cb.call(get(null));
                     return ans ? OFF : ON;
                 }
             };
