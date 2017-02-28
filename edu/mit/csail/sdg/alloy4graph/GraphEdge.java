@@ -31,6 +31,7 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Vector;
 
 /**
  * Mutable; represents a graphical edge.
@@ -414,16 +415,34 @@ public final strictfp class GraphEdge {
      * the center of the "to" node.
      */
     void resetPath() {
-        double ax = a.x(), ay = a.y();
+        //double ax = (((GraphNode) a).getFather() != null) ? a.x() + ((GraphNode) a).getFather().x() : a.x(), ay = (((GraphNode) a).getFather() != null) ? a.y() + ((GraphNode) a).getFather().y() : a.y();
         ///////////////////////// Find the intersection between the edge end and the graph ///////////////////////////
+        /*
         double startX = ax, startY = ay; //The coordinates of the point where we start drawing
         double axaux = (((GraphNode) b).getFather() != null) ? b.x() + ((GraphNode) b).getFather().x() : b.x();
         double ayaux = (((GraphNode) b).getFather() != null) ? b.y() + ((GraphNode) b).getFather().y() : b.y();
-        ArrayList<Integer> yauxList = new ArrayList<Integer>();
-        int size = 0;
+        
+        if (((GraphNode) b).getFather() != null) {
+            System.out.println("Node: " + b.uuid + " x: " + b.x() + " fatherx: " + ((GraphNode) b).getFather().x());
+            System.out.println("Node: " + b.uuid + " y: " + b.y() + " fathery: " + ((GraphNode) b).getFather().y());
+        }
+        
+        //ArrayList<Integer> yauxList = new ArrayList<Integer>();
+        //int size = 0;
         if (ayaux > ay) { // If the edge goes from a layer to a biggest one
             ayaux -= ((GraphNode) b).getHeight() / 2;
-            double coeffa = (ayaux - ay) / (axaux - ax), coeffb = ayaux - ((ayaux - ay) / (axaux - ax)) * axaux;
+            //double coeffa = (ayaux - ay) / (axaux - ax), coeffb = ayaux - ((ayaux - ay) / (axaux - ax)) * axaux;
+            double pt2x = (axaux - ax), pt2y = (ayaux - ay), pt1x = 0, pt1y = ((GraphNode) a).getHeight()/2;
+            double scal = pt1x*pt2x + pt1y*pt2y, norm1 = Math.sqrt(pt1x*pt1x + pt1y*pt1y), norm2 = Math.sqrt(pt2x*pt2x + pt2y*pt2y);
+            double cosa = scal / (norm1 * norm2);
+            double angle = Math.acos(cosa) * Math.signum(pt1x*pt2y - pt1y*pt2x);
+            System.out.println("The edge: " + this.label + " Angle: " + angle);
+            if (angle != Math.PI/2) {
+                double l = Math.tan(angle) * norm1;
+                startX += l;
+            }
+            startY += ((GraphNode) a).getHeight()/2;
+            /*
             for (int l = (int) ay; l < (int) ayaux; l++) {
                 if (((GraphNode) a).getBoundingBox(0, 0).contains((l - coeffb) / coeffa, l)) {
                     // Problem because l is rounded
@@ -436,8 +455,19 @@ public final strictfp class GraphEdge {
                 startX = (startY - coeffb) / coeffa;
                 System.out.println("Label: " + this.label + " x: " + ax + " y: " + ay);
             }
+            
         } else { // If the edge goes from a layer to a smallest one
             ayaux += ((GraphNode) b).getHeight() / 2;
+            double pt2x = (ax - axaux), pt2y = (ay - ayaux), pt1x = ax, pt1y = ay; //- ((GraphNode) a).getHeight()/2;
+            double scal = pt1x*pt2x + pt1y*pt2y, norm1 = Math.sqrt(pt1x*pt1x + pt1y*pt1y), norm2 = Math.sqrt(pt2x*pt2x + pt2y*pt2y);
+            double cosa = scal / (norm1 * norm2) % 2*Math.PI;
+            double angle = Math.acos(cosa) * Math.signum(pt1x*pt2y - pt1y*pt2x);
+            if (angle != Math.PI/2) {
+                double l = Math.tan(angle) * ((GraphNode) a).getHeight()/2;
+                startX += l;
+            }
+            startY += ((GraphNode) a).getHeight()/2;
+            /*
             double coeffa = (ayaux - ay) / (axaux - ax), coeffb = ayaux - ((ayaux - ay) / (axaux - ax)) * axaux;
             for (int l = (int) ayaux; l < (int) ay; l++) {
                 if (((GraphNode) a).getBoundingBox(0, 0).contains((l - coeffb) / coeffa, l)) {
@@ -450,8 +480,12 @@ public final strictfp class GraphEdge {
                 startY = yauxList.get(size-1);
                 startX = (startY - coeffb) / coeffa;
             }
+            
         }
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+        */
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        double ax = a.x(), ay = a.y();
+        double startX = ax, startY = ay;
         if (a == b) {
             double w = 0;
             for (int n = a.selfs.size(), i = 0; i < n; i++) {
@@ -468,6 +502,7 @@ public final strictfp class GraphEdge {
                 e.path = new Curve(ax, ay);
                 e.path.startDrawX = startX;
                 e.path.startDrawY = startY;
+                e.path.chopStart(a.getHeight()/2);
                 e.path.cubicTo(ax, ay - k * h, ax + wa - k * wa, ay - h, ax + wa, ay - h);
                 e.path.cubicTo(ax + wa + k * wb, ay - h, ax + wa + wb, ay - k * h, ax + wa + wb, ay);
                 e.path.cubicTo(ax + wa + wb, ay + k * h, ax + wa + k * wb, ay + h, ax + wa, ay + h);
@@ -499,6 +534,7 @@ public final strictfp class GraphEdge {
             path = new Curve(ax, ay);
             path.startDrawX = startX;
             path.startDrawY = startY;
+            path.chopStart(a.getHeight()/2);
             if (n > 1 && (n & 1) == 1) {
                 if (i < n / 2) {
                     bx = bx - (n / 2 - i) * 10;
@@ -530,6 +566,7 @@ public final strictfp class GraphEdge {
             path = new Curve(ax, ay);
             path.startDrawX = startX;
             path.startDrawY = startY;
+            path.chopStart(a.getHeight()/2);
             if (n > 1 && (n & 1) == 1) {
                 if (i < n / 2) {
                     bx = bx - (n / 2 - i) * 10;
@@ -631,6 +668,7 @@ public final strictfp class GraphEdge {
      */
     void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
         System.out.println("edge: " + this.label + " From: " + a.uuid + " to: " + b.uuid + " response: " + (a.graph == b.graph));
+        System.out.println("edge: " + this.label + " Same father: " + (((GraphNode) a).getFather() == ((GraphNode) b).getFather()));
         // If the edge is between two nodes of the same Graph
         if (a.graph == b.graph) {
             //System.out.println("edge: " + this.label + " From: " + a.uuid + " to: " + b.uuid);
@@ -715,7 +753,8 @@ public final strictfp class GraphEdge {
                         }
                         e = e.b.outs.get(0);
                     }
-
+                    
+                    p.chopEnd(10);
                     gr.drawSmoothly(p);
                 }
 
