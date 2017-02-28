@@ -1662,6 +1662,9 @@ public final class VizGUI implements ComponentListener {
         } else if(!myState.splitPanel){
             if(graphc.timeLinked){
                 graphc.linkTime();
+                linkTimeButton.setEnabled(false);
+                timeBackwardButton.setEnabled(false);
+                timeForwardButton.setEnabled(false);
             }
             graphc.resetHighlight();
             graphc = null;

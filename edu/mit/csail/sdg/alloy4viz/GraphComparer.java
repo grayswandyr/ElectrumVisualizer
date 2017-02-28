@@ -99,11 +99,15 @@ public class GraphComparer {
     }
     
     public void resetHighlight(){
-        for (GraphNode n : graph2.nodes) {
-            n.setNeedHighlight(false);
+        if(graph2 != null){
+            for (GraphNode n : graph2.nodes) {
+                n.setNeedHighlight(false);
+            }
         }
-        for (GraphNode n : graph1.nodes) {
-            n.setNeedHighlight(false);
+        if(graph1 != null){
+            for (GraphNode n : graph1.nodes) {
+                n.setNeedHighlight(false);
+            }
         }
     }
 
