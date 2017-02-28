@@ -160,6 +160,8 @@ public final strictfp class Graph {
      * Assuming layout() has been called, this returns the left edge.
      */
     public int getLeft() {
+        if (left == 0)
+            recalcBound(true);
         return left;
     }
 
@@ -167,6 +169,8 @@ public final strictfp class Graph {
      * Assuming layout() has been called, this returns the top edge.
      */
     public int getTop() {
+        if (top == 0)
+            recalcBound(true);
         return top;
     }
 
@@ -465,7 +469,7 @@ public final strictfp class Graph {
                 a.setLayer(tmp.layer() - 1);
                 // now we have three nodes in the vertical order of "tmp", "a", then "b"
                 e.change(a);                                                                           // let old edge go from "tmp" to "a"
-                e = new GraphEdge(a, b, e.uuid, "", e.ahead(), e.bhead(), e.style(), e.color(), e.group); // let new edge go from "a" to "b"
+                e = new GraphEdge(a, b, a.graph, e.uuid, "", e.ahead(), e.bhead(), e.style(), e.color(), e.group); // let new edge go from "a" to "b"
             }
         }
     }
