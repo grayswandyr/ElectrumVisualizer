@@ -338,7 +338,6 @@ public final class StaticGraphMaker {
         DotShape shape = view.shape(atom, instance);
         String label = atomname(atom, false);
         GraphNode node = new GraphNode(g, atom, maxDepth, label).set(shape).set(color.getColor(view.getNodePalette())).set(style);
-//System.out.println("############### [createNode] just create one node with uuid=" + node.uuid);
         // Get the label based on the sets and relations
         String setsLabel = "";
         boolean showLabelByDefault = view.showAsLabel.get(null);
@@ -517,7 +516,6 @@ public final class StaticGraphMaker {
         for (GraphNode start : starts) {
             for (GraphNode end : ends) {
               if (!sameGraph || (start.graph == end.graph)){
-                System.out.println("Create edge between " + start.uuid + " and " + end.uuid);
                 boolean layoutBack = view.layoutBack.resolve(rel);
                 String label = view.label.get(rel);
                 if (edgeArity > 2) {

@@ -24,13 +24,7 @@ import java.util.LinkedList;
  * It is a super class for GraphNode and GraphPort (so that an edge can
  * connect to a port).
  */
-public abstract class AbstractGraphNode {
-    /**
-     * Graph element's object uuid.
-     * This can be null; this has not to be unique.
-     */
-    public final Object uuid;
-    
+public abstract class AbstractGraphNode extends AbstractGraphElement {
     /**
      * Coordinates of the center of the element.
      */
@@ -62,27 +56,20 @@ public abstract class AbstractGraphNode {
     final LinkedList<GraphEdge> selfs = new LinkedList<GraphEdge>();
     
     /**
-     * The graph the element belongs to.
-     */
-    public Graph graph;
-    
-    /**
      * Constructor.
      * @param graph the graph this element belongs to
      * @param uuid the element's uuid
      */
     public AbstractGraphNode(Graph graph, Object uuid) {
-        this.graph = graph;
-        this.uuid = uuid;
+        super(graph, uuid);
     }
     
     /**
      * Draw the element thanks to given Artist.
      * @param gr the artist with which to draw the element
      * @param scale the scale to set the artist
-     * @param highlights indicate if the element is highlighted (ie: selected/hovered)
      */
-    abstract void draw(Artist gr, double scale, boolean highlights);
+    abstract void draw(Artist gr, double scale);
     
     /**
      * Determines if coordinates are inside/on the element.
