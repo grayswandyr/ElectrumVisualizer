@@ -66,11 +66,7 @@ public class AlloyType extends AlloyNodeElement {
    public final boolean isMeta;
 
    /** Records whether this sig is known to be "enum"; NOTE: this value is NOT USED during equals() comparison. */
-   public final boolean isEnum;
-
-   public IndexedAlloyType makeIndexedAlloyType(int index) {                                                       //[N7-<Bossut,Quentin>]
-       return new IndexedAlloyType(null, isOne, isAbstract, isBuiltin, isPrivate, isMeta, isEnum, index);          //[N7-<Bossut,Quentin>]
-   }                                                                                                               //[N7-<Bossut,Quentin>]
+   public final boolean isEnum;                                                                                                         //[N7-<Bossut,Quentin>]
    
    /** When comparing two AlloyType objects, we compare their names.
     * <br> We guarantee x.equals(y) iff x.compareTo(y)==0
