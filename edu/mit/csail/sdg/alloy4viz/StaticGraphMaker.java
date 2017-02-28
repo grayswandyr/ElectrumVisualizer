@@ -338,6 +338,7 @@ public final class StaticGraphMaker {
         DotShape shape = view.shape(atom, instance);
         String label = atomname(atom, false);
         GraphNode node = new GraphNode(g, atom, maxDepth, label).set(shape).set(color.getColor(view.getNodePalette())).set(style);
+//System.out.println("############### [createNode] just create one node with uuid=" + node.uuid);
         // Get the label based on the sets and relations
         String setsLabel = "";
         boolean showLabelByDefault = view.showAsLabel.get(null);
@@ -483,8 +484,6 @@ public final class StaticGraphMaker {
                 //If there is only 2 atoms in the tuple and one of them is the container, we don't create any edge. 
                 return 0;
             }
-            AlloyAtom containerAtom = tuple.getAtoms().get(0);
-            //The container is the starting atom of the relation.
             atomStart = tuple.getAtoms().get(1); //First atom after the container (starting atom for the edge).
             edgeArity--; //If we have to create an edge for a containment relation, the arity is 1 lower.
         }
@@ -503,10 +502,22 @@ public final class StaticGraphMaker {
         if (starts == null || ends == null) {
             return 0;
         }
-
         int r = 0;
+        boolean sameGraph = false;
+        //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
         for (GraphNode start : starts) {
             for (GraphNode end : ends) {
+                if (end.graph == start.graph){
+                    sameGraph = true;
+                    break;
+                }
+            }
+        }
+            
+        for (GraphNode start : starts) {
+            for (GraphNode end : ends) {
+              if (!sameGraph || (start.graph == end.graph)){
+                System.out.println("Create edge between " + start.uuid + " and " + end.uuid);
                 boolean layoutBack = view.layoutBack.resolve(rel);
                 String label = view.label.get(rel);
                 if (edgeArity > 2) {
@@ -543,6 +554,7 @@ public final class StaticGraphMaker {
                 e.set(weight < 1 ? 1 : (weight > 100 ? 10000 : 100 * weight));
                 edges.put(e, tuple);
                 r++;
+              }
             }
         }
         return r;

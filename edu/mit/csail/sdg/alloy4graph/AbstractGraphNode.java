@@ -64,7 +64,7 @@ public abstract class AbstractGraphNode {
     /**
      * The graph the element belongs to.
      */
-    Graph graph;
+    public Graph graph;
     
     /**
      * Constructor.
