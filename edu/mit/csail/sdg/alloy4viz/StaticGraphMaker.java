@@ -240,7 +240,7 @@ public final class StaticGraphMaker {
         for (AlloyRelation rel : model.getRelations()) {
             DotColor c = view.edgeColor.resolve(rel);
             Color cc = (c == DotColor.MAGIC) ? colors.get(ci) : c.getColor(view.getEdgePalette());
-            int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel)) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
+            int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel)) ? 0 : edgesAsArcs(graph, hidePrivate, hideMeta, rel, colors.get(ci));
             rels.put(rel, count);
             magicColor.put(rel, cc);
             if (count > 0) {
@@ -453,7 +453,7 @@ public final class StaticGraphMaker {
      *
      * @return the number of edges created, 0 if none.
      */
-    private int createEdge(final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, AlloyTuple tuple, boolean bidirectional, Color magicColor) {
+    private int createEdge(Graph parent, final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, AlloyTuple tuple, boolean bidirectional, Color magicColor) {
         // This edge represents a given tuple from a given relation.
         //
         // If the tuple's arity==2, then the label is simply the label of the relation.
@@ -532,7 +532,7 @@ public final class StaticGraphMaker {
                 DotStyle style = view.edgeStyle.resolve(rel);
                 DotColor color = view.edgeColor.resolve(rel);
                 int weight = view.weight.get(rel);
-                GraphEdge e = new GraphEdge((layoutBack ? end : start), (layoutBack ? start : end), tuple, label, rel);
+                GraphEdge e = new GraphEdge((layoutBack ? end : start), (layoutBack ? start : end), parent, tuple, label, rel);
                 if (color == DotColor.MAGIC && magicColor != null) {
                     e.set(magicColor);
                 } else {
@@ -551,14 +551,14 @@ public final class StaticGraphMaker {
     /**
      * Create edges for every visible tuple in the given relation.
      */
-    private int edgesAsArcs(final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, Color magicColor) {
+    private int edgesAsArcs(Graph parent, final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, Color magicColor) {
         int count = 0;
         int nbNewEdges;
         if (!view.mergeArrows.resolve(rel)) {
             // If we're not merging bidirectional arrows, simply create edges for each tuple 
             // (due to the duplication of some nodes in subgraph, there can be more than one edge for a tuple).
             for (AlloyTuple tuple : instance.relation2tuples(rel)) {
-                nbNewEdges = createEdge(hidePrivate, hideMeta, rel, tuple, false, magicColor);
+                nbNewEdges = createEdge(parent, hidePrivate, hideMeta, rel, tuple, false, magicColor);
                 if (nbNewEdges > 0) {
                     count = count + nbNewEdges;
                 }
@@ -574,12 +574,12 @@ public final class StaticGraphMaker {
                 // If the reverse tuple is in the same relation, and it is not a self-edge, then draw it as a <-> arrow.
                 if (reverse != null && tuples.contains(reverse) && !reverse.equals(tuple)) {
                     ignore.add(reverse);
-                    nbNewEdges = createEdge(hidePrivate, hideMeta, rel, tuple, true, magicColor);
+                    nbNewEdges = createEdge(parent, hidePrivate, hideMeta, rel, tuple, true, magicColor);
                     if (nbNewEdges > 0) {
                         count = count + 2 * nbNewEdges;
                     }
                 } else {
-                    nbNewEdges = createEdge(hidePrivate, hideMeta, rel, tuple, false, magicColor);
+                    nbNewEdges = createEdge(parent, hidePrivate, hideMeta, rel, tuple, false, magicColor);
                     if (nbNewEdges > 0) {
                         count = count + nbNewEdges;
                     }
