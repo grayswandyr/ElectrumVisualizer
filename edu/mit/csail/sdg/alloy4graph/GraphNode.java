@@ -744,7 +744,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
         
-        drawDebug(gr);
+        //drawDebug(gr);
 
         // [N7-G. Dupont] Draw each ports
         for (GraphPort p : this.ports) {
@@ -817,13 +817,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
         int clr = color.getRGB() & 0xFFFFFF;
         gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
         if (labels != null && labels.size() > 0) {
-            //int x = (-width / 2), y = -updown + (labels.size() * ad / 2);        
             int maxWidth=0;
             for (int i=0; i < labels.size(); i++ ) {
                 maxWidth = Math.max(maxWidth, (int) getBounds(true, labels.get(i)).getWidth());
             }
             width = maxWidth;
-            int x = (-width/2), y = -updown + (labels.size() * ad / 2);
+            int x = (-width/2), y = yJumpNode/2 -updown + (labels.size() / 2);
             
             for (int i = 0; i < labels.size(); i++) {
                 String t = labels.get(i);
@@ -1416,7 +1415,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         }
 
         if (!layout){
-          subGraph.layoutSubGraph(this);
+          subGraph.layoutSubGraph();
           layout = true;
         }
         subGraph.recalcBound(true);

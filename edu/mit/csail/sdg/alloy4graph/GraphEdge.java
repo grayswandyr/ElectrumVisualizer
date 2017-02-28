@@ -31,6 +31,7 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Vector;
 
 /**
  * Mutable; represents a graphical edge.
@@ -429,7 +430,6 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             if ( size > 0 ) {
                 startY = yauxList.get(size-1);
                 startX = (startY - coeffb) / coeffa;
-                System.out.println("Label: " + this.label + " x: " + ax + " y: " + ay);
             }
         } else { // If the edge goes from a layer to a smallest one
             ayaux += ((GraphNode) b).getHeight() / 2;
@@ -668,8 +668,13 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
      * the current zoom scale, draw the edge.
      */
     void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
+        /*
+    }
+        System.out.println("edge: " + this.label + " From: " + a.uuid + " to: " + b.uuid + " response: " + (a.graph == b.graph));
+        System.out.println("edge: " + this.label + " Same father: " + (((GraphNode) a).getFather() == ((GraphNode) b).getFather()));
         // If the edge is between two nodes of the same Graph
-        /*if (a.graph == b.graph) {
+        if (a.graph == b.graph) {
+            //System.out.println("edge: " + this.label + " From: " + a.uuid + " to: " + b.uuid);
             if (style != DotStyle.BLANK) {
                 final int top = a.graph.getTop(), left = a.graph.getLeft();
                 gr.translate(-left, -top);
@@ -751,7 +756,8 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
                         }
                         e = e.b.outs.get(0);
                     }
-
+                    
+                    p.chopEnd(10);
                     gr.drawSmoothly(p);
                 }
 
@@ -766,8 +772,8 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
 
             }
             // If we are drawing an edge between two different subGraphes
-        } else {*/
-            /*
+        } else {
+       
              final ArrayList<Integer> leftList = new ArrayList<Integer>();
              final ArrayList<Integer> topList = new ArrayList<Integer>();
             
@@ -831,8 +837,8 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
              }
              */
         //}
-        //***
-        //if (path == null)
+        
+        if (path == null)
             resetPath();
         int top = 0, left = 0;
         

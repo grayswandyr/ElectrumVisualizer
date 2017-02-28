@@ -37,7 +37,7 @@ public abstract class AbstractGraphElement {
     /**
      * The graph to which this element belongs.
      */
-    Graph graph = null;
+    public Graph graph = null;
     
     private int fontSize = 12;
     

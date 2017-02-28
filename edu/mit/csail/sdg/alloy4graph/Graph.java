@@ -572,11 +572,12 @@ public final strictfp class Graph {
     /**
      * Compute the layout for the subGraph contained in the node father
      */
-    public void layoutSubGraph(GraphNode father) {
+    public void layoutSubGraph() {
         //================================= Creation of the subGraph layers ================================================= //
         // This is the set containing all the children of the father node
-        HashSet<GraphNode> children = father.getChildren();
-
+        HashSet<GraphNode> children = new HashSet<>();
+        children.addAll(this.nodes);
+        
         // The number of incoming and outgoing edges within the subGraph
         int nOuts;
         int nIns;
