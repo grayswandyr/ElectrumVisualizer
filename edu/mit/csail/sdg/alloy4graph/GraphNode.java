@@ -1020,8 +1020,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
         if (father != null){
           //Computes new bounds of the father.
           father.nestedNodeBounds();
+          father.shiftUp(father.y());
+          father.shiftDown(father.y());
           //Changes of the bounds of the father can make other nodes of the father's graph move.
           father.adaptLayer();
+          father.graph.recalcBound(false);
+       }else{
+          graph.recalcBound(false);
        }
     }
 
