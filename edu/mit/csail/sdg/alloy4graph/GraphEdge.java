@@ -410,6 +410,139 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
      * the center of the "to" node.
      */
     void resetPath() {
+        /*double ax = a.x(), ay = a.y();
+        ///////////////////////// Find the intersection between the edge end and the graph ///////////////////////////
+        double startX = ax, startY = ay; //The coordinates of the point where we start drawing
+        double axaux = (((GraphNode) b).getFather() != null) ? b.x() + ((GraphNode) b).getFather().x() : b.x();
+        double ayaux = (((GraphNode) b).getFather() != null) ? b.y() + ((GraphNode) b).getFather().y() : b.y();
+        ArrayList<Integer> yauxList = new ArrayList<Integer>();
+        int size = 0;
+        if (ayaux > ay) { // If the edge goes from a layer to a biggest one
+            ayaux -= ((GraphNode) b).getHeight() / 2;
+            double coeffa = (ayaux - ay) / (axaux - ax), coeffb = ayaux - ((ayaux - ay) / (axaux - ax)) * axaux;
+            for (int l = (int) ay; l < (int) ayaux; l++) {
+                if (((GraphNode) a).getBoundingBox(0, 0).contains((l - coeffb) / coeffa, l)) {
+                    // Problem because l is rounded
+                    yauxList.add(l);
+                    size++;
+                }
+            }
+            if ( size > 0 ) {
+                startY = yauxList.get(size-1);
+                startX = (startY - coeffb) / coeffa;
+            }
+        } else { // If the edge goes from a layer to a smallest one
+            ayaux += ((GraphNode) b).getHeight() / 2;
+            double coeffa = (ayaux - ay) / (axaux - ax), coeffb = ayaux - ((ayaux - ay) / (axaux - ax)) * axaux;
+            for (int l = (int) ayaux; l < (int) ay; l++) {
+                if (((GraphNode) a).getBoundingBox(0, 0).contains((l - coeffb) / coeffa, l)) {
+                    // Problem because l is rounded
+                    yauxList.add(l);
+                    size++;
+                }
+            }
+            if ( size > 0 ) {
+                startY = yauxList.get(size-1);
+                startX = (startY - coeffb) / coeffa;
+            }
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+        if (a == b) {
+            double w = 0;
+            for (int n = a.selfs.size(), i = 0; i < n; i++) {
+                if (i == 0) {
+                    w = a.getWidth() / 2 + selfLoopA;
+                } else {
+                    w = w + getBounds(false, a.selfs.get(i - 1).label()).getWidth() + selfLoopGL + selfLoopGR;
+                }
+                GraphEdge e = a.selfs.get(i);
+                if (e != this) {
+                    continue;
+                }
+                double h = a.getHeight() / 2D * 0.7D, k = 0.55238D, wa = (a.getWidth() / 2.0D), wb = w - wa;
+                e.path = new Curve(ax, ay);
+                e.path.startDrawX = startX;
+                e.path.startDrawY = startY;
+                e.path.cubicTo(ax, ay - k * h, ax + wa - k * wa, ay - h, ax + wa, ay - h);
+                e.path.cubicTo(ax + wa + k * wb, ay - h, ax + wa + wb, ay - k * h, ax + wa + wb, ay);
+                e.path.cubicTo(ax + wa + wb, ay + k * h, ax + wa + k * wb, ay + h, ax + wa, ay + h);
+                e.path.cubicTo(ax + wa - k * wa, ay + h, ax, ay + k * h, ax, ay);
+                e.labelbox.x = (int) (ax + w + selfLoopGL);
+                e.labelbox.y = (int) (ay - getBounds(false, e.label()).getHeight() / 2);
+                break;
+            }
+        } else if (a.graph != b.graph) { //if the edge is between two nodes from different graphes
+            // TODO: Adapt the code to create the path between two nodes from different graphes
+            int i = 0, n = 0;
+            for (GraphEdge e : a.outs) {
+                if (e == this) {
+                    i = n++;
+                } else if (e.b == b) {
+                    n++;
+                }
+            }
+            double cx = 0, cy = 0, bx = 0, by = 0;
+            if (((GraphNode) b).getFather() != null) {
+                cx = b.x() + ((GraphNode) b).getFather().x();
+                cy = b.y() + ((GraphNode) b).getFather().y() - ((GraphNode) b).getHeight() / 2;
+                bx = (ax + cx) / 2;
+                by = (ay + cy) / 2;
+            } else {
+                bx = ax / 2;
+                by = ay / 2;
+            }
+            path = new Curve(ax, ay);
+            path.startDrawX = startX;
+            path.startDrawY = startY;
+            if (n > 1 && (n & 1) == 1) {
+                if (i < n / 2) {
+                    bx = bx - (n / 2 - i) * 10;
+                } else if (i > n / 2) {
+                    bx = bx + (i - n / 2) * 10;
+                }
+                path.lineTo(bx, by).lineTo(cx, cy);
+            } else if (n > 1) {
+                if (i < n / 2) {
+                    bx = bx - (n / 2 - i) * 10 + 5;
+                } else {
+                    bx = bx + (i - n / 2) * 10 + 5;
+                }
+                path.lineTo(bx, by).lineTo(cx, cy);
+            } else {
+                path.lineTo(cx, cy);
+            }
+
+        } else {
+            int i = 0, n = 0;
+            for (GraphEdge e : a.outs) {
+                if (e == this) {
+                    i = n++;
+                } else if (e.b == b) {
+                    n++;
+                }
+            }
+            double cx = b.x(), cy = b.y(), bx = (ax + cx) / 2, by = (ay + cy) / 2;
+            path = new Curve(ax, ay);
+            path.startDrawX = startX;
+            path.startDrawY = startY;
+            if (n > 1 && (n & 1) == 1) {
+                if (i < n / 2) {
+                    bx = bx - (n / 2 - i) * 10;
+                } else if (i > n / 2) {
+                    bx = bx + (i - n / 2) * 10;
+                }
+                path.lineTo(bx, by).lineTo(cx, cy);
+            } else if (n > 1) {
+                if (i < n / 2) {
+                    bx = bx - (n / 2 - i) * 10 + 5;
+                } else {
+                    bx = bx + (i - n / 2) * 10 + 5;
+                }
+                path.lineTo(bx, by).lineTo(cx, cy);
+            } else {
+                path.lineTo(cx, cy);
+            }
+        }*/
         //double ax = ((GraphNode)this.a).absoluteX(), ay = ((GraphNode)this.a).absoluteY();
         GraphNode out = (GraphNode)this.a, in = (GraphNode)this.b;
         double ax = out.x(), ay = out.y();

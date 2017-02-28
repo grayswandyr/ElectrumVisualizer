@@ -744,7 +744,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
         
-        drawDebug(gr);
+        //drawDebug(gr);
 
         // [N7-G. Dupont] Draw each ports
         for (GraphPort p : this.ports) {
