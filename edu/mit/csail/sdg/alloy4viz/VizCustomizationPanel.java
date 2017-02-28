@@ -681,21 +681,34 @@ public final class VizCustomizationPanel extends JPanel {
         
         
         // Initialization of the ports settings activation
-        orientBox.setEnabled(vizState.isPort.resolve(rel));
-        colorBox.setEnabled(vizState.isPort.resolve(rel));
-        shapeBox.setEnabled(vizState.isPort.resolve(rel));
-        portLabel.setEnabled(vizState.isPort.resolve(rel));
-        visible.setEnabled(!vizState.isPort.resolve(rel));
+        Boolean portChecked = vizState.isPort.resolve(rel);
+        // Enabled
+        orientBox.setEnabled(portChecked);
+        colorBox.setEnabled(portChecked);
+        shapeBox.setEnabled(portChecked);
+        portLabel.setEnabled(portChecked);
+        // Disabled
+        visible.setEnabled(!portChecked);
+        weightSpinner.setEnabled(!portChecked);
+        color.setEnabled(!portChecked);
+        style.setEnabled(!portChecked);
+        labelText.setEnabled(!portChecked);
         
         
         // Checkbox to define relations as ports relations
         OurCheckbox port = vizState.isPort.pick(rel, "Show as ports", "Define the relation as a node/port relation", new VizState.Callback<Boolean>() {
             public void call(Boolean a) {
+                // Enable
                 orientBox.setEnabled(a);
                 colorBox.setEnabled(a);
                 shapeBox.setEnabled(a);
                 portLabel.setEnabled(a);
+                // Disable
                 visible.setEnabled(!a);
+                weightSpinner.setEnabled(!a);
+                color.setEnabled(!a);
+                style.setEnabled(!a);
+                labelText.setEnabled(!a);
             }
         });
 
