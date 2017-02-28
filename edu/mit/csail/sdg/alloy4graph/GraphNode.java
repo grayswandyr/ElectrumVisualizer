@@ -917,6 +917,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         }
     }
 
+    
+
     /**
      * Helper method that shifts a node right.
      */
@@ -1016,14 +1018,61 @@ public strictfp class GraphNode extends AbstractGraphNode {
         }
         GraphNode father = getFather();
         if (father != null){
+          //Computes new bounds of the father.
           father.nestedNodeBounds();
-          father.shiftUp(father.y());
-          father.shiftDown(father.y());
-
-
-        }
+          //Changes of the bounds of the father can make other nodes of the father's graph move.
+          father.adaptLayer();
+       }
     }
 
+    //[N7-R.Bossut]
+    /**
+     * Helper method that will move other nodes of the layer if they are intersecting with this.
+     */
+    private void adaptLayer(){
+          //We get the list of nodes in the same layer as this.
+          List<GraphNode> layer = graph.layer(layer());
+          final int n = layer.size();
+          int i;
+          //We get the position of this node in the layer list.
+          for (i = 0; i < n; i++) {
+              if (layer.get(i) == this) {
+                break;
+              }
+          }
+
+          int j = i;
+          int borderFix, borderMoved, d;
+          GraphNode moved;
+          GraphNode fix = this;
+          while (j > 0) { //We must see if nodes on the left of this one have to be moved.
+            borderFix = fix.x() - ((fix.shape() == null) ? 0 : fix.getWidth()/2);
+            moved = layer.get(j-1);
+            borderMoved = ((moved.shape() == null) ? 0 : moved.getWidth()/2) + moved.x() + moved.getReserved();
+            d = borderFix - borderMoved;
+            if (d < 0){
+              moved.setX(moved.x() + d);
+              fix = moved;
+              j--;
+            }else{
+              break;
+            }
+          }
+          fix = this;
+          while (i < n-1) { //We must see if nodes on the right of this one have to be moved.
+            borderFix = fix.x() + ((fix.shape() == null) ? 0 : fix.getWidth()/2) + fix.getReserved();
+            moved = layer.get(i+1);
+            borderMoved = moved.x() - ((moved.shape() == null) ? 0 : moved.getWidth()/2);
+            d = borderFix - borderMoved; 
+            if (d > 0){
+              moved.setX(moved.x() + d);
+              fix = moved;
+              i++;
+            }else{
+              break;
+            }
+          }
+    }
     //===================================================================================================
     /**
      * (Re-)calculate this node's bounds.
