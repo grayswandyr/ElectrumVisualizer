@@ -1082,6 +1082,7 @@ public final class VizGUI implements ComponentListener {
                     }
                     graphc.setGraphPanel1(myGraphPanel);
                     graphc.setGraphPanel2(mySplitGraphPanel);
+                    graphc.compare();
                 }
             }
             if(!myState.splitPanel){
@@ -1906,9 +1907,6 @@ public final class VizGUI implements ComponentListener {
      */
     private Runner doApply() {
         if (!wrap) {
-            if(graphc != null){
-                graphc.compare();
-            }
             updateDisplay();
         }
         return wrapMe();
