@@ -1013,6 +1013,13 @@ public final class VizGUI implements ComponentListener {
          * Assure that the comparer is not instanciated
          */
         repopulateProjectionPopup();
+        if(graphc !=null && graphc.timeLinked && !myState.getProjectedTypes().contains(AlloyType.TIME)){
+                graphc.linkTime();
+                graphc.resetHighlight();
+                linkTimeButton.setEnabled(false);
+                timeBackwardButton.setEnabled(false);
+                timeForwardButton.setEnabled(false);
+            }
         if(!myState.splitPanel && graphc != null){
             if(graphc.timeLinked){
                 graphc.linkTime();
