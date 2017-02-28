@@ -38,7 +38,7 @@ import java.util.ArrayList;
  * <p>
  * <b>Thread Safety:</b> Can be called only by the AWT event thread.
  */
-public final strictfp class GraphEdge {
+public final strictfp class GraphEdge extends AbstractGraphElement {
 
     // =============================== adjustable options ===========================================================================
     /**
@@ -59,11 +59,6 @@ public final strictfp class GraphEdge {
     private final int ad = Artist.getMaxAscentAndDescent();
 
     // =============================== fields =======================================================================================
-    /**
-     * a user-provided annotation that will be associated with this edge (can be
-     * null) (need not be unique)
-     */
-    public final Object uuid;
 
     /**
      * a user-provided annotation that will be associated with this edge (all
@@ -131,7 +126,8 @@ public final strictfp class GraphEdge {
      * Construct an edge from "from" to "to" with the given arrow head settings,
      * then add the edge to the graph.
      */
-    GraphEdge(AbstractGraphNode from, AbstractGraphNode to, Object uuid, String label, boolean drawArrowHeadOnFrom, boolean drawArrowHeadOnTo, DotStyle style, Color color, Object group) {
+    GraphEdge(AbstractGraphNode from, AbstractGraphNode to, Graph parent, Object uuid, String label, boolean drawArrowHeadOnFrom, boolean drawArrowHeadOnTo, DotStyle style, Color color, Object group) {
+        super(parent, uuid);
         if (group instanceof GraphNode) {
             throw new IllegalArgumentException("group cannot be a GraphNode");
         }
@@ -155,7 +151,6 @@ public final strictfp class GraphEdge {
             b.ins.add(this);
         }
         a.graph.edgelist.add(this);
-        this.uuid = uuid;
         this.group = group;
         this.label = (label == null) ? "" : label;
         this.ahead = drawArrowHeadOnFrom;
@@ -177,8 +172,8 @@ public final strictfp class GraphEdge {
     /**
      * Construct an edge from "from" to "to", then add the edge to the graph.
      */
-    public GraphEdge(AbstractGraphNode from, AbstractGraphNode to, Object uuid, String label, Object group) {
-        this(from, to, uuid, label, false, true, null, null, group);
+    public GraphEdge(AbstractGraphNode from, AbstractGraphNode to, Graph parent, Object uuid, String label, Object group) {
+        this(from, to, parent, uuid, label, false, true, null, null, group);
     }
 
     //[N7-R.Bossut, M.Quentin]
@@ -187,7 +182,7 @@ public final strictfp class GraphEdge {
      */
     public GraphEdge(GraphEdge toBeCopied, AbstractGraphNode to, AbstractGraphNode from) {
         //Copy attributes.
-        this.uuid = toBeCopied.uuid;
+        super(toBeCopied.graph, toBeCopied.uuid);
         this.group = toBeCopied.group;
         this.label = toBeCopied.label;
         this.ahead = toBeCopied.ahead;
@@ -414,7 +409,7 @@ public final strictfp class GraphEdge {
      * the center of the "to" node.
      */
     void resetPath() {
-        double ax = a.x(), ay = a.y();
+        /*double ax = a.x(), ay = a.y();
         ///////////////////////// Find the intersection between the edge end and the graph ///////////////////////////
         double startX = ax, startY = ay; //The coordinates of the point where we start drawing
         double axaux = (((GraphNode) b).getFather() != null) ? b.x() + ((GraphNode) b).getFather().x() : b.x();
@@ -547,6 +542,49 @@ public final strictfp class GraphEdge {
             } else {
                 path.lineTo(cx, cy);
             }
+        }*/
+        //double ax = ((GraphNode)this.a).absoluteX(), ay = ((GraphNode)this.a).absoluteY();
+        GraphNode out = (GraphNode)this.a, in = (GraphNode)this.b;
+        double ax = out.x(), ay = out.y();
+        
+        if (a==b) {
+            double w = 0;
+            for(int n = a.selfs.size(), i = 0; i < n; i++) {
+                if (i==0) w = a.getWidth()/2 + selfLoopA;
+                else w = w + getBounds(false, a.selfs.get(i-1).label()).getWidth() + selfLoopGL + selfLoopGR;
+                GraphEdge e = a.selfs.get(i);
+                if (e!=this) continue;
+                double h=a.getHeight()/2D*0.7D, k=0.55238D, wa=(a.getWidth()/2.0D), wb=w-wa;
+                e.path = new Curve(ax, ay);
+                e.path.cubicTo(ax, ay-k*h, ax+wa-k*wa, ay-h, ax+wa, ay-h);
+                e.path.cubicTo(ax+wa+k*wb, ay-h, ax+wa+wb, ay-k*h, ax+wa+wb, ay);
+                e.path.cubicTo(ax+wa+wb, ay+k*h, ax+wa+k*wb, ay+h, ax+wa, ay+h);
+                e.path.cubicTo(ax+wa-k*wa, ay+h, ax, ay+k*h, ax, ay);
+                e.labelbox.x = (int) (ax + w + selfLoopGL);
+                e.labelbox.y = (int) (ay - getBounds(false, e.label()).getHeight()/2);
+                break;
+            }
+        } else {
+            int i=0, n=0;
+            for(GraphEdge e: a.outs) {
+                if (e==this)
+                    i=n++;
+                else if (e.b==b)
+                    n++;
+            }
+            
+            double cx = in.relativeX(out.getFather()), cy = in.relativeY(out.getFather());
+            double bx=(ax+cx)/2, by=(ay+cy)/2;
+            path = new Curve(ax, ay);
+            if (n>1 && (n&1)==1) {
+                if (i<n/2) bx = bx - (n/2-i)*10; else if (i>n/2) bx = bx + (i-n/2)*10;
+                path.lineTo(bx, by).lineTo(cx, cy);
+            } else if (n>1) {
+                if (i<n/2) bx = bx - (n/2-i)*10 + 5; else bx = bx + (i-n/2)*10 + 5;
+                path.lineTo(bx, by).lineTo(cx, cy);
+            } else {
+                path.lineTo(cx, cy);
+            }
         }
     }
 
@@ -631,7 +669,7 @@ public final strictfp class GraphEdge {
      */
     void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
         // If the edge is between two nodes of the same Graph
-        if (a.graph == b.graph) {
+        /*if (a.graph == b.graph) {
             if (style != DotStyle.BLANK) {
                 final int top = a.graph.getTop(), left = a.graph.getLeft();
                 gr.translate(-left, -top);
@@ -728,7 +766,7 @@ public final strictfp class GraphEdge {
 
             }
             // If we are drawing an edge between two different subGraphes
-        } else {
+        } else {*/
             /*
              final ArrayList<Integer> leftList = new ArrayList<Integer>();
              final ArrayList<Integer> topList = new ArrayList<Integer>();
@@ -792,7 +830,43 @@ public final strictfp class GraphEdge {
 
              }
              */
+        //}
+        //***
+        //if (path == null)
+            resetPath();
+        int top = 0, left = 0;
+        
+        if (a instanceof GraphNode && ((GraphNode)a).getFather() != null) {
+            GraphNode gna = (GraphNode)a;
+            top = gna.getFather().getSubGraph().getTop(); left = gna.getFather().getSubGraph().getLeft();
+        } else {
+            top = a.graph.getTop(); left = a.graph.getLeft();
         }
+        gr.translate(-left, -top);
+        gr.setColor(Color.RED);
+        gr.fillCircle(5);
+        if (highEdge==this) { gr.setColor(color); gr.set(DotStyle.BOLD, scale); }
+        else if ((highEdge==null && highGroup==null) || highGroup==group) { gr.setColor(color); gr.set(style, scale); }
+        else { gr.setColor(Color.LIGHT_GRAY); gr.set(style, scale); }
+        if (a == b) {
+            gr.draw(path);
+        } else {
+            // Concatenate this path and its connected segments into a single VizPath object, then draw it
+            Curve p=null;
+            GraphEdge e=this;
+            while(e.a.shape() == null)
+                e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
+            while(true) {
+                p = (p==null) ? e.path : p.join(e.path);
+                if (e.b.shape()!=null) break;
+                e = e.b.outs.get(0);
+            }
+            gr.drawSmoothly(p);
+        }
+        gr.set(DotStyle.SOLID, scale);
+        gr.translate(left, top);
+        if (highEdge==null && highGroup==null && label.length()>0) drawLabel(gr, color, null);
+        drawArrowhead(gr, scale, highEdge, highGroup);
     }
 
     /**

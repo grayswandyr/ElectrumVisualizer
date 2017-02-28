@@ -24,6 +24,7 @@ import static java.lang.StrictMath.sqrt;
 
 import java.awt.Color;
 import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
@@ -268,7 +269,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
     /**
      * This field contains the father of the node if it exists.
      */
-    private GraphNode father;
+    private GraphNode father = null;
 
     /**
      * This field is here to ensure we only layout the subgraph one time.
@@ -639,6 +640,29 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
     }
+    
+    /**
+     * [N7-G.Dupont] (debug) Print bounding box, center and points of the polygon.
+     */
+    private void drawDebug(Artist gr) {
+        // Print bounding box and center
+        gr.setColor(Color.RED);
+        gr.draw(new Rectangle(-this.side, -this.updown, 2*this.side, 2*this.updown), false);
+        gr.fillCircle(3);
+        gr.setColor(Color.BLUE);
+        
+        // Print each point of the polygon
+        if (this.poly instanceof Polygon) {
+            int xp[] = ((Polygon)this.poly).xpoints;
+            int yp[] = ((Polygon)this.poly).ypoints;
+            for (int i = 0; i < ((Polygon)this.poly).npoints; i++) {
+                gr.translate(xp[i], yp[i]);
+                gr.fillCircle(2);
+                gr.drawString("M" + i + "(" + xp[i] + "," + yp[i] + ")", 3, -3);
+                gr.translate(-xp[i], -yp[i]);
+            }
+        }
+       }
 
     /**
      * Draws a regular node (not a containig one). Draws this node at its
@@ -719,6 +743,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 y = y + ad;
             }
         }
+        
+        drawDebug(gr);
 
         // [N7-G. Dupont] Draw each ports
         for (GraphPort p : this.ports) {
@@ -1445,6 +1471,45 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.side += Math.max(minside, paddedside);
         this.updown += Math.max(minupdown, paddedupdown);
     }
+    
+    public double relativeX(GraphNode root) {
+        double x = this.x();
+        GraphNode n = this;
+        while (n.father != null) {
+            x += n.x();
+            n = n.father;
+        }
+        n = root;
+        while (n != null) {
+            x -= n.x();
+            n = n.father;
+        }
+        return x;
+    }
+    
+    public double relativeY(GraphNode root) {
+        double y = this.y();
+        GraphNode n = this;
+        while (n.father != null) {
+            y += n.y();
+            n = n.father;
+        }
+        n = root;
+        while (n != null) {
+            y -= n.y();
+            n = n.father;
+        }
+        return y;
+    }
+    
+    public double absoluteX() {
+        return relativeX(null);
+    }
+    
+    public double absoluteY() {
+        return relativeY(null);
+    }
+    
 
     //===================================================================================================
     /**
