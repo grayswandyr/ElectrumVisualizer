@@ -854,14 +854,17 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private void drawHidder(Artist gr, double scale, boolean highlight) {
         drawRegular(gr, scale, highlight);
         
-        GraphNode dad = (this.getFather() != null) ? this.getFather() : this;
+        final int top = graph.getTop(), left = graph.getLeft();
+        gr.translate(x() - left, y() - top);
+        
+        //GraphNode dad = (this.getFather() != null) ? this.getFather() : this;
         gr.setFont(true);
         gr.set(DotStyle.SOLID, scale);
-        int clr = dad.color.getRGB() & 0xFFFFFF;
+        int clr = color.getRGB() & 0xFFFFFF;
         gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
-        if (dad.labels != null && dad.labels.size() > 0) {
-            int x = (-width / 2), y = -dad.updown + (dad.labels.size() * 3 * dad.ad / 2);
-            String t = " ...";
+        if (labels != null && labels.size() > 0) {
+            int x = (-width / 2), y = -updown - labels.size()/2;
+            String t = "...";
             int w = ((int) (getBounds(true, t).getWidth()));
             if (width > w) {
                 w = (width - w) / 2;
@@ -870,6 +873,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
             gr.drawString(t, x + w, y + Artist.getMaxAscent());
         }
+        gr.translate(left - x(), top - y());
     }
 
     /**
@@ -1536,8 +1540,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         double x = this.x();
         GraphNode n = this;
         while (n.father != null) {
-            x += n.x();
             n = n.father;
+            x += n.x();
         }
         n = root;
         while (n != null) {
@@ -1551,8 +1555,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         double y = this.y();
         GraphNode n = this;
         while (n.father != null) {
-            y += n.y();
             n = n.father;
+            y += n.y();
         }
         n = root;
         while (n != null) {
