@@ -1255,8 +1255,12 @@ public final strictfp class Graph {
      * contains a subgraph, we have to return the contained Object.
      */
     public Object find(double scale, int mouseX, int mouseY) {
-        int h = getTop() + 10 - ad;
         double x = mouseX / scale + getLeft(), y = mouseY / scale + getTop();
+        return findNormed(scale, x, y);
+    }
+    
+    private Object findNormed(double scale, double x, double y) {
+        int h = getTop() + 10 - ad;
         for (Map.Entry<Comparable<?>, Pair<String, Color>> e : legends.entrySet()) {
             if (e.getValue().b == null) {
                 continue;
@@ -1276,7 +1280,7 @@ public final strictfp class Graph {
                 // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.
                 Object subFind = null;
                 if (n.hasChild()) {
-                    subFind = n.getSubGraph().subFind(scale, x - (double) n.x(), y - (double) n.y());
+                    subFind = n.getSubGraph().findNormed(scale, x - (double) n.x(), y - (double) n.y());
                 }
                 if (subFind == null) {
                     return n;
@@ -1287,7 +1291,7 @@ public final strictfp class Graph {
             if (n.contains(x, y)) {
                 Object subFind = null;
                 if (n.hasChild()) {
-                    subFind = n.getSubGraph().subFind(scale, x - (double) n.x(), y - (double) n.y());
+                    subFind = n.getSubGraph().findNormed(scale, x - (double) n.x(), y - (double) n.y());
                 }
                 if (subFind == null) {
                     return n;
@@ -1443,7 +1447,9 @@ public final strictfp class Graph {
         //Draw the nodes first
         for (GraphNode n : nodes) {
             if (highFirstNode != n && highLastNode != n) {
-                n.draw(gr, scale, n == highlight);
+                n.setHighlight(n == highlight); // [N7-G.Dupont]
+                n.draw(gr, scale);
+                n.setHighlight(false); // [N7-G.Dupont]
             }
         }
         // Since drawing an edge will automatically draw all segments if they're connected via dummy nodes,
@@ -1486,10 +1492,14 @@ public final strictfp class Graph {
             }
         }
         if (highFirstNode != null) {
-            highFirstNode.draw(gr, scale, true);
+            highFirstNode.setHighlight(true); // [N7-G.Dupont]
+            highFirstNode.draw(gr, scale);
+            highFirstNode.setHighlight(false); // [N7-G.Dupont]
         }
         if (highLastNode != null && highLastNode != highFirstNode) {
-            highLastNode.draw(gr, scale, true);
+            highLastNode.setHighlight(true); // [N7-G.Dupont]
+            highLastNode.draw(gr, scale);
+            highLastNode.setHighlight(false); // [N7-G.Dupont]
         }
         if (highFirstEdge != null) {
             highFirstEdge.drawLabel(gr, highFirstEdge.color(), new Color(255, 255, 255, 160));

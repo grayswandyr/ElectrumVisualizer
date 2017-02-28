@@ -214,7 +214,7 @@ public class GraphPort extends AbstractGraphNode {
      * @param highlight whether or not the node is highlighted
      */
     @Override
-    void draw(Artist gr, double scale, boolean highlight) {
+    void draw(Artist gr, double scale) {
         // Check if the requested shape is available
         boolean available = false;
         for (DotShape s : GraphPort.AvailableShapes) {
@@ -236,7 +236,7 @@ public class GraphPort extends AbstractGraphNode {
         // Set style
         gr.set(this.style, scale);
         gr.setFont(this.fontBold);
-        if (highlight) {
+        if (this.highlight()) {
             gr.setColor(GraphPort.COLOR_CHOSENNODE);
         } else {
             gr.setColor(this.color);

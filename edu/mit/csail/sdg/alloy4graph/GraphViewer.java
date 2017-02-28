@@ -256,14 +256,43 @@ public final strictfp class GraphViewer extends JPanel {
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent ev) {
-                if (pop.isVisible()) {
+                /*if (pop.isVisible()) {
                     return;
                 }
                 Object obj = alloyFind(ev.getX(), ev.getY());
                 if (highlight != obj) {
                     highlight = obj;
                     alloyRepaint();
+                }*/
+                if (pop.isVisible()) {
+                    return;
                 }
+                
+                // [N7-G.Dupont]
+                Object obj = alloyFind(ev.getX(), ev.getY());
+                boolean needRepaint = false;
+                
+                if (highlight != null && obj != highlight) {
+                    if (highlight instanceof AbstractGraphElement)
+                        ((AbstractGraphElement)highlight).setHighlight(false);
+                    highlight = null;
+                    needRepaint = true;
+                }
+                
+                if (obj != null) {
+                    if (highlight != null && highlight instanceof AbstractGraphElement)
+                        ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
+                    highlight = obj;
+                    if (obj instanceof AbstractGraphElement) {
+                        ((AbstractGraphElement)highlight).setHighlight(true); //[N7-G.Dupont]
+                        System.out.println("Entering " + ((AbstractGraphElement)highlight).uuid);
+                    }
+                    
+                    needRepaint = true;
+                }
+                
+                if (needRepaint)
+                    alloyRepaint();
             }
 
             @Override
