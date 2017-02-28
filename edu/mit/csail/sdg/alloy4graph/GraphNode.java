@@ -306,7 +306,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.numPorts.put(GraphPort.Orientation.West, 0);
     }
 
-		//[N7-R.Bossut, M.Quentin]
+    //[N7-R.Bossut, M.Quentin]
     // Adds an integer parameter the maximum depth level in this node.
     public GraphNode(Graph graph, Object uuid, int maxDepth, String... labels) {
         super(graph, uuid);
@@ -868,7 +868,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         y = y - ph[i] / 2; // y is now the top-most edge of this layer
         for (i++; i < graph.layers(); i++) {
             List<GraphNode> list = graph.layer(i);
-            if (!list.isEmpty()) { //TODO: corrects a bug when displaying a subgraph in a new window, maybe we could find a may to do without si test.
+            if (!list.isEmpty()) { 
                 GraphNode first = list.get(0);
                 if (first.y() + ph[i] / 2 + yJump > y) {
                     setY(i, y - ph[i] / 2 - yJump);
@@ -1014,8 +1014,14 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else {
             graph.relayout_edges(layer());
         }
-        if (getFather() != null)
-          getFather().nestedNodeBounds();
+        GraphNode father = getFather();
+        if (father != null){
+          father.nestedNodeBounds();
+          father.shiftUp(father.y());
+          father.shiftDown(father.y());
+
+
+        }
     }
 
     //===================================================================================================
@@ -1320,51 +1326,52 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     void nestedNodeBounds() {
 
-        if (hasChild() && (maxDepth > 0)) {
+        if (!(hasChild() && (maxDepth > 0)))
+          return;
 
-            for (GraphNode gn : children) {
-                if (gn.updown < 0) {
-                    gn.calcBounds();
-                }
-            }
-
-            if (!layout){
-                subGraph.layoutSubGraph(this);
-                layout = true;
-            }
-            subGraph.recalcBound(true);
-            recenterSubgraph();
-
-            // Compute the max width of the labels 
-            int maxLabelWidth = 0;
-            List<String> labels = getLabels();
-            for (int l = 0; l < labels.size(); l++) {
-              maxLabelWidth = Math.max(maxLabelWidth, (int) getBounds(true, labels.get(l)).getWidth());
-            }
-
-            int height = subGraph.getTotalHeight() + getLabelHeight();
-            int width = Math.max(subGraph.getTotalWidth(), maxLabelWidth) + GraphNode.xJumpNode;
-            
-            this.updown = height / 2;
-            this.side = width / 2;
-            
-            subGraph.move((getLabelHeight()-yJumpNode)/2, -xJumpNode/2);
-
-            //TODO 
-            //Find the dimension of the figure
-            //TODO
-            //Change the form of the polygon
-            Polygon p = new Polygon();
-            p.addPoint(-side, -updown);
-            p.addPoint(side, -updown);
-            p.addPoint(side, updown);
-            p.addPoint(-side, updown);
-            this.poly = p;
-        
-            if (getFather() != null)
-              getFather().nestedNodeBounds();
+        for (GraphNode gn : children) {
+          if (gn.updown < 0) {
+            gn.calcBounds();
+          }
         }
 
+        if (!layout){
+          subGraph.layoutSubGraph(this);
+          layout = true;
+        }
+        subGraph.recalcBound(true);
+        recenterSubgraph();
+
+        // Compute the max width of the labels 
+        int maxLabelWidth = 0;
+        List<String> labels = getLabels();
+        for (int l = 0; l < labels.size(); l++) {
+          maxLabelWidth = Math.max(maxLabelWidth, (int) getBounds(true, labels.get(l)).getWidth());
+        }
+        
+        int height = subGraph.getTotalHeight() + getLabelHeight();
+        int width = Math.max(subGraph.getTotalWidth(), maxLabelWidth) + GraphNode.xJumpNode;
+
+        this.updown = height / 2;
+        this.side = width / 2;
+
+        subGraph.move((getLabelHeight()-yJumpNode)/2, -xJumpNode/2);
+
+        //TODO 
+        //Find the dimension of the figure
+        //TODO
+        //Change the form of the polygon
+        Polygon p = new Polygon();
+        p.addPoint(-side, -updown);
+        p.addPoint(side, -updown);
+        p.addPoint(side, updown);
+        p.addPoint(-side, updown);
+        this.poly = p;
+ 
+        if (getFather() != null)
+          getFather().nestedNodeBounds();
+
+        graph.recalcLayerPH();
     }
 
     //[N7-R.Bossut, M.Quentin]
