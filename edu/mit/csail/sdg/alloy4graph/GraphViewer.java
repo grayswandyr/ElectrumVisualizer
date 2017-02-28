@@ -272,6 +272,10 @@ public final strictfp class GraphViewer extends JPanel {
                     int newX = (int) (oldX + (ev.getX() - oldMouseX) / scale);
                     int newY = (int) (oldY + (ev.getY() - oldMouseY) / scale);
                     GraphNode n = (GraphNode) selected;
+                    if (n.getFather() != null){ //If the selected node is in a one node subgraph, we do not allow moving it.
+                      if (n.getFather().getChildren().size() <= 1)
+                        return;
+                    }
                     if (n.x() != newX || n.y() != newY) {
                         n.tweak(newX, newY);
                         alloyRepaint();
@@ -280,10 +284,6 @@ public final strictfp class GraphViewer extends JPanel {
                                 (int) ((newY - graph.getTop()) * scale) - n.getHeight() / 2 - 5,
                                 n.getWidth() + n.getReserved() + 10, n.getHeight() + 10
                         ));
-                       /* if (n.getFather() != null){ 
-                            n.getFather().getSubGraph().recalcBound(true);
-                            n.getFather().recenterSubgraph();
-                        }*/
                     }
                 }
             }

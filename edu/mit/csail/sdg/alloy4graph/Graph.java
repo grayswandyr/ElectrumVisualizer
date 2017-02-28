@@ -160,6 +160,8 @@ public final strictfp class Graph {
      * Assuming layout() has been called, this returns the left edge.
      */
     public int getLeft() {
+        if (left == 0)
+            recalcBound(true);
         return left;
     }
 
@@ -167,6 +169,8 @@ public final strictfp class Graph {
      * Assuming layout() has been called, this returns the top edge.
      */
     public int getTop() {
+        if (top == 0)
+            recalcBound(true);
         return top;
     }
 
@@ -304,7 +308,7 @@ public final strictfp class Graph {
             for (GraphEdge e : n.ins) {
                 AbstractGraphNode aa = e.a();
                 if (!(aa instanceof GraphNode)) {
-                    throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                    throw new IllegalArgumentException("This graph contains a port! This is not supposed to happen.");
                 }
                 GraphNode a = (GraphNode) aa;
                 if (!in.contains(a) && a.graph == n.graph) {
@@ -314,7 +318,7 @@ public final strictfp class Graph {
             for (GraphEdge e : n.outs) {
                 AbstractGraphNode ab = e.b();
                 if (!(ab instanceof GraphNode)) {
-                    throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                    throw new IllegalArgumentException("This graph contains a port! This is not supposed to happen.");
                 }
                 GraphNode b = (GraphNode) ab;
                 if (!out.contains(b) && b.graph == n.graph) {
@@ -380,7 +384,7 @@ public final strictfp class Graph {
     private void layout_backEdges() {
         for (GraphEdge e : edges) {
             if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
-                throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
             }
             GraphNode a = (GraphNode) e.a(), b = (GraphNode) e.b();
             if (a.pos() < b.pos()) {
@@ -404,7 +408,7 @@ public final strictfp class Graph {
             int max = 0;
             for (GraphEdge e : x.outs) {
                 if (!(e.b() instanceof GraphNode)) {
-                    throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                    throw new IllegalArgumentException("This graph contains a port! This is not supposed to happen.");
                 }
                 GraphNode y = (GraphNode) e.b();
                 int yLen = len[y.pos()] + 1;
@@ -426,7 +430,7 @@ public final strictfp class Graph {
                     int closestLayer = layers() + 1;
                     for (GraphEdge e : x.ins) {
                         if (!(e.a() instanceof GraphNode)) {
-                            throw new IllegalArgumentException("This graph contains a port ! This is not supposed to happen.");
+                            throw new IllegalArgumentException("This graph contains a port! This is not supposed to happen.");
                         }
                         int y = ((GraphNode) e.a()).layer();
                         if (closestLayer > y) {
@@ -456,7 +460,7 @@ public final strictfp class Graph {
         for (final GraphEdge edge : new ArrayList<GraphEdge>(edges)) {
             GraphEdge e = edge;
             if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
-                throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
             }
             GraphNode a = (GraphNode) e.a(), b = (GraphNode) e.b();
             while (a.layer() - b.layer() > 1) {
@@ -465,7 +469,7 @@ public final strictfp class Graph {
                 a.setLayer(tmp.layer() - 1);
                 // now we have three nodes in the vertical order of "tmp", "a", then "b"
                 e.change(a);                                                                           // let old edge go from "tmp" to "a"
-                e = new GraphEdge(a, b, e.uuid, "", e.ahead(), e.bhead(), e.style(), e.color(), e.group); // let new edge go from "a" to "b"
+                e = new GraphEdge(a, b, a.graph, e.uuid, "", e.ahead(), e.bhead(), e.style(), e.color(), e.group); // let new edge go from "a" to "b"
             }
         }
     }
@@ -490,7 +494,7 @@ public final strictfp class Graph {
                 double sum = 0;
                 for (GraphEdge e : n.outs) {
                     if (!(e.b() instanceof GraphNode)) {
-                        throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                        throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                     }
                     GraphNode nn = (GraphNode) e.b();
                     if (map.put(nn, nn) == null) {
@@ -633,20 +637,23 @@ public final strictfp class Graph {
         int[] layerHeight = new int[nbLayers];
         Arrays.fill(layerHeight, GraphNode.yJumpNode); // We have to consider the little space between the edge of the father node and the layer
 
+
         // We fill the two list
         int childHeight;
         int i = nbLayers;
+        ArrayList<GraphNode> currentLayer;
         for (ArrayList<GraphNode> childList : nodaList.values()) { //for (List<GraphNode> childList : layerlist)
+            currentLayer= new ArrayList<GraphNode>();
             int maxLayerHeight = 0;
             for (GraphNode child : childList) {
                 child.setLayer(nbLayers - i);
+                currentLayer.add(child);
 
                 childHeight = child.getHeight();
                 maxLayerHeight = Math.max(childHeight, maxLayerHeight);
 
                 layerWidth[nbLayers - i] += child.getWidth() + GraphNode.xJumpNode;
             }
-
             layerHeight[nbLayers - i] += maxLayerHeight + GraphNode.yJumpNode;
             i--;
         }
@@ -675,7 +682,6 @@ public final strictfp class Graph {
             // The height can vary from a node to an other, so we have to consider the biggest height for the layer
             maxHeight = 0;
             for (GraphNode child : childList) {
-                layer = child.layer();
                 childHeight = child.getHeight();
                 maxHeight = Math.max(childHeight, maxHeight);
             }
@@ -842,7 +848,7 @@ public final strictfp class Graph {
             double left = a.x() - a.getWidth() / 2, right = a.x() - a.getWidth() / 2;
             for (GraphEdge e : a.outs) {
                 if (!(e.b() instanceof GraphNode)) {
-                    new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                    new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                 }
                 GraphNode b = (GraphNode) e.b();
                 if (b.x() >= right) {
@@ -880,7 +886,7 @@ public final strictfp class Graph {
             double left = b.x() - b.getWidth() / 2, right = b.x() - b.getWidth() / 2;
             for (GraphEdge e : b.ins) {
                 if (!(e.a() instanceof GraphNode)) {
-                    new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                    new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                 }
                 GraphNode a = (GraphNode) e.a();
                 if (a.x() <= left) {
@@ -1088,7 +1094,7 @@ public final strictfp class Graph {
                     if (n.shape() == null) {
                         GraphEdge e1 = n.ins.get(0), e2 = n.outs.get(0);
                         if (!(e1.a() instanceof GraphNode) || !(e2.b() instanceof GraphNode)) {
-                            throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                            throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                         }
                         if (!free((GraphNode) e1.a(), (GraphNode) e2.b())) {
                             continue;
@@ -1105,12 +1111,12 @@ public final strictfp class Graph {
             for (GraphEdge e : edges) {
                 if (e.a().shape() != null && e.b().shape() == null) {
                     if (!(e.a() instanceof GraphNode)) {
-                        throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                        throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                     }
                     GraphNode a = (GraphNode) e.a(), b;
                     for (GraphEdge ee = e;;) {
                         if (!(ee.b() instanceof GraphNode)) {
-                            throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                            throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                         }
                         b = (GraphNode) ee.b();
                         if (b.shape() != null) {
@@ -1124,7 +1130,7 @@ public final strictfp class Graph {
                     double slope = (b.x() - a.x()) / ((double) (b.y() - a.y()));
                     for (GraphEdge ee = e;;) {
                         if (!(ee.b() instanceof GraphNode)) {
-                            throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                            throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                         }
                         b = (GraphNode) ee.b();
                         if (b.shape() != null) {
@@ -1317,6 +1323,7 @@ public final strictfp class Graph {
         return null;
     }
 
+    //[N7-R.Bossut, M.Quentin]
     //This will be use for recursive find (in order to find the deepest node at this x and y).
     public Object subFind(double scale, double x, double y) {
         int h = getTop() + 10 - ad;
@@ -1387,6 +1394,22 @@ public final strictfp class Graph {
         return null;
     }
 
+    //[N7-R.Bossut, M.Quentin]
+    /**
+     * Re-computes the height of layers of the graph.
+     */
+    public void recalcLayerPH(){
+        int maxHeight;
+        layerPH = new int[layerlist.size()];
+        for (List<GraphNode> l : layerlist){
+          maxHeight = 0;
+          for (GraphNode n : l){
+            maxHeight = Math.max(n.getHeight(), maxHeight);
+          }
+          layerPH[l.get(0).layer()] = maxHeight;
+        }
+    }
+
     //============================================================================================================================//
 
     /**
@@ -1411,7 +1434,7 @@ public final strictfp class Graph {
                 highLastEdge = highLastEdge.b().outs.get(0);
             }
             if (!(highFirstEdge.a() instanceof GraphNode) || !(highLastEdge.b() instanceof GraphNode)) {
-                throw new IllegalArgumentException("This graph contains ports ! This is not supposed to happen");
+                throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
             }
             highFirstNode = (GraphNode) highFirstEdge.a();
             highLastNode = (GraphNode) highLastEdge.b();

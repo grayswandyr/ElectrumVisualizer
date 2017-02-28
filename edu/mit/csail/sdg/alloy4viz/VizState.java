@@ -28,11 +28,18 @@ import javax.swing.JScrollPane;
 import edu.mit.csail.sdg.alloy4.ConstSet;
 import edu.mit.csail.sdg.alloy4.MailBug;
 import edu.mit.csail.sdg.alloy4.OurCheckbox;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.ALL_OFF;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.ALL_ON;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.INH_OFF;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.INH_ON;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.OFF;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.ON;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
+import javafx.util.Callback;
 
 /**
  * Mutable; this stores an unprojected model as well as the current theme
@@ -641,6 +648,10 @@ public final class VizState {
             changeIf(map.put(x, v), v);
         }
     }
+    
+    public interface Callback<T> {
+        void call(T a);
+    }
 
     public final class MMap<T> {
 
@@ -707,6 +718,20 @@ public final class VizState {
                 }
             };
         }
+        
+        OurCheckbox pick(String label, String tooltip, Callback cb) {
+            return new OurCheckbox(label, tooltip, (Boolean.TRUE.equals(get(null)) ? OurCheckbox.ON : OurCheckbox.OFF)) {
+                private static final long serialVersionUID = 0;
+
+                public Icon do_action() {
+                    T old = get(null);
+                    boolean ans = (old != null && old.equals(onValue));
+                    MMap.this.put(null, ans ? offValue : onValue);
+                    if (cb != null) cb.call(get(null));
+                    return ans ? OFF : ON;
+                }
+            };
+        }
 
         OurCheckbox pick(final AlloyElement obj, final String label, final String tooltip) {
             T a = get(obj), b = resolve(obj);
@@ -724,6 +749,28 @@ public final class VizState {
                         a = null;
                     }
                     MMap.this.put(obj, a);
+                    return a == null ? (Boolean.TRUE.equals(resolve(obj)) ? INH_ON : INH_OFF) : (Boolean.TRUE.equals(a) ? ALL_ON : ALL_OFF);
+                }
+            };
+        }
+        
+        OurCheckbox pick(final AlloyElement obj, final String label, final String tooltip, Callback cb) {
+            T a = get(obj), b = resolve(obj);
+            Icon icon = a == null ? (Boolean.TRUE.equals(b) ? OurCheckbox.INH_ON : OurCheckbox.INH_OFF) : (Boolean.TRUE.equals(a) ? OurCheckbox.ALL_ON : OurCheckbox.ALL_OFF);
+            return new OurCheckbox(label, tooltip, icon) {
+                private static final long serialVersionUID = 0;
+
+                public Icon do_action() {
+                    T a = get(obj);
+                    if (a == null) {
+                        a = onValue;
+                    } else if (a.equals(onValue)) {
+                        a = offValue;
+                    } else {
+                        a = null;
+                    }
+                    MMap.this.put(obj, a);
+                    if (cb != null) cb.call(resolve(obj));
                     return a == null ? (Boolean.TRUE.equals(resolve(obj)) ? INH_ON : INH_OFF) : (Boolean.TRUE.equals(a) ? ALL_ON : ALL_OFF);
                 }
             };
