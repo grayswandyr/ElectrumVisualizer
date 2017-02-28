@@ -434,7 +434,6 @@ public final strictfp class GraphEdge {
             if ( size > 0 ) {
                 startY = yauxList.get(size-1);
                 startX = (startY - coeffb) / coeffa;
-                System.out.println("Label: " + this.label + " x: " + ax + " y: " + ay);
             }
         } else { // If the edge goes from a layer to a smallest one
             ayaux += ((GraphNode) b).getHeight() / 2;
