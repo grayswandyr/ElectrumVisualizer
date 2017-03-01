@@ -886,6 +886,49 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     /**
+     * Method to layout the edges bewtween the node and a node from another graph.
+     */
+    private void shift_edges() {
+        
+        for (GraphEdge e : this.outs) {
+            GraphNode b = (GraphNode) e.b();
+            if (b.graph != graph) {
+                b.graph.relayout_edges(false);
+            }
+        }
+        for (GraphEdge e : this.ins) {
+            GraphNode a = (GraphNode) e.a();
+            if (a.graph != graph) {
+                a.graph.relayout_edges(false);
+            }
+        }
+        
+        if ( !children.isEmpty() ) {
+            for (GraphNode child : children) {
+                for (GraphEdge e : child.outs) {
+                    GraphNode a = (GraphNode) e.a();
+                    a.graph.relayout_edges(false);
+                    
+                    GraphNode b = (GraphNode) e.b();
+                    for (GraphEdge e2 : b.ins) {
+                        e2.a().graph.relayout_edges(false);
+                    }
+                }
+                for (GraphEdge e : child.ins) {
+                    GraphNode b = (GraphNode) e.b();
+                    b.graph.relayout_edges(false);
+                    
+                    GraphNode a = (GraphNode) e.a();
+                    for (GraphEdge e2 : a.outs) {
+                        e2.b().graph.relayout_edges(false);
+                    }
+                }
+            }
+        }
+        
+    }
+
+    /**
      * Helper method that shifts a node up.
      */
     private void shiftUp(int y) {
@@ -905,7 +948,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 y = first.y() - ph[i] / 2;
             }
         }
-        graph.relayout_edges(false);
+        graph.relayout_edges(false);      
+        shift_edges();
     }
 
     /**
@@ -926,7 +970,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
             y = first.y() + ph[i] / 2;
         }
-        graph.relayout_edges(false);
+        graph.relayout_edges(false);       
+        shift_edges();
     }
 
     /**
@@ -1043,7 +1088,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else if (y() < y) {
             shiftDown(y);
         } else {
-            graph.relayout_edges(layer());
+            graph.relayout_edges(layer());        
+            shift_edges();
         }
         GraphNode father = getFather();
         if (father != null){
