@@ -1088,7 +1088,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else if (y() < y) {
             shiftDown(y);
         } else {
-            graph.relayout_edges(layer());        
+            //graph.relayout_edges(layer());
+            graph.relayout_edges(false);
             shift_edges();
         }
         GraphNode father = getFather();

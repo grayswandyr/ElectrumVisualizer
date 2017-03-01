@@ -528,7 +528,26 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             c.chopEnd(in);
         }
     }
-
+    
+    /**
+     * Positions the arrow tails of the given edge properly.
+     */
+    private void layout_arrowTail() {
+        Curve c = path();
+        if (a.shape() != null) {
+            double in = 0D, out = 1D;
+            while (StrictMath.abs(out - in) > 0.000001D) {
+                double t = (in + out) / 2;
+                if (a.contains(c.getX(t), c.getY(t))) {
+                    in = t;
+                } else {
+                    out = t;
+                }
+            }
+            c.chopStart(in);
+        }
+    }
+    
     /**
      * Assuming this edge's coordinates have been properly assigned, and given
      * the current zoom scale, draw the edge.
@@ -562,11 +581,13 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
                 if (e.b.shape()!=null) break;
                 e = e.b.outs.get(0);
             }
+            layout_arrowTail();
             gr.drawSmoothly(p);
         }
         gr.set(DotStyle.SOLID, scale);
         gr.translate(left, top);
         if (highEdge==null && highGroup==null && label.length()>0) drawLabel(gr, color, null);
+        this.layout_arrowHead();
         drawArrowhead(gr, scale, highEdge, highGroup);
     }
 
