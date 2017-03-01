@@ -463,13 +463,15 @@ public final strictfp class Graph {
                 throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
             }
             GraphNode a = (GraphNode) e.a(), b = (GraphNode) e.b();
-            while (a.layer() - b.layer() > 1) {
+            if(a.graph == b.graph){ //If the two nodes are not in the same graph, the edge is direct.
+              while (a.layer() - b.layer() > 1) {
                 GraphNode tmp = a;
                 a = new GraphNode(a.graph, e.uuid).set((DotShape) null);
                 a.setLayer(tmp.layer() - 1);
                 // now we have three nodes in the vertical order of "tmp", "a", then "b"
                 e.change(a);                                                                           // let old edge go from "tmp" to "a"
                 e = new GraphEdge(a, b, a.graph, e.uuid, "", e.ahead(), e.bhead(), e.style(), e.color(), e.group); // let new edge go from "a" to "b"
+              }
             }
         }
     }
