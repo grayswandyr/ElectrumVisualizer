@@ -285,7 +285,6 @@ public final strictfp class GraphViewer extends JPanel {
                     highlight = obj;
                     if (obj instanceof AbstractGraphElement) {
                         ((AbstractGraphElement)highlight).setHighlight(true); //[N7-G.Dupont]
-                        System.out.println("Entering " + ((AbstractGraphElement)highlight).uuid);
                     }
                     
                     needRepaint = true;
