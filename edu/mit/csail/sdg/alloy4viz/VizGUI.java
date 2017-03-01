@@ -715,6 +715,7 @@ public final class VizGUI implements ComponentListener {
             toolbar.add(timeBackwardButton = OurUtil.button("<<","Decreases the index of the Time projection",null,doTimeBackWard()));
             toolbar.add(timeForwardButton = OurUtil.button(">>","Increases the index of the Time projection",null,doTimeForward()));
             //addTemporalJPanel();//pt.uminho.haslab: the jpanel with temporal states is created
+            splitButton.setEnabled(false);
             linkTimeButton.setVisible(false);
             timeBackwardButton.setVisible(false);
             timeForwardButton.setVisible(false);
@@ -974,6 +975,12 @@ public final class VizGUI implements ComponentListener {
             default:
                 vizButton.setEnabled(false);
                 splitButton.setVisible(true);
+                splitButton.setEnabled(!myState.getProjectedTypes().isEmpty());
+                if(myState.splitPanel){
+                    splitButton.setText("Unsplit");
+                } else {
+                    splitButton.setText("Split");
+                }
                 if(myState.getProjectedTypes().contains(AlloyType.TIME)){
                     linkTimeButton.setVisible(true);
                     timeBackwardButton.setVisible(true);
