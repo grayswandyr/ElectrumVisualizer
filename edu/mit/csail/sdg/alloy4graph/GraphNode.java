@@ -335,7 +335,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     /**
-     * Duplicate the given GraphNode, only changing the graph in which it is.
+     * Duplicate the given GraphNode, changing the graph in which it is and setting subGraph at null.
+     * We let the calling method duplicate the subgraph.
      */
     public GraphNode(GraphNode toBeCopied, Graph graph) {
         super(graph, toBeCopied.uuid);
@@ -345,7 +346,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.fontBold = toBeCopied.fontBold;
         this.style = toBeCopied.style;
         this.set(toBeCopied.shape());
-        this.subGraph = toBeCopied.subGraph;
+        this.subGraph = null;
         this.maxDepth = toBeCopied.maxDepth + 1; //We do not show the "upper depth" of the graph, we can show one level deeper.
         graph.nodelist.add(this);
         if (graph.layerlist.size() == 0) {
@@ -395,6 +396,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     public void addChild(GraphNode gn) {
         this.children.add(gn);
+        if (subGraph == null) subGraph = new Graph(1.0);
         if (!(subGraph.nodelist.contains(gn))) {
             subGraph.nodelist.add(gn);
         }
