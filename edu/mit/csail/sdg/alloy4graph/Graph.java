@@ -306,6 +306,7 @@ public final strictfp class Graph {
             int ni = n.pos();
             LinkedList<GraphNode> in = new LinkedList<GraphNode>(), out = new LinkedList<GraphNode>();
             for (GraphEdge e : n.ins) {
+              if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                 AbstractGraphNode aa = e.a();
                 if (!(aa instanceof GraphNode)) {
                     throw new IllegalArgumentException("This graph contains a port! This is not supposed to happen.");
@@ -314,8 +315,10 @@ public final strictfp class Graph {
                 if (!in.contains(a) && a.graph == n.graph) {
                     in.add(a);
                 }
+              }
             }
             for (GraphEdge e : n.outs) {
+              if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                 AbstractGraphNode ab = e.b();
                 if (!(ab instanceof GraphNode)) {
                     throw new IllegalArgumentException("This graph contains a port! This is not supposed to happen.");
@@ -324,6 +327,7 @@ public final strictfp class Graph {
                 if (!out.contains(b) && b.graph == n.graph) {
                     out.add(b);
                 }
+              }
             }
             grIN.add(in);
             grOUT.add(out);
@@ -383,6 +387,7 @@ public final strictfp class Graph {
      */
     private void layout_backEdges() {
         for (GraphEdge e : edges) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
                 throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
             }
@@ -390,6 +395,7 @@ public final strictfp class Graph {
             if (a.pos() < b.pos()) {
                 e.set(e.bhead(), e.ahead()).reverse();
             }
+          }
         }
     }
 
@@ -407,6 +413,7 @@ public final strictfp class Graph {
             // we can compute the "len" array in O(n) time by visiting each node IN THE SORTED ORDER
             int max = 0;
             for (GraphEdge e : x.outs) {
+              if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                 if (!(e.b() instanceof GraphNode)) {
                     throw new IllegalArgumentException("This graph contains a port! This is not supposed to happen.");
                 }
@@ -415,6 +422,7 @@ public final strictfp class Graph {
                 if (max < yLen) {
                     max = yLen;
                 }
+              }
             }
             len[x.pos()] = max;
         }
@@ -429,6 +437,7 @@ public final strictfp class Graph {
                 if (x.ins.size() > 0) {
                     int closestLayer = layers() + 1;
                     for (GraphEdge e : x.ins) {
+                      //if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                         if (!(e.a() instanceof GraphNode)) {
                             throw new IllegalArgumentException("This graph contains a port! This is not supposed to happen.");
                         }
@@ -436,6 +445,7 @@ public final strictfp class Graph {
                         if (closestLayer > y) {
                             closestLayer = y;
                         }
+                      //}
                     }
                     if (closestLayer - 1 > x.layer()) {
                         x.setLayer(closestLayer - 1);
@@ -458,6 +468,7 @@ public final strictfp class Graph {
      */
     private void layout_dummyNodesIfNeeded() {
         for (final GraphEdge edge : new ArrayList<GraphEdge>(edges)) {
+          if (edge.a().getMaxDepth() >= 0 && edge.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             GraphEdge e = edge;
             if (!(e.a() instanceof GraphNode) || !(e.b() instanceof GraphNode)) {
                 throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
@@ -473,6 +484,7 @@ public final strictfp class Graph {
                 e = new GraphEdge(a, b, a.graph, e.uuid, "", e.ahead(), e.bhead(), e.style(), e.color(), e.group); // let new edge go from "a" to "b"
               }
             }
+          }
         }
     }
 
@@ -495,6 +507,7 @@ public final strictfp class Graph {
                 int count = 0;
                 double sum = 0;
                 for (GraphEdge e : n.outs) {
+                  if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                     if (!(e.b() instanceof GraphNode)) {
                         throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                     }
@@ -503,6 +516,7 @@ public final strictfp class Graph {
                         count++;
                         sum += bc[nn.pos()];
                     }
+                  }
                 }
                 bc[n.pos()] = count == 0 ? 0 : (sum / count);
             }
@@ -593,6 +607,7 @@ public final strictfp class Graph {
             nIns = 0;
 
             for (GraphEdge e : child.outs) {
+              if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                 if (e.b() instanceof GraphNode) {
                     // If the edge concerns two elements of the subGraph then we increment nOuts
                     if (children.contains((GraphNode) e.b())) {
@@ -600,9 +615,11 @@ public final strictfp class Graph {
                         edgelist.add(e);
                     }
                 }
+              }
             }
 
             for (GraphEdge e : child.ins) {
+              if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                 if (e.a() instanceof GraphNode) {
                     // If the edge concerns two elements of the subGraph then we increment nIns
                     if (children.contains((GraphNode) e.a())) {
@@ -610,6 +627,7 @@ public final strictfp class Graph {
                         edgelist.add(e);
                     }
                 }
+              }
             }
 
             // Now we can construct the layers and add them to the Map
@@ -729,6 +747,7 @@ public final strictfp class Graph {
             for (int j = 0; j < cpt; j++) {
                 GraphNode gn = list.get(j);
                 for (GraphEdge e : gn.outs) {
+                  if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                     if (e.b() instanceof GraphNode) {
                         if (list.contains(((GraphNode) e.b()))) {
                             list.remove(gn);
@@ -743,6 +762,7 @@ public final strictfp class Graph {
                             }
                         }
                     }
+                  }
                 }
             }
             nodaList.put(k, (ArrayList) list);
@@ -762,10 +782,14 @@ public final strictfp class Graph {
         }
         double ans = 0;
         for (GraphEdge e : n.ins) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             ans += ((double) e.weight()) * e.a().x();
+          }
         }
         for (GraphEdge e : n.outs) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             ans += ((double) e.weight()) * e.b().x();
+          }
         }
         return ans / wt;
     }
@@ -779,10 +803,14 @@ public final strictfp class Graph {
     private static int wt(GraphNode n) {
         int ans = 0;
         for (GraphEdge e : n.ins) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             ans += e.weight();
+          }
         }
         for (GraphEdge e : n.outs) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             ans += e.weight();
+          }
         }
         return ans;
     }
@@ -849,6 +877,7 @@ public final strictfp class Graph {
             GraphNode a = top.get(i);
             double left = a.x() - a.getWidth() / 2, right = a.x() - a.getWidth() / 2;
             for (GraphEdge e : a.outs) {
+              if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                 if (!(e.b() instanceof GraphNode)) {
                     new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                 }
@@ -872,7 +901,8 @@ public final strictfp class Graph {
                         e.path().bendDown(cright, ctop - room, cbottom + room, 3);
                     }
                 }
-            }
+              }
+           }
         }
     }
 
@@ -887,6 +917,7 @@ public final strictfp class Graph {
             GraphNode b = bottom.get(i);
             double left = b.x() - b.getWidth() / 2, right = b.x() - b.getWidth() / 2;
             for (GraphEdge e : b.ins) {
+              if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                 if (!(e.a() instanceof GraphNode)) {
                     new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                 }
@@ -910,6 +941,7 @@ public final strictfp class Graph {
                         e.path().bendUp(cleft, ctop - room, cbottom + room, 3);
                     }
                 }
+              }
             }
         }
     }
@@ -941,7 +973,6 @@ public final strictfp class Graph {
      * (Re-)perform the layout.
      */
     public void layout() {
-
         // The rest of the code below assumes at least one node, so we return right away if nodes.size()==0
         if (nodes.size() == 0) {
             return;
@@ -1035,6 +1066,7 @@ public final strictfp class Graph {
             }
         }
         for (GraphEdge e : edges) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             if (e.getLabelW() > 0 && e.getLabelH() > 0) {
                 int x1 = e.getLabelX(), x2 = x1 + e.getLabelW() - 1;
                 if (minX > x1) {
@@ -1044,6 +1076,7 @@ public final strictfp class Graph {
                     maxX = x2;
                 }
             }
+          }
         }
         left = minX - 20;
         totalWidth = maxX - minX + 20;
@@ -1094,7 +1127,7 @@ public final strictfp class Graph {
             for (int i = 0; i < 5; i++) {
                 for (GraphNode n : nodes) {
                     if (n.shape() == null) {
-                        GraphEdge e1 = n.ins.get(0), e2 = n.outs.get(0);
+                      GraphEdge e1 = n.ins.get(0), e2 = n.outs.get(0);
                         if (!(e1.a() instanceof GraphNode) || !(e2.b() instanceof GraphNode)) {
                             throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
                         }
@@ -1111,6 +1144,7 @@ public final strictfp class Graph {
         // Move the virtual nodes between endpoints to straighten the lines if possible
         if (straighten) {
             for (GraphEdge e : edges) {
+              if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                 if (e.a().shape() != null && e.b().shape() == null) {
                     if (!(e.a() instanceof GraphNode)) {
                         throw new IllegalArgumentException("This graph contains ports! This is not supposed to happen.");
@@ -1143,6 +1177,7 @@ public final strictfp class Graph {
                         ee = b.outs.get(0);
                     }
                 }
+              }
             }
         }
         // Now restore the invariant that nodes in each layer is ordered by x
@@ -1180,7 +1215,9 @@ public final strictfp class Graph {
         }
         // Now layout the edges, initially as straight lines
         for (GraphEdge e : edges) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             e.resetPath();
+          }
         }
         // Now, scan layer-by-layer to find edges that intersect nodes improperly, and bend them accordingly
         for (int layer = layers() - 1; layer > 0; layer--) {
@@ -1197,8 +1234,10 @@ public final strictfp class Graph {
             }
         }
         for (GraphEdge e : edges) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             e.layout_arrowHead();
             e.repositionLabel(sp);
+          }
         }
     }
 
@@ -1213,15 +1252,19 @@ public final strictfp class Graph {
         }
         for (GraphNode n : layer(i)) {
             for (GraphEdge e : n.selfs) {
+              if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                 e.resetPath();
                 e.layout_arrowHead();
+              }
             }
         }
         if (i > 0) {
             List<GraphNode> top = layer(i), bottom = layer(i - 1);
             for (GraphNode n : top) {
                 for (GraphEdge e : n.outs) {
+                  if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                     e.resetPath();
+                  }
                 }
             }
             checkUpperCollision(top);
@@ -1232,7 +1275,9 @@ public final strictfp class Graph {
             List<GraphNode> top = layer(i + 1), bottom = layer(i);
             for (GraphNode n : top) {
                 for (GraphEdge e : n.outs) {
+                  if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                     e.resetPath();
+                  }
                 }
             }
             checkUpperCollision(top);
@@ -1247,8 +1292,10 @@ public final strictfp class Graph {
             }
         }
         for (GraphEdge e : edges) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             e.layout_arrowHead();
             e.repositionLabel(sp);
+          }
         }
     }
 
@@ -1282,7 +1329,7 @@ public final strictfp class Graph {
                 //[N7-R.Bossut, M.Quentin]
                 // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.
                 Object subFind = null;
-                if (n.hasChild()) {
+                if (n.getMaxDepth() > 0 && n.hasChild()) {
                     subFind = n.getSubGraph().findNormed(scale, x - (double) n.x(), y - (double) n.y());
                 }
                 if (subFind == null) {
@@ -1293,7 +1340,7 @@ public final strictfp class Graph {
             }
             if (n.contains(x, y)) {
                 Object subFind = null;
-                if (n.hasChild()) {
+                if (n.getMaxDepth() > 0 && n.hasChild()) {
                     subFind = n.getSubGraph().findNormed(scale, x - (double) n.x(), y - (double) n.y());
                 }
                 if (subFind == null) {
@@ -1304,6 +1351,7 @@ public final strictfp class Graph {
             }
         }
         for (GraphEdge e : edges) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             if (e.a() != e.b()) {
                 double dx;
                 dx = e.path().getXatY(y, 0, 1, Double.NaN);
@@ -1325,6 +1373,7 @@ public final strictfp class Graph {
                     return e;
                 }
             }
+          }
         }
         return null;
     }
@@ -1375,6 +1424,7 @@ public final strictfp class Graph {
             }
         }
         for (GraphEdge e : edges) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             if (e.a() != e.b()) {
                 double dx;
                 dx = e.path().getXatY(y, 0, 1, Double.NaN);
@@ -1396,6 +1446,7 @@ public final strictfp class Graph {
                     return e;
                 }
             }
+          }
         }
         return null;
     }
@@ -1462,14 +1513,18 @@ public final strictfp class Graph {
         for (GraphNode n : nodes) {
             if (n.shape() != null) {
                 for (GraphEdge e : n.outs) {
+                  if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                     if (e.group != group) {
                         e.draw(gr, scale, highFirstEdge, group);
                     }
+                  }
                 }
                 for (GraphEdge e : n.selfs) {
+                  if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                     if (e.group != group) {
                         e.draw(gr, scale, highFirstEdge, group);
                     }
+                  }
                 }
             }
         }
@@ -1478,14 +1533,18 @@ public final strictfp class Graph {
             for (GraphNode n : nodes) {
                 if (n.shape() != null) {
                     for (GraphEdge e : n.outs) {
+                      if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                         if (e.group == group && e != highFirstEdge) {
                             e.draw(gr, scale, highFirstEdge, group);
                         }
+                      }
                     }
                     for (GraphEdge e : n.selfs) {
+                      if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                         if (e.group == group && e != highFirstEdge) {
                             e.draw(gr, scale, highFirstEdge, group);
                         }
+                      }
                     }
                 }
             }
@@ -1572,7 +1631,9 @@ public final strictfp class Graph {
         StringBuilder sb = new StringBuilder();
         sb.append("digraph \"graph\" {\n" + "graph [fontsize=12]\n" + "node [fontsize=12]\n" + "edge [fontsize=12]\n" + "rankdir=TB;\n");
         for (GraphEdge e : edges) {
+          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
             sb.append(e);
+          }
         }
         for (GraphNode n : nodes) {
             sb.append(n);

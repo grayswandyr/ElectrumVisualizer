@@ -152,4 +152,11 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      * @return the height of the element.
      */
     public abstract int getHeight();
+
+    /** 
+     * Get the maxDepth of the element.
+     * This function is abstract as it depends of the type of node.
+     * @return the maximum depth of this element.
+     */
+    public abstract int getMaxDepth();
 }

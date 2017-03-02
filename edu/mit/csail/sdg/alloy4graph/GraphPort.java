@@ -537,6 +537,14 @@ public class GraphPort extends AbstractGraphNode {
         if (needRecalc) recalc();
         return this.height;
     }
-    
+
+    /**
+     * Retrieve maximum depth of the linked node.
+     * @return
+     */
+    @Override
+    public int getMaxDepth(){
+        return 0; //A port can't contain a subgraph.
+    }
 }
 
