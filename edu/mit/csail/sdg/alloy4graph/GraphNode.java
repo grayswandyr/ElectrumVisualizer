@@ -1092,6 +1092,14 @@ public strictfp class GraphNode extends AbstractGraphNode {
             graph.relayout_edges(false);
             shift_edges();
         }
+        tweakFather();
+        graph.recalcBound(false);
+    }
+
+    /**
+     * This manage to pass on the changes on the subgraph to fathers graphs.
+     */
+    void tweakFather(){
         GraphNode father = getFather();
         if (father != null){
           //Computes new bounds of the father.
@@ -1101,10 +1109,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
           //Changes of the bounds of the father can make other nodes of the father's graph move.
           father.adaptLayer();
           father.graph.recalcBound(false);
-       }else{
-          graph.recalcBound(false);
-       }
+          father.tweakFather();
+        }
     }
+
 
     //[N7-R.Bossut]
     /**
@@ -1455,7 +1463,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * nodes given the current boundaries and the ones of its children.
      */
     void nestedNodeBounds() {
-
         if (!(hasChild() && (maxDepth > 0)))
           return;
 
@@ -1498,10 +1505,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
         p.addPoint(-side, updown);
         this.poly = p;
  
-        if (getFather() != null)
-          getFather().nestedNodeBounds();
-
         graph.recalcLayerPH();
+        
+        //if (getFather() != null)
+        //  getFather().nestedNodeBounds();
+
     }
 
     //[N7-R.Bossut, M.Quentin]
