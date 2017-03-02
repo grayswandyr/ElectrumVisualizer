@@ -986,8 +986,8 @@ public final class VizGUI implements ComponentListener {
                     timeBackwardButton.setVisible(true);
                     timeForwardButton.setVisible(true);
                     linkTimeButton.setEnabled(graphc != null);
-                    timeBackwardButton.setEnabled(graphc != null);
-                    timeForwardButton.setEnabled(graphc != null);
+                    timeBackwardButton.setEnabled(graphc != null && graphc.timeLinked);
+                    timeForwardButton.setEnabled(graphc != null && graphc.timeLinked);
                 }
         }
         final boolean isMeta = myState.getOriginalInstance().isMetamodel;
@@ -1691,6 +1691,8 @@ public final class VizGUI implements ComponentListener {
         }
         if(graphc != null){
             graphc.linkTime();
+            timeBackwardButton.setEnabled(graphc.timeLinked);
+            timeForwardButton.setEnabled(graphc.timeLinked);
         }
         return null;
     }
