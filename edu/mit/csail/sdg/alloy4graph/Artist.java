@@ -145,7 +145,7 @@ public final strictfp class Artist {
      * vertically)
      */
     public void drawSmoothly(Curve curve) {
-        /*final int smooth = 15;
+        final int smooth = 15;
         double cx = 0, cy = 0, slope;
         for (int n = curve.list.size(), i = 0; i < n; i++) {
             CubicCurve2D.Double c = new CubicCurve2D.Double(), c2 = (i + 1 < n) ? curve.list.get(i + 1) : null;
@@ -155,14 +155,7 @@ public final strictfp class Artist {
                 c.ctrly1 = cy;
             }
             if (c2 == null) {
-                if (i==0) {
-                    CubicCurve2D.Double cdrawn = (CubicCurve2D.Double) curve.list.get(0).clone();
-                    cdrawn.x1 = curve.startDrawX;
-                    cdrawn.y1 = curve.startDrawY;
-                    draw(cdrawn, false);
-                } else {
-                    draw(c, false);
-                }
+                draw(c, false);
                 return;
             }
             if ((c.x1 < c.x2 && c2.x2 < c2.x1) || (c.x1 > c.x2 && c2.x2 > c2.x1)) {
@@ -183,28 +176,7 @@ public final strictfp class Artist {
                 cy = c2.ctrly1;
                 cx = c2.ctrlx1;
             }
-            if (i==0) {
-                CubicCurve2D.Double cdrawn = (CubicCurve2D.Double) curve.list.get(0).clone();
-                cdrawn.x1 = curve.startDrawX;
-                cdrawn.y1 = curve.startDrawY;
-                draw(cdrawn, false);
-            } else {
-                draw(c, false);
-            }
-        }*/
-        final int smooth=15;
-        double cx=0, cy=0, slope;
-        for(int n=curve.list.size(), i=0; i<n; i++) {
-            CubicCurve2D.Double c=new CubicCurve2D.Double(), c2=(i+1<n)?curve.list.get(i+1):null;
-            c.setCurve(curve.list.get(i));
-            if (i>0) { c.ctrlx1=cx; c.ctrly1=cy; }
-            if (c2==null) { draw(c,false); return; }
-            if ((c.x1<c.x2 && c2.x2<c2.x1) || (c.x1>c.x2 && c2.x2>c2.x1)) slope=0; else slope=(c2.x2-c.x1)/(c2.y2-c.y1);
-            double tmp=c.y2-smooth, tmpx=c.x2-smooth*slope;
-            if (tmp>c.ctrly1 && tmp<c.y2 && in(c.x1, tmpx, c.x2)) { c.ctrly2=tmp; c.ctrlx2=tmpx; }
-            double tmp2=c2.y1+smooth, tmp2x=c2.x1+smooth*slope;
-            if (tmp2>c2.y1 && tmp2<c2.ctrly2 && in(c2.x1, tmp2x, c2.x2)) { cy=tmp2; cx=tmp2x; } else { cy=c2.ctrly1; cx=c2.ctrlx1; }
-            draw(c,false);
+            draw(c, false);
         }
     }
 

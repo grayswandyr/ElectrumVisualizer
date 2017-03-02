@@ -497,25 +497,13 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             }
         }
     }
-
+   
     /**
      * Positions the arrow heads of the given edge properly.
      */
     void layout_arrowHead() {
         Curve c = path();
-        if (ahead() && a.shape() != null) {
-            double in = 0D, out = 1D;
-            while (StrictMath.abs(out - in) > 0.0001D) {
-                double t = (in + out) / 2;
-                if (a.contains(c.getX(t), c.getY(t))) {
-                    in = t;
-                } else {
-                    out = t;
-                }
-            }
-            c.chopStart(in);
-        }
-        if (bhead() && b.shape() != null) {
+        if (b.shape() != null) {
             double in = 1D, out = (a == b ? 0.5D : 0D);
             while (StrictMath.abs(out - in) > 0.0001D) {
                 double t = (in + out) / 2;
@@ -536,7 +524,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         Curve c = path();
         if (a.shape() != null) {
             double in = 0D, out = 1D;
-            while (StrictMath.abs(out - in) > 0.000001D) {
+            while (StrictMath.abs(out - in) > 0.0001D) {
                 double t = (in + out) / 2;
                 if (a.contains(c.getX(t), c.getY(t))) {
                     in = t;
@@ -552,7 +540,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
      * Assuming this edge's coordinates have been properly assigned, and given
      * the current zoom scale, draw the edge.
      */
-    void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {       
+    void draw(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {                
         if (path == null)
             resetPath();
         int top = 0, left = 0;
@@ -563,11 +551,37 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         } else {
             top = a.graph.getTop(); left = a.graph.getLeft();
         }
-        gr.translate(-left, -top);
+        
+        int transX=0, transY=0;
+        if (this.highlight()) {
+            if ((((GraphNode) a).getFather()) != null) {
+                transX = ((GraphNode)a).getFather().x() - ((GraphNode)a).getFather().graph.getLeft();
+                transY = ((GraphNode)a).getFather().y() - ((GraphNode)a).getFather().graph.getTop();
+                gr.translate(transX, transY);
+
+            } else {
+                gr.translate(- left, - top); 
+            }
+                
+        } else {
+            gr.translate(-left, -top);
+        }
+        
+        //gr.translate(-left, -top);
+
         gr.setColor(Color.RED);
-        if (highEdge==this) { gr.setColor(color); gr.set(DotStyle.BOLD, scale); }
-        else if ((highEdge==null && highGroup==null) || highGroup==group) { gr.setColor(color); gr.set(style, scale); }
-        else { gr.setColor(Color.LIGHT_GRAY); gr.set(style, scale); }
+        if (highEdge==this) { 
+            gr.setColor(color); 
+            gr.set(DotStyle.BOLD, scale); 
+        }
+        else if ((highEdge==null && highGroup==null) || highGroup==group) { 
+            gr.setColor(color); 
+            gr.set(style, scale); 
+        }
+        else { 
+            gr.setColor(Color.LIGHT_GRAY); 
+            gr.set(style, scale); 
+        }
         if (a == b) {
             gr.draw(path);
         } else {
@@ -581,13 +595,28 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
                 if (e.b.shape()!=null) break;
                 e = e.b.outs.get(0);
             }
+            layout_arrowHead();
             layout_arrowTail();
             gr.drawSmoothly(p);
         }
         gr.set(DotStyle.SOLID, scale);
-        gr.translate(left, top);
-        if (highEdge==null && highGroup==null && label.length()>0) drawLabel(gr, color, null);
-        this.layout_arrowHead();
+        //gr.translate(left, top);
+        
+        if (this.highlight()) {
+            if ((((GraphNode) a).getFather()) != null) {
+                gr.translate(-transX, -transY);
+
+            } else {
+                gr.translate(left, top); 
+            }
+                
+        } else {
+            gr.translate(left, top);
+        }
+        
+        if (highEdge==null && highGroup==null && label.length()>0) {
+            drawLabel(gr, color, null);
+        }
         drawArrowhead(gr, scale, highEdge, highGroup);
     }
 
