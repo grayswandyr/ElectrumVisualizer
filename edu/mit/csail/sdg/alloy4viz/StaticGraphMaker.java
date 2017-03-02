@@ -514,8 +514,9 @@ public final class StaticGraphMaker {
         }
             
         for (GraphNode start : starts) {
-            for (GraphNode end : ends) {
-              if (!sameGraph || (start.graph == end.graph)){
+          for (GraphNode end : ends) {
+            if (!sameGraph || (start.graph == end.graph)){
+              if (start.getMaxDepth() >= 0 && end.getMaxDepth() >= 0){
                 boolean layoutBack = view.layoutBack.resolve(rel);
                 String label = view.label.get(rel);
                 if (edgeArity > 2) {
@@ -554,6 +555,7 @@ public final class StaticGraphMaker {
                 r++;
               }
             }
+          }
         }
         return r;
     }
