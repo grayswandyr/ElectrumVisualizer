@@ -335,19 +335,19 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     /**
-     * Duplicate the given GraphNode, changing the graph in which it is and setting subGraph at null.
-     * We let the calling method duplicate the subgraph.
+     * Duplicate the given GraphNode, changing the graph in which it is, setting subGraph at null and letting empty the child list.
+     * We let the calling method duplicate the subgraph and add duplicate nodes to children.
      */
     public GraphNode(GraphNode toBeCopied, Graph graph) {
         super(graph, toBeCopied.uuid);
         this.pos = graph.nodelist.size();
-        this.children = toBeCopied.children;
         this.color = toBeCopied.color;
         this.fontBold = toBeCopied.fontBold;
         this.style = toBeCopied.style;
         this.set(toBeCopied.shape());
         this.subGraph = null;
-        this.maxDepth = toBeCopied.maxDepth + 1; //We do not show the "upper depth" of the graph, we can show one level deeper.
+        this.children = new HashSet<>(); //[N7-R. Bossut, M. Quentin]	
+        this.maxDepth = toBeCopied.getMaxDepth() + 1; //We do not show the "upper depth" of the graph, we can show one level deeper.
         graph.nodelist.add(this);
         if (graph.layerlist.size() == 0) {
             graph.layerlist.add(new ArrayList<GraphNode>());

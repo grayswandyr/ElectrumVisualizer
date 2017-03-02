@@ -392,12 +392,11 @@ public final strictfp class GraphViewer extends JPanel {
             // For each child-node, we check every edge from this node.
             for (GraphEdge e : n.outs) {
                 //If the 'to' node of the edge is also in the subgraph, we have to duplicate the edge.
-                if (e.getB().graph == n.graph) {
+                if (dupl.containsKey(e.getB())) {
                     GraphNode copyN = dupl.get(n);
                     GraphNode copyB = dupl.get(e.getB());
-                    if (!(copyN == null || copyB == null)) //This should always be true.
-                    {
-                        new GraphEdge(e, copyN, copyB);
+                    if (!(copyN == null || copyB == null)){ //This should always be true.
+                        e = new GraphEdge(e, copyN, copyB);
                     }
                 }
             }
@@ -445,7 +444,10 @@ public final strictfp class GraphViewer extends JPanel {
           HashMap<GraphNode, GraphNode> m = duplicateSubnodes(d.getSubGraph(), n);
           for (GraphNode child : n.getChildren()){ //We have to have to precise the father of these duplicated child.
             GraphNode duplicatedChild = m.get(child);
-            if (!(duplicatedChild == null)) duplicatedChild.setFather(d);
+            if (!(duplicatedChild == null)) {
+              duplicatedChild.setFather(d);
+              d.addChild(duplicatedChild);
+            }
           }
           map.putAll(m);
         }
