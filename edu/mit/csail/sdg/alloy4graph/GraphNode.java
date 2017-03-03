@@ -623,7 +623,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     @Override
     void draw(Artist gr, double scale) {
-
         if (shape() == null) {
             return;
         } else if (updown < 0) {

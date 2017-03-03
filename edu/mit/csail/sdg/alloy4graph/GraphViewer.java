@@ -299,6 +299,7 @@ public final strictfp class GraphViewer extends JPanel {
                     int newX = (int) (oldX + (ev.getX() - oldMouseX) / scale);
                     int newY = (int) (oldY + (ev.getY() - oldMouseY) / scale);
                     GraphNode n = (GraphNode) selected;
+                    n.setHighlight(true);
                     if (n.getFather() != null){ //If the selected node is in a one node subgraph, we do not allow moving it.
                       if (n.getFather().getChildren().size() <= 1)
                         return;
@@ -353,6 +354,7 @@ public final strictfp class GraphViewer extends JPanel {
                         GraphNode sel = (GraphNode) selected;
                         oldX = sel.x();
                         oldY = sel.y();
+                        sel.setHighlight(true);
                         long currentTime = System.currentTimeMillis();
                         if (currentTime - timeLastClick < 800) {
                             //Double click on a node, we have to show the subgraph if there is one.
