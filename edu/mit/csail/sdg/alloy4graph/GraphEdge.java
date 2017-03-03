@@ -608,7 +608,6 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         }
         gr.set(DotStyle.SOLID, scale);
         //gr.translate(left, top);
-        
         if (this.highlight()) {
             if ((((GraphNode) a).getFather()) != null) {
                 gr.translate(-transX, -transY);
@@ -635,7 +634,23 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         if (style != DotStyle.BLANK) { // Modified @Louis Fauvarque
             if (label.length() > 0) {
                 final int top = a.graph.getTop(), left = a.graph.getLeft();
-                gr.translate(-left, -top);
+                
+                int transX=0, transY=0;
+                if (this.highlight()) {
+                    if ((((GraphNode) a).getFather()) != null) {
+                        transX = ((GraphNode)a).getFather().x() - ((GraphNode)a).getFather().graph.getLeft();
+                        transY = ((GraphNode)a).getFather().y() - ((GraphNode)a).getFather().graph.getTop();
+                        gr.translate(transX, transY);
+
+                    } else {
+                        gr.translate(-left, -top); 
+                    }
+
+                } else {
+                    gr.translate(-left, -top);
+                }
+                
+                //gr.translate(-left, -top);
                 if (erase != null && a != b) {
                     Rectangle2D.Double rect = new Rectangle2D.Double(labelbox.x, labelbox.y, labelbox.w, labelbox.h);
                     gr.setColor(erase);
@@ -643,7 +658,20 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
                 }
                 gr.setColor(color);
                 gr.drawString(label, labelbox.x, labelbox.y + Artist.getMaxAscent());
-                gr.translate(left, top);
+                //gr.translate(left, top);
+                
+                if (this.highlight()) {
+                    if ((((GraphNode) a).getFather()) != null) {
+                        gr.translate(-transX, -transY);
+
+                    } else {
+                        gr.translate(left, top); 
+                    }
+
+                } else {
+                    gr.translate(left, top);
+                }
+                
                 return;
             }
         }
@@ -656,7 +684,23 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
     private void drawArrowhead(Artist gr, double scale, GraphEdge highEdge, Object highGroup) {
         if (style != DotStyle.BLANK) { // Modified @Louis Fauvarque
             final double tipLength = ad * 0.6D;
-            final int top = a.graph.getTop(), left = a.graph.getLeft();
+            int top = a.graph.getTop(), left = a.graph.getLeft();
+            
+            
+            int transX=0, transY=0;
+            if (this.highlight()) {
+                if ((((GraphNode) b).getFather()) != null) {
+                    transX = ((GraphNode)b).getFather().x() - ((GraphNode)b).getFather().graph.getLeft();
+                    transY = ((GraphNode)b).getFather().y() - ((GraphNode)b).getFather().graph.getTop();
+                    gr.translate(transX, transY);
+                    
+                    top = ((GraphNode) b).graph.getTop();
+                    left = ((GraphNode) b).graph.getLeft();
+                    
+                    gr.translate(left, top);
+                }
+            }
+                     
             // Check to see if this edge is highlighted or not
             double fan = (style == DotStyle.BOLD ? bigFan : smallFan);
             if (highEdge == this) {
@@ -704,6 +748,14 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
                     break;
                 }
             }
+                       
+            if (this.highlight()) {
+                if ((((GraphNode) b).getFather()) != null) {
+                    gr.translate(-transX, -transY);
+                    gr.translate(-left, -top);
+                }
+            }
+            
         }
     }
 
