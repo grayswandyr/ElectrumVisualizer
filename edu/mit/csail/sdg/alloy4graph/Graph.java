@@ -1514,14 +1514,14 @@ public final strictfp class Graph {
             if (n.shape() != null) {
                 for (GraphEdge e : n.outs) {
                   if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-                    if (e.group != group) {
+                    if (e.group != group && !e.highlight()) {
                         e.draw(gr, scale, highFirstEdge, group);
                     }
                   }
                 }
                 for (GraphEdge e : n.selfs) {
                   if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-                    if (e.group != group) {
+                    if (e.group != group && !e.highlight()) {
                         e.draw(gr, scale, highFirstEdge, group);
                     }
                   }
