@@ -673,36 +673,46 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private void drawRegular(Artist gr, double scale) {
         final int top = graph.getTop(), left = graph.getLeft();
         gr.set(style, scale);
-        
-        /*
+                
         int xgn = x(), ygn = y();
         GraphNode gn = this;
         while (gn.father != null) {
             gn = gn.father;
-            xgn += gn.x();
+            xgn += gn.x() - gn.graph.getLeft();
+            ygn += gn.y() - gn.graph.getTop();
         }
-        */
+        
+        boolean cond=false;
+        for (GraphEdge e : ins) {
+            if (e.highlight()) {
+                cond = true;
+            }
+        }
+        for (GraphEdge e : outs) {
+            if (e.highlight()) {
+                cond = true;
+            }
+        }
+        
         //gr.translate(x() - left, y() - top);
         
         gr.setFont(fontBold);
         if (this.highlight()) {
             if (father != null) {
-                gr.translate(father.x() - father.graph.getLeft(), father.y() - father.graph.getTop());
-                gr.translate(x(), y());
-
-                //gr.translate(-x(), -y());
-                //gr.translate(father.graph.getLeft() - father.x(), father.graph.getTop() - father.y());
+                if (cond) {
+                    gr.translate(xgn, ygn);
+                } else {
+                    gr.translate(x() - left, y() - top); 
+                }
             } else {
                 gr.translate(x() - left, y() - top); 
-            }
-                
+            }                
             gr.setColor(COLOR_CHOSENNODE);
-            //TODO: Change the reference to draw the graph
-            //gr.translate(xgn - left, ygn - top);
         } else {
             gr.setColor(color);
             gr.translate(x() - left, y() - top);
         }
+        
         if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
             int hw = width / 2, hh = height / 2;
             int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
@@ -778,8 +788,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
         
         if (this.highlight()) {
             if (father != null) {
-                gr.translate(-x(), -y());
-                gr.translate(father.graph.getLeft() - father.x(), father.graph.getTop() - father.y());
+                if (cond) {
+                    gr.translate(-xgn, -ygn);
+                } else {
+                    gr.translate(left - x(), top - y());
+                }
             } else {
                 gr.translate(left - x(), top - y());
             }
@@ -805,13 +818,53 @@ public strictfp class GraphNode extends AbstractGraphNode {
         final int top = graph.getTop(), left = graph.getLeft();
         final int subTop = subGraph.getTop(), subLeft = subGraph.getLeft();
         gr.set(style, scale);
-        gr.translate(x() - left, y() - top);
+        
+        int xgn = x(), ygn = y();
+        GraphNode gn = this;
+        while (gn.father != null) {
+            gn = gn.father;
+            xgn += gn.x() - gn.graph.getLeft();
+            ygn += gn.y() - gn.graph.getTop();
+        }
+        
+        boolean cond=false;
+        for (GraphEdge e : ins) {
+            if (e.highlight()) {
+                cond = true;
+            }
+        }
+        for (GraphEdge e : outs) {
+            if (e.highlight()) {
+                cond = true;
+            }
+        }
+        
         gr.setFont(fontBold);
+        if (this.highlight()) {
+            if (father != null) {
+                if (cond) {
+                    gr.translate(xgn, ygn);
+                } else {
+                    gr.translate(x() - left, y() - top); 
+                }
+            } else {
+                gr.translate(x() - left, y() - top); 
+            }                
+            gr.setColor(COLOR_CHOSENNODE);
+        } else {
+            gr.setColor(color);
+            gr.translate(x() - left, y() - top);
+        }
+  
+        /*
+        //gr.translate(x() - left, y() - top);
+        
         if (this.highlight()) {
             gr.setColor(COLOR_CHOSENNODE);
         } else {
             gr.setColor(color);
         }
+        */
         
         gr.draw(poly, true);
         gr.setColor(Color.BLACK);
@@ -880,7 +933,22 @@ public strictfp class GraphNode extends AbstractGraphNode {
             p.draw(gr, scale);
         }
         
-        gr.translate(left - x(), top - y());
+        if (this.highlight()) {
+            if (father != null) {
+                if (cond) {
+                    gr.translate(-xgn, -ygn);
+                } else {
+                    gr.translate(left - x(), top - y());
+                }
+            } else {
+                gr.translate(left - x(), top - y());
+            }
+            
+        } else {
+            gr.translate(left - x(), top - y());
+        }
+        
+        //gr.translate(left - x(), top - y());
     }
 
     /**

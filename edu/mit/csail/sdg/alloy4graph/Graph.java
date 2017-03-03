@@ -1501,7 +1501,7 @@ public final strictfp class Graph {
         //Draw the nodes first
         for (GraphNode n : nodes) {
             if (highFirstNode != n && highLastNode != n) {
-                n.setHighlight(n == highlight); // [N7-G.Dupont]
+                //n.setHighlight(n == highlight); // [N7-G.Dupont]
                 n.draw(gr, scale);
                 n.setHighlight(false); // [N7-G.Dupont]
             }
