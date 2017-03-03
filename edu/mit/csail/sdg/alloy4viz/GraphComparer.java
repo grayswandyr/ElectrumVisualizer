@@ -164,6 +164,9 @@ public class GraphComparer {
                 availableColors.remove(col);
 
             }
+            if(availableColors.isEmpty()){
+                availableColors = new ArrayList<Color>(colors);
+            }
             // Then we put arbitrary colors to the remaining edges in the second graph
             for(Set<GraphEdge> set : treatLater.values()){
                 Color c = availableColors.get(0);
