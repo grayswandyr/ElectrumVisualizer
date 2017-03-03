@@ -335,18 +335,19 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     /**
-     * Duplicate the given GraphNode, only changing the graph in which it is.
+     * Duplicate the given GraphNode, changing the graph in which it is, setting subGraph at null and letting empty the child list.
+     * We let the calling method duplicate the subgraph and add duplicate nodes to children.
      */
     public GraphNode(GraphNode toBeCopied, Graph graph) {
         super(graph, toBeCopied.uuid);
         this.pos = graph.nodelist.size();
-        this.children = toBeCopied.children;
         this.color = toBeCopied.color;
         this.fontBold = toBeCopied.fontBold;
         this.style = toBeCopied.style;
         this.set(toBeCopied.shape());
-        this.subGraph = toBeCopied.subGraph;
-        this.maxDepth = toBeCopied.maxDepth + 1; //We do not show the "upper depth" of the graph, we can show one level deeper.
+        this.subGraph = null;
+        this.children = new HashSet<>(); //[N7-R. Bossut, M. Quentin]	
+        this.maxDepth = toBeCopied.getMaxDepth() + 1; //We do not show the "upper depth" of the graph, we can show one level deeper.
         graph.nodelist.add(this);
         if (graph.layerlist.size() == 0) {
             graph.layerlist.add(new ArrayList<GraphNode>());
@@ -395,6 +396,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      */
     public void addChild(GraphNode gn) {
         this.children.add(gn);
+        if (subGraph == null) subGraph = new Graph(1.0);
         if (!(subGraph.nodelist.contains(gn))) {
             subGraph.nodelist.add(gn);
         }
@@ -1127,6 +1129,14 @@ public strictfp class GraphNode extends AbstractGraphNode {
             graph.relayout_edges(false);
             shift_edges();
         }
+        tweakFather();
+        graph.recalcBound(false);
+    }
+
+    /**
+     * This manage to pass on the changes on the subgraph to fathers graphs.
+     */
+    void tweakFather(){
         GraphNode father = getFather();
         if (father != null){
           //Computes new bounds of the father.
@@ -1136,10 +1146,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
           //Changes of the bounds of the father can make other nodes of the father's graph move.
           father.adaptLayer();
           father.graph.recalcBound(false);
-       }else{
-          graph.recalcBound(false);
-       }
+          father.tweakFather();
+        }
     }
+
 
     //[N7-R.Bossut]
     /**
@@ -1490,7 +1500,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * nodes given the current boundaries and the ones of its children.
      */
     void nestedNodeBounds() {
-
         if (!(hasChild() && (maxDepth > 0)))
           return;
 
@@ -1533,10 +1542,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
         p.addPoint(-side, updown);
         this.poly = p;
  
-        if (getFather() != null)
-          getFather().nestedNodeBounds();
-
         graph.recalcLayerPH();
+        
+        //if (getFather() != null)
+        //  getFather().nestedNodeBounds();
+
     }
 
     //[N7-R.Bossut, M.Quentin]

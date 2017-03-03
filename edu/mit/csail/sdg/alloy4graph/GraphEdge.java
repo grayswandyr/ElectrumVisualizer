@@ -122,6 +122,13 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
      */
     private Curve path = null;
 
+    //[N7-R.Bossut, M.Quentin]
+    /**
+     * The attribute saying if the edge has to be shown or not not because of the
+     * maxDepth ttribute of to and from.
+     */
+    //TODO
+
     // =========================================================================s====================================================
     /**
      * Construct an edge from "from" to "to" with the given arrow head settings,
