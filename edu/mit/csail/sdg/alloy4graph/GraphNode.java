@@ -813,11 +813,19 @@ public strictfp class GraphNode extends AbstractGraphNode {
             gr.setColor(color);
         }
         
+        Object high = null;
+        for (GraphNode n : getChildren()){
+          if (n.highlight()){
+            high = n;
+            break;
+          }
+        }
+       
         gr.draw(poly, true);
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
         gr.translate(subLeft, subTop);
-        subGraph.draw(gr, scale, uuid, true);
+        subGraph.draw(gr, scale, high, true);
         gr.translate(-subLeft, -subTop);
 
         /*
