@@ -671,12 +671,35 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private void drawRegular(Artist gr, double scale) {
         final int top = graph.getTop(), left = graph.getLeft();
         gr.set(style, scale);
-        gr.translate(x() - left, y() - top);
+        
+        /*
+        int xgn = x(), ygn = y();
+        GraphNode gn = this;
+        while (gn.father != null) {
+            gn = gn.father;
+            xgn += gn.x();
+        }
+        */
+        //gr.translate(x() - left, y() - top);
+        
         gr.setFont(fontBold);
         if (this.highlight()) {
+            if (father != null) {
+                gr.translate(father.x() - father.graph.getLeft(), father.y() - father.graph.getTop());
+                gr.translate(x(), y());
+
+                //gr.translate(-x(), -y());
+                //gr.translate(father.graph.getLeft() - father.x(), father.graph.getTop() - father.y());
+            } else {
+                gr.translate(x() - left, y() - top); 
+            }
+                
             gr.setColor(COLOR_CHOSENNODE);
+            //TODO: Change the reference to draw the graph
+            //gr.translate(xgn - left, ygn - top);
         } else {
             gr.setColor(color);
+            gr.translate(x() - left, y() - top);
         }
         if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
             int hw = width / 2, hh = height / 2;
@@ -750,7 +773,20 @@ public strictfp class GraphNode extends AbstractGraphNode {
         for (GraphPort p : this.ports) {
             p.draw(gr, scale);
         }
-        gr.translate(left - x(), top - y());
+        
+        if (this.highlight()) {
+            if (father != null) {
+                gr.translate(-x(), -y());
+                gr.translate(father.graph.getLeft() - father.x(), father.graph.getTop() - father.y());
+            } else {
+                gr.translate(left - x(), top - y());
+            }
+            
+        } else {
+            gr.translate(left - x(), top - y());
+        }
+        
+        //gr.translate(left - x(), top - y());
     }
 
     /**
@@ -778,7 +814,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.draw(poly, true);
         gr.setColor(Color.BLACK);
         gr.draw(poly, false);
-
         gr.translate(subLeft, subTop);
         subGraph.draw(gr, scale, uuid, true);
         gr.translate(-subLeft, -subTop);
