@@ -327,6 +327,31 @@ public final class VizGUI implements ComponentListener {
         }
     }
 
+        // ==============================================================================================//
+    /**
+     * Checks if the buttons concerning the split panel must be visible / enabled
+     */
+    private void checkButtonVisibility() {
+        boolean graphcNull = (graphc == null);
+        boolean isDefaultMode;
+        switch(currentMode){
+            case Tree: case TEXT:
+                isDefaultMode = false;
+                break;
+            default :
+                isDefaultMode = true;
+        }
+        boolean timeProjected = myState !=null && myState.getProjectedTypes().contains(AlloyType.TIME);
+        splitButton.setVisible(isDefaultMode);
+        timeBackwardButton.setVisible(isDefaultMode && timeProjected);
+        timeForwardButton.setVisible(isDefaultMode && timeProjected);
+        linkTimeButton.setVisible(isDefaultMode && timeProjected);
+        splitButton.setEnabled(myState != null && !myState.getProjectedTypes().isEmpty());
+        timeBackwardButton.setEnabled(timeProjected && !graphcNull && graphc.timeLinked && graphc.curIndex > 0);
+        timeForwardButton.setEnabled(timeProjected && !graphcNull && graphc.timeLinked && graphc.curIndex < graphc.maxIndex-1);
+        linkTimeButton.setEnabled(timeProjected && !graphcNull);
+    }
+
 	// ======== The Preferences
     // ======================================================================================//
     // ======== Note: you must make sure each preference has a unique key
@@ -715,10 +740,7 @@ public final class VizGUI implements ComponentListener {
             toolbar.add(timeBackwardButton = OurUtil.button("<<","Decreases the index of the Time projection",null,doTimeBackWard()));
             toolbar.add(timeForwardButton = OurUtil.button(">>","Increases the index of the Time projection",null,doTimeForward()));
             //addTemporalJPanel();//pt.uminho.haslab: the jpanel with temporal states is created
-            splitButton.setEnabled(false);
-            linkTimeButton.setVisible(false);
-            timeBackwardButton.setVisible(false);
-            timeForwardButton.setVisible(false);
+            checkButtonVisibility();
         } finally {
             wrap = false;
         }
@@ -958,38 +980,16 @@ public final class VizGUI implements ComponentListener {
         switch (currentMode) {
             case Tree:
                 treeButton.setEnabled(false);
-                splitButton.setVisible(false);
-                linkTimeButton.setVisible(false);
-                timeBackwardButton.setVisible(false);
-                timeForwardButton.setVisible(false);
                 break;
             case TEXT:
                 txtButton.setEnabled(false);
-                splitButton.setVisible(false);
-                linkTimeButton.setVisible(false);
-                timeBackwardButton.setVisible(false);
-                timeForwardButton.setVisible(false);
                 break;
             // case XML: xmlButton.setEnabled(false); break;
             // case DOT: dotButton.setEnabled(false); break;
             default:
                 vizButton.setEnabled(false);
-                splitButton.setVisible(true);
-                splitButton.setEnabled(!myState.getProjectedTypes().isEmpty());
-                if(myState.splitPanel){
-                    splitButton.setText("Unsplit");
-                } else {
-                    splitButton.setText("Split");
-                }
-                if(myState.getProjectedTypes().contains(AlloyType.TIME)){
-                    linkTimeButton.setVisible(true);
-                    timeBackwardButton.setVisible(true);
-                    timeForwardButton.setVisible(true);
-                    linkTimeButton.setEnabled(graphc != null);
-                    timeBackwardButton.setEnabled(graphc != null && graphc.timeLinked);
-                    timeForwardButton.setEnabled(graphc != null && graphc.timeLinked);
-                }
         }
+        checkButtonVisibility();
         final boolean isMeta = myState.getOriginalInstance().isMetamodel;
         vizButton.setVisible(frame != null);
         treeButton.setVisible(frame != null);
@@ -1023,20 +1023,15 @@ public final class VizGUI implements ComponentListener {
         if(graphc !=null && graphc.timeLinked && !myState.getProjectedTypes().contains(AlloyType.TIME)){
                 graphc.linkTime();
                 graphc.resetHighlight();
-                linkTimeButton.setEnabled(false);
-                timeBackwardButton.setEnabled(false);
-                timeForwardButton.setEnabled(false);
             }
         if(!myState.splitPanel && graphc != null){
             if(graphc.timeLinked){
                 graphc.linkTime();
                 graphc.resetHighlight();
-                linkTimeButton.setEnabled(false);
-                timeBackwardButton.setEnabled(false);
-                timeForwardButton.setEnabled(false);
             }
             graphc = null;
         }
+        checkButtonVisibility();
         switch (currentMode) {
             case Tree: {
                 final VizTree t = new VizTree(myState.getOriginalInstance().originalA4, makeVizTitle(), fontSize);
@@ -1670,14 +1665,12 @@ public final class VizGUI implements ComponentListener {
         } else if(!myState.splitPanel){
             if(graphc.timeLinked){
                 graphc.linkTime();
-                linkTimeButton.setEnabled(false);
-                timeBackwardButton.setEnabled(false);
-                timeForwardButton.setEnabled(false);
             }
             graphc.resetHighlight();
             graphc = null;
             myGraphPanel.setGraphc(graphc);
         }
+        checkButtonVisibility();
         updateDisplay();
         return null;
     }
@@ -1691,9 +1684,8 @@ public final class VizGUI implements ComponentListener {
         }
         if(graphc != null){
             graphc.linkTime();
-            timeBackwardButton.setEnabled(graphc.timeLinked);
-            timeForwardButton.setEnabled(graphc.timeLinked);
         }
+        checkButtonVisibility();
         return null;
     }
 
@@ -1707,6 +1699,7 @@ public final class VizGUI implements ComponentListener {
         if(graphc != null){
             graphc.backwardTime();
         }
+        checkButtonVisibility();
         return null;
     }
 
@@ -1720,6 +1713,7 @@ public final class VizGUI implements ComponentListener {
         if(graphc != null){
             graphc.forwardTime();
         }
+        checkButtonVisibility();
         return null;
     }
 

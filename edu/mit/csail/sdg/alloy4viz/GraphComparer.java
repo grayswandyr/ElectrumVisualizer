@@ -63,6 +63,7 @@ public class GraphComparer {
     private VizGraphPanel vgp1,vgp2;
     private VizState vizState;
     int curIndex = 0;
+    int maxIndex = 0;
     boolean timeLinked = false;
 
     public GraphComparer(VizGraphPanel vgp1, VizGraphPanel vgp2, VizState vizState) {
@@ -252,6 +253,7 @@ public class GraphComparer {
         TypePanel tp2 = vgp2.getType2Panel().get(AlloyType.TIME);
         if(timeLinked){
             curIndex = 0;
+            maxIndex = tp2.getAtomCombo().getItemCount()-1;
             if(tp1.getAlloyAtoms().size() > 1){
                 tp1.getAtomCombo().setSelectedIndex(curIndex);
                 tp2.getAtomCombo().setSelectedIndex(curIndex+1);            
