@@ -680,14 +680,16 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private void drawRegular(Artist gr, double scale) {
         final int top = graph.getTop(), left = graph.getLeft();
         gr.set(style, scale);
-                
+              
         int xgn = x(), ygn = y();
         GraphNode gn = this;
         while (gn.father != null) {
             gn = gn.father;
-            xgn += gn.x() - gn.graph.getLeft();
-            ygn += gn.y() - gn.graph.getTop();
+            xgn += gn.x();
+            ygn += gn.y();
         }
+        xgn -= gn.graph.getLeft();
+        ygn -= gn.graph.getTop();
         
         boolean cond=false;
         for (GraphEdge e : ins) {
@@ -824,15 +826,17 @@ public strictfp class GraphNode extends AbstractGraphNode {
         //nestedNodeBounds();
         final int top = graph.getTop(), left = graph.getLeft();
         final int subTop = subGraph.getTop(), subLeft = subGraph.getLeft();
-        gr.set(style, scale);
+        gr.set(style, scale);      
         
         int xgn = x(), ygn = y();
         GraphNode gn = this;
         while (gn.father != null) {
             gn = gn.father;
-            xgn += gn.x() - gn.graph.getLeft();
-            ygn += gn.y() - gn.graph.getTop();
+            xgn += gn.x();
+            ygn += gn.y();
         }
+        xgn -= gn.graph.getLeft();
+        ygn -= gn.graph.getTop();
         
         boolean cond=false;
         for (GraphEdge e : ins) {
