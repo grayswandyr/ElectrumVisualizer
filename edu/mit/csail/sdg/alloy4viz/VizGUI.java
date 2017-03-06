@@ -329,6 +329,7 @@ public final class VizGUI implements ComponentListener {
 
         // ==============================================================================================//
     /**
+     * [N7] @Louis Fauvarque
      * Checks if the buttons concerning the split panel must be visible / enabled
      */
     private void checkButtonVisibility() {
@@ -1648,7 +1649,7 @@ public final class VizGUI implements ComponentListener {
     /**
      * [N7] @Louis Fauvarque
      * Splits the graph into two;
-     * @return 
+     * @return a runner
      */
     
     private Runner doSplitGraph(){
