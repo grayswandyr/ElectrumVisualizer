@@ -618,6 +618,14 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     /**
+     * Returns true if the given node is an ancestor of this.
+     * @param n the node we want to know if this is in it.
+     */
+    public boolean isContainedIn(GraphNode n){
+        return (getFather() == n) ? true : ((getFather() == null) ? false : getFather().isContainedIn(n));
+    }
+
+    /**
      * Draws this node at its current (x, y) location; this method will call
      * calcBounds() if necessary.
      */
@@ -849,14 +857,16 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private void drawRegular(Artist gr, double scale) {
         final int top = graph.getTop(), left = graph.getLeft();
         gr.set(style, scale);
-                
+              
         int xgn = x(), ygn = y();
         GraphNode gn = this;
         while (gn.father != null) {
             gn = gn.father;
-            xgn += gn.x() - gn.graph.getLeft();
-            ygn += gn.y() - gn.graph.getTop();
+            xgn += gn.x();
+            ygn += gn.y();
         }
+        xgn -= gn.graph.getLeft();
+        ygn -= gn.graph.getTop();
         
         boolean cond=false;
         for (GraphEdge e : ins) {
@@ -993,15 +1003,17 @@ public strictfp class GraphNode extends AbstractGraphNode {
         //nestedNodeBounds();
         final int top = graph.getTop(), left = graph.getLeft();
         final int subTop = subGraph.getTop(), subLeft = subGraph.getLeft();
-        gr.set(style, scale);
+        gr.set(style, scale);      
         
         int xgn = x(), ygn = y();
         GraphNode gn = this;
         while (gn.father != null) {
             gn = gn.father;
-            xgn += gn.x() - gn.graph.getLeft();
-            ygn += gn.y() - gn.graph.getTop();
+            xgn += gn.x();
+            ygn += gn.y();
         }
+        xgn -= gn.graph.getLeft();
+        ygn -= gn.graph.getTop();
         
         boolean cond=false;
         for (GraphEdge e : ins) {

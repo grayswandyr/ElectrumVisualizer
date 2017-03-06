@@ -561,12 +561,17 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         
         int transX=0, transY=0;
         if (this.highlight()) {
-            System.out.println("Je dessine: " + this);
-            if ((((GraphNode) a).getFather()) != null) {
-                transX = ((GraphNode)a).getFather().x() - ((GraphNode)a).getFather().graph.getLeft();
-                transY = ((GraphNode)a).getFather().y() - ((GraphNode)a).getFather().graph.getTop();
+            GraphNode gn = (GraphNode) a;
+            if (gn.getFather() != null) {
+                while (gn.getFather() != null) {
+                    gn = gn.getFather();
+                    transX += gn.x();
+                    transY += gn.y();
+                }
+                transX -= gn.graph.getLeft();
+                transY -= gn.graph.getTop();
+                
                 gr.translate(transX, transY);
-
             } else {
                 gr.translate(- left, - top); 
             }
@@ -638,9 +643,16 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
                 
                 int transX=0, transY=0;
                 if (this.highlight()) {
-                    if ((((GraphNode) a).getFather()) != null) {
-                        transX = ((GraphNode)a).getFather().x() - ((GraphNode)a).getFather().graph.getLeft();
-                        transY = ((GraphNode)a).getFather().y() - ((GraphNode)a).getFather().graph.getTop();
+                    GraphNode gn = (GraphNode) a;
+                    if (gn.getFather() != null) {
+                        while (gn.getFather() != null) {
+                            gn = gn.getFather();
+                            transX += gn.x();
+                            transY += gn.y();
+                        }
+                        transX -= gn.graph.getLeft();
+                        transY -= gn.graph.getTop();
+                        
                         gr.translate(transX, transY);
 
                     } else {
@@ -690,13 +702,20 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             
             int transX=0, transY=0;
             if (this.highlight()) {
-                if ((((GraphNode) b).getFather()) != null) {
-                    transX = ((GraphNode)b).getFather().x() - ((GraphNode)b).getFather().graph.getLeft();
-                    transY = ((GraphNode)b).getFather().y() - ((GraphNode)b).getFather().graph.getTop();
+                GraphNode gn = (GraphNode) b;
+                if (gn.getFather() != null) {
+                    while (gn.getFather() != null) {
+                        gn = gn.getFather();
+                        transX += gn.x();
+                        transY += gn.y();
+                    }
+                    transX -= gn.graph.getLeft();
+                    transY -= gn.graph.getTop();
+                    
                     gr.translate(transX, transY);
                     
-                    top = ((GraphNode) b).graph.getTop();
-                    left = ((GraphNode) b).graph.getLeft();
+                    top = gn.graph.getTop();
+                    left = gn.graph.getLeft();
                     
                     gr.translate(left, top);
                     
