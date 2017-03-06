@@ -1191,9 +1191,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * re-layouts nearby nodes/edges as necessary)
      */
     void tweak(int x, int y) {
-//System.out.println("[Avant] Left graph: " + graph.getLeft() + "  ; Width graph: " + graph.totalWidth + "  ; x graph: " + (graph.getLeft() + graph.totalWidth/2) );
-//System.out.println("            x node: " + x() + "\n");
-//System.out.println("Tweaking " + uuid + " x=" + x + "\n");
         if (x() == x && y() == y) {
             return; // If no change, then return right away
         }
@@ -1221,8 +1218,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
         }
         tweakFather();
         graph.recalcBound(false);
-//System.out.println("[Après] Left graph: " + graph.getLeft() + "  ; Width graph: " + graph.totalWidth + "  ; x graph: " + (graph.getLeft() + graph.totalWidth/2) );
-//System.out.println("            x node: " + x() + "\n");
     }
 
     /**
