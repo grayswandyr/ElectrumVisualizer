@@ -618,6 +618,14 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     /**
+     * Returns true if the given node is an ancestor of this.
+     * @param n the node we want to know if this is in it.
+     */
+    public boolean isContainedIn(GraphNode n){
+        return (getFather() == n) ? true : ((getFather() == null) ? false : getFather().isContainedIn(n));
+    }
+
+    /**
      * Draws this node at its current (x, y) location; this method will call
      * calcBounds() if necessary.
      */
@@ -1179,6 +1187,9 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * re-layouts nearby nodes/edges as necessary)
      */
     void tweak(int x, int y) {
+//System.out.println("[Avant] Left graph: " + graph.getLeft() + "  ; Width graph: " + graph.totalWidth + "  ; x graph: " + (graph.getLeft() + graph.totalWidth/2) );
+//System.out.println("            x node: " + x() + "\n");
+//System.out.println("Tweaking " + uuid + " x=" + x + "\n");
         if (x() == x && y() == y) {
             return; // If no change, then return right away
         }
@@ -1206,6 +1217,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         }
         tweakFather();
         graph.recalcBound(false);
+//System.out.println("[Après] Left graph: " + graph.getLeft() + "  ; Width graph: " + graph.totalWidth + "  ; x graph: " + (graph.getLeft() + graph.totalWidth/2) );
+//System.out.println("            x node: " + x() + "\n");
     }
 
     /**
