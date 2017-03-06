@@ -1675,7 +1675,7 @@ public final class VizGUI implements ComponentListener {
         return null;
     }
     
-    private ActionListener doLinkTime() {
+    private Runner doLinkTime() {
         if(wrap){
             return wrapMe();
         }
@@ -1689,7 +1689,7 @@ public final class VizGUI implements ComponentListener {
         return null;
     }
 
-    private ActionListener doTimeBackWard() {
+    private Runner doTimeBackWard() {
         if(wrap){
             return wrapMe();
         }
@@ -1703,7 +1703,7 @@ public final class VizGUI implements ComponentListener {
         return null;
     }
 
-    private ActionListener doTimeForward() {
+    private Runner doTimeForward() {
         if(wrap){
             return wrapMe();
         }
