@@ -625,11 +625,142 @@ public strictfp class GraphNode extends AbstractGraphNode {
     void draw(Artist gr, double scale) {
         if (shape() == null) {
             return;
-        } else if (updown < 0) {
+        }
+        
+        /*if (updown < 0) {
             calcBounds();
+        }*/
+        calcBounds();
+        
+        final int top = graph.getTop(), left = graph.getLeft();
+        final int subTop  = (subGraph == null ? 0 : subGraph.getTop()),
+                  subLeft = (subGraph == null ? 0 : subGraph.getLeft());
+        
+        
+        gr.set(style, scale);
+        
+        int xgn = x(), ygn = y();
+        GraphNode gn = this;
+        while (gn.father != null) {
+            gn = gn.father;
+            xgn += gn.x() - gn.graph.getLeft();
+            ygn += gn.y() - gn.graph.getTop();
+        }
+        
+        boolean cond=false;
+        for (GraphEdge e : ins) {
+            if (e.highlight()) {
+                cond = true;
+                break;
+            }
+        }
+        for (GraphEdge e : outs) {
+            if (e.highlight()) {
+                cond = true;
+                break;
+            }
         }
 
-        if (!hasChild()) {
+        gr.setFont(fontBold);
+        
+        int transX = x() - left, transY = y() - top;
+        if (this.highlight()) {
+            if (father != null && cond) {
+                transX = xgn;
+                transY = ygn;
+            }              
+            gr.setColor(COLOR_CHOSENNODE);
+        } else {
+            gr.setColor(color);
+        }
+
+        gr.translate(transX, transY);
+        
+        // Draw node
+        if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
+            int hw = width / 2, hh = height / 2;
+            int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
+            if (shape() == DotShape.DOUBLE_CIRCLE) {
+                radius = radius + 5;
+            }
+            gr.fillCircle(radius);
+            gr.setColor(Color.BLACK);
+            gr.drawCircle(radius);
+            if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
+                gr.set(DotStyle.SOLID, scale);
+            }
+            if (shape() == DotShape.M_CIRCLE && 10 * radius >= 25 && radius > 5) {
+                int d = (int) sqrt(10 * radius - 25.0D);
+                if (d > 0) {
+                    gr.drawLine(-d, -radius + 5, d, -radius + 5);
+                    gr.drawLine(-d, radius - 5, d, radius - 5);
+                }
+            }
+            if (shape() == DotShape.DOUBLE_CIRCLE) {
+                gr.drawCircle(radius - 5);
+            }
+        } else {
+            gr.draw(poly, true); // Draw the full shape in the current color
+            gr.setColor(Color.BLACK); // Set the current color to black
+            gr.draw(poly, false); // Draw the boders of the shape
+            if (poly2 != null) {
+                gr.draw(poly2, false);
+            }
+            if (poly3 != null) {
+                gr.draw(poly3, false);
+            }
+            if (style == DotStyle.DOTTED || style == DotStyle.DASHED) {
+                gr.set(DotStyle.SOLID, scale);
+            }
+            if (shape() == DotShape.M_DIAMOND) {
+                gr.drawLine(-side + 8, -8, -side + 8, 8);
+                gr.drawLine(-8, -side + 8, 8, -side + 8);
+                gr.drawLine(side - 8, -8, side - 8, 8);
+                gr.drawLine(-8, side - 8, 8, side - 8);
+            }
+            if (shape() == DotShape.M_SQUARE) {
+                gr.drawLine(-side, -side + 8, -side + 8, -side);
+                gr.drawLine(side, -side + 8, side - 8, -side);
+                gr.drawLine(-side, side - 8, -side + 8, side);
+                gr.drawLine(side, side - 8, side - 8, side);
+            }
+        }
+
+        // Draw subgraph
+        if (hasChild()) {
+            if (maxDepth > 0) {
+                Object high = null;
+                for (GraphNode n : getChildren()){
+                    if (n.highlight()){
+                        high = n;
+                        break;
+                    }
+                }
+
+                gr.translate(subLeft, subTop);
+                subGraph.draw(gr, scale, high, true);
+                gr.translate(-subLeft, -subTop);
+            } else { // Draw a "hider"
+                gr.setFont(true);
+                gr.set(DotStyle.SOLID, scale);
+                int clr = color.getRGB() & 0xFFFFFF;
+                gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
+                if (labels != null && labels.size() > 0) {
+                    int x = (-width / 2), y = -updown - labels.size()/2;
+                    String t = "...";
+                    int w = ((int) (getBounds(true, t).getWidth()));
+                    if (width > w) {
+                        w = (width - w) / 2;
+                    } else {
+                        w = 0;
+                    }
+                    gr.drawString(t, x + w, y + Artist.getMaxAscent());
+                }
+            }
+        }
+
+        
+        /*if (!hasChild()) {
             drawRegular(gr, scale);
         } else {
             // [N7-Bossut, Quentin] Draw the subGraph
@@ -639,7 +770,45 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 //We cannot draw the subgraph (it is too deep), we have to paint the node and a button the user have to click to see the subgraph.
                 drawHidder(gr, scale);
             }
+        }*/
+        
+        // Draw label
+        gr.set(DotStyle.SOLID, scale);
+        int clr = color.getRGB() & 0xFFFFFF;
+        gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
+        if (labels != null && labels.size() > 0) {
+            if (hasChild() && maxDepth > 0) {
+                int maxWidth=0;
+                for (int i=0; i < labels.size(); i++ ) {
+                    maxWidth = Math.max(maxWidth, (int) getBounds(true, labels.get(i)).getWidth());
+                }
+                width = maxWidth;
+            }
+            int x = (-width/2), y = yJumpNode/2 -updown + (labels.size() / 2);
+            
+            for (int i = 0; i < labels.size(); i++) {
+                String t = labels.get(i);
+                int w = ((int) (getBounds((fontBold | hasChild()), t).getWidth())) + 1; // Round it up
+                if (width > w) {
+                    w = (width - w) / 2;
+                } else {
+                    w = 0;
+                }
+                if (hasChild() && maxDepth > 0)
+                    gr.setFont(true);
+                gr.drawString(t, x + w, y + Artist.getMaxAscent());
+                y = y + ad;
+            }
         }
+        
+        // [N7-G. Dupont] Draw each ports
+        for (GraphPort p : this.ports) {
+            p.draw(gr, scale);
+        }
+        
+        drawDebug(gr);
+        
+        gr.translate(-transX, -transY);
     }
     
     /**
@@ -650,9 +819,17 @@ public strictfp class GraphNode extends AbstractGraphNode {
         gr.setColor(Color.RED);
         gr.draw(new Rectangle(-this.side, -this.updown, 2*this.side, 2*this.updown), false);
         gr.fillCircle(3);
-        gr.setColor(Color.BLUE);
+        
+        if (subGraph != null && maxDepth > 0) {
+            gr.setColor(Color.GREEN);
+            gr.draw(new Rectangle(
+                    this.subGraph.getLeft(),  this.subGraph.getTop(), 
+                    this.subGraph.totalWidth, this.subGraph.totalHeight
+            ), false);
+        }
         
         // Print each point of the polygon
+        gr.setColor(Color.BLUE);
         if (this.poly instanceof Polygon) {
             int xp[] = ((Polygon)this.poly).xpoints;
             int yp[] = ((Polygon)this.poly).ypoints;
@@ -663,7 +840,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 gr.translate(-xp[i], -yp[i]);
             }
         }
-       }
+    }
 
     /**
      * Draws a regular node (not a containig one). Draws this node at its
@@ -1317,12 +1494,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
         height = hh * 2;
         updown = hh;
 
+        nestedNodeBounds(); // [N7-M.Quentin]
         portBounds(); // [N7-G.Dupont]
-
-        // [N7-M.Quentin]
-        if (hasChild()){
-          nestedNodeBounds();
-        }
+        
+        hh = updown;
+        hw = side;
 
         switch (shape()) {
             case HOUSE: {
@@ -1504,11 +1680,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
             case M_CIRCLE:
             case CIRCLE:
             case DOUBLE_CIRCLE: {
-                int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
+                //int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
+                int radius = hw; //[N7-G.Dupont] Correct bounding box for circles
                 if (shape() == DotShape.DOUBLE_CIRCLE) {
                     radius = radius + 5;
                 }
-                int L = ((int) (radius / cos18)) + 2, a = (int) (L * sin36), b = (int) (L * cos36), c = (int) (radius * tan18);
+                int L = /*((int) (radius / cos18)) + 2*/radius, a = (int) (L * sin36), b = (int) (L * cos36), c = (int) (radius * tan18);
                 newPoly.addPoint(-L, 0);
                 newPoly.addPoint(-b, a);
                 newPoly.addPoint(-c, L);
@@ -1537,6 +1714,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 path.quadTo(-side, updown, -side, d);
                 path.closePath();
                 this.poly = path;
+                break;
             }
             default: { // BOX
                 if (shape() != DotShape.BOX) {
@@ -1605,17 +1783,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.side = width / 2;
 
         subGraph.move((getLabelHeight()-yJumpNode)/2, -xJumpNode/2);
-
-        //TODO 
-        //Find the dimension of the figure
-        //TODO
-        //Change the form of the polygon
-        Polygon p = new Polygon();
-        p.addPoint(-side, -updown);
-        p.addPoint(side, -updown);
-        p.addPoint(side, updown);
-        p.addPoint(-side, updown);
-        this.poly = p;
  
         graph.recalcLayerPH();
         
