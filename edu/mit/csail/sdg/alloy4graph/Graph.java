@@ -1503,7 +1503,7 @@ public final strictfp class Graph {
         for (GraphNode n : nodes) {
             if (highFirstNode != n && highLastNode != n) {
                 n.setHighlight(n == highlight); // [N7-G.Dupont]
-                n.draw(gr, scale);
+                n.draw(gr, scale, group);
                 n.setHighlight(false); // [N7-G.Dupont]
             }
         }
@@ -1556,12 +1556,12 @@ public final strictfp class Graph {
         }
         if (highFirstNode != null) {
             highFirstNode.setHighlight(true); // [N7-G.Dupont]
-            highFirstNode.draw(gr, scale);
+            highFirstNode.draw(gr, scale, group);
             highFirstNode.setHighlight(false); // [N7-G.Dupont]
         }
         if (highLastNode != null && highLastNode != highFirstNode) {
             highLastNode.setHighlight(true); // [N7-G.Dupont]
-            highLastNode.draw(gr, scale);
+            highLastNode.draw(gr, scale, group);
             highLastNode.setHighlight(false); // [N7-G.Dupont]
         }
         if (highFirstEdge != null) {
