@@ -34,6 +34,11 @@ public abstract class AbstractGraphElement {
      */
     private DotStyle style = DotStyle.SOLID;
     
+    /**
+     * The graph to which this element belongs.
+     */
+    public Graph graph = null;
+    
     private int fontSize = 12;
     
     /**
@@ -41,7 +46,21 @@ public abstract class AbstractGraphElement {
      */
     boolean highlight = false;
     
+    /**
+     * Cstr. Create an AbstractGraphElement from its uuid.
+     * @param u uuid of the object
+     */
     public AbstractGraphElement(Object u) {
+        this.uuid = u;
+    }
+
+    /**
+     * Cstr. Create an AbstractGraphElement from its uuid and parent graph.
+     * @param g parent graph
+     * @param u uuid of the object
+     */
+    public AbstractGraphElement(Graph g, Object u) {
+        this.graph = g;
         this.uuid = u;
     }
     

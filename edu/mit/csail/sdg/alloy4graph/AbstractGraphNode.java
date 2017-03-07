@@ -17,6 +17,7 @@
 package edu.mit.csail.sdg.alloy4graph;
 
 import java.awt.Color;
+import javax.swing.JLabel;
 import java.util.LinkedList;
 
 /**
@@ -25,8 +26,6 @@ import java.util.LinkedList;
  * connect to a port).
  */
 public abstract class AbstractGraphNode extends AbstractGraphElement {
- 
-    
     /**
      * Coordinates of the center of the element.
      */
@@ -57,11 +56,6 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      */
     final LinkedList<GraphEdge> selfs = new LinkedList<GraphEdge>();
     
-    /**
-     * The graph the element belongs to.
-     */
-    Graph graph;
-    
     /// Graphical attributes ///
     /**
      * The font boldness.
@@ -77,16 +71,16 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      * @param uuid the element's uuid
      */
     public AbstractGraphNode(Graph graph, Object uuid) {
-        super(uuid);
-        this.graph = graph;
+        super(graph, uuid);
     }
     
     /**
      * Draw the element thanks to given Artist.
      * @param gr the artist with which to draw the element
      * @param scale the scale to set the artist
+     * @param highGroup the group that is highlighted when we are drawing this element.
      */
-    abstract void draw(Artist gr, double scale);
+    abstract void draw(Artist gr, double scale, Object highgroup);
     
     /**
      * Determines if coordinates are inside/on the element.
@@ -126,6 +120,16 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      */
     public void setY(int y) {
         centerY = y;
+    }
+
+    /**
+     * Moves the node following the given displacement.
+     * @param dx displacement for x.
+     * @param dy displacement for y
+     */
+    public void move(int dx, int dy){
+      centerX += dx;
+      centerY += dy;
     }
     
     /**
@@ -177,4 +181,11 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      * @return number of the layer
      */
     abstract int layer();
+
+    /** 
+     * Get the maxDepth of the element.
+     * This function is abstract as it depends of the type of node.
+     * @return the maximum depth of this element.
+     */
+    public abstract int getMaxDepth();
 }

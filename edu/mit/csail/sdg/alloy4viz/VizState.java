@@ -28,11 +28,18 @@ import javax.swing.JScrollPane;
 import edu.mit.csail.sdg.alloy4.ConstSet;
 import edu.mit.csail.sdg.alloy4.MailBug;
 import edu.mit.csail.sdg.alloy4.OurCheckbox;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.ALL_OFF;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.ALL_ON;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.INH_OFF;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.INH_ON;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.OFF;
+import static edu.mit.csail.sdg.alloy4.OurCheckbox.ON;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
+import javafx.util.Callback;
 
 import edu.mit.csail.sdg.alloy4graph.GraphPort;
 import edu.mit.csail.sdg.alloy4graph.Graph;
@@ -109,6 +116,11 @@ public final class VizState {
         portHideLabel.putAll(old.portHideLabel);
         
         splitPanel = false;
+        
+        //[N7-R.Bossut, M.Quentin]
+        containmentRel.putAll(old.containmentRel);
+        depthMax = old.depthMax;
+	
         changedSinceLastSave = false;
     }
 
@@ -181,6 +193,11 @@ public final class VizState {
         portHideLabel.clear();
         portHideLabel.put(null, true);
 
+        //[N7-R.Bossut, M.Quentin]
+        containmentRel.clear();
+        containmentRel.put(null, false);
+        depthMax = 1;
+	
         // Provide some nice defaults for "Int" and "seq/Int" type
         AlloyType sigint = AlloyType.INT;
         label.put(sigint, "");
@@ -589,6 +606,30 @@ public final class VizState {
     }
 
     /*============================================================================================*/
+    //[N7-R.Bossut]
+    /**
+     * The graph's maximum depth level that can be shown.
+     */
+    private int depthMax = 1;
+
+    /**
+     * Returns the maximum depth.
+     */
+    public int getDepthMax() {
+        return depthMax;
+    }
+
+    /**
+     * Sets the maximum depth.
+     */
+    public void setDepthMax(int n) {
+        if (depthMax != n) {
+            change();
+            depthMax = n;
+        }
+    }
+
+    /*============================================================================================*/
     /**
      * The default node palette.
      */
@@ -666,6 +707,7 @@ public final class VizState {
     public final MMap<DotStyle> nodeStyle = new MMap<DotStyle>();
     public final MMap<DotStyle> edgeStyle = new MMap<DotStyle>();
     public final MMap<DotShape> shape = new MMap<DotShape>();
+    public final MMap<Boolean> containmentRel = new MMap<Boolean>(true, false); //[N7-R.Bossut, M.Quentin]
     public final MMap<Boolean> attribute = new MMap<Boolean>(true, false);
     public final MMap<Boolean> mergeArrows = new MMap<Boolean>(true, false);
     public final MMap<Boolean> constraint = new MMap<Boolean>(true, false);
@@ -745,7 +787,7 @@ public final class VizState {
             map.putAll(x.map);
             change();
         }
-
+        
         public String get(AlloyElement x) {
             String ans = map.get(x);
             if (ans == null) {
@@ -876,6 +918,20 @@ public final class VizState {
             return this.pick(obj, label, tooltip, null);
         }
 
+        OurCheckbox pick(String label, String tooltip, Callback cb) {
+            return new OurCheckbox(label, tooltip, (Boolean.TRUE.equals(get(null)) ? OurCheckbox.ON : OurCheckbox.OFF)) {
+                private static final long serialVersionUID = 0;
+
+                public Icon do_action() {
+                    T old = get(null);
+                    boolean ans = (old != null && old.equals(onValue));
+                    MMap.this.put(null, ans ? offValue : onValue);
+                    if (cb != null) cb.call(get(null));
+                    return ans ? OFF : ON;
+                }
+            };
+        }
+        
         OurCheckbox pick(final AlloyElement obj, final String label, final String tooltip, Callback cb) {
             T a = get(obj), b = resolve(obj);
             Icon icon = a == null ? (Boolean.TRUE.equals(b) ? OurCheckbox.INH_ON : OurCheckbox.INH_OFF) : (Boolean.TRUE.equals(a) ? OurCheckbox.ALL_ON : OurCheckbox.ALL_OFF);

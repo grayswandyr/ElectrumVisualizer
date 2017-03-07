@@ -18,6 +18,7 @@ import java.awt.Color;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -41,6 +42,7 @@ import edu.mit.csail.sdg.alloy4graph.GraphPort.Orientation;
 import edu.mit.csail.sdg.alloy4graph.GraphRelation;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 import java.util.*;
+import java.time.Clock;
 
 /**
  * This utility class generates a graph for a particular index of the
@@ -72,6 +74,7 @@ public final class StaticGraphMaker {
      */
     private final Map<GraphEdge, AlloyTuple> edges = new LinkedHashMap<GraphEdge, AlloyTuple>();
 
+    //Not used for the moment...
     /**
      * The map that contains all nodes and what the AlloyAtom that each node
      * corresponds to.
@@ -107,6 +110,20 @@ public final class StaticGraphMaker {
      * The resulting graph.
      */
     private final Graph graph;
+
+    //[N7-R.Bossut, M.Quentin]
+    /**
+     * The mapthat contains every container AlloyAtom, and the list of list
+     * representing the rest of the tuple it contains.
+     */
+    private final Map<AlloyAtom, List<List<AlloyAtom>>> containmentTuples = new LinkedHashMap<AlloyAtom, List<List<AlloyAtom>>>();
+
+    //[N7-R.Bossut, M.Quentin]
+    /**
+     * The map that contains every contained AlloyAtoms and the list of Alloy
+     * Atoms it is contained in.
+     */
+    private final Map<AlloyAtom, Set<AlloyAtom>> containedInMap = new LinkedHashMap<AlloyAtom, Set<AlloyAtom>>();
     /**
      * Produces a single Graph from the given Instance and View and choice of
      * Projection
@@ -117,7 +134,6 @@ public final class StaticGraphMaker {
             proj = new AlloyProjection();
         }
         Graph graph = new Graph(view.getFontSize() / 12.0D);
-
         StaticGraphMaker sgm = new StaticGraphMaker(graph, instance, view, proj);
         if (graph.nodes.size() == 0) {
             new GraphNode(graph, "", "Due to your theme settings, every atom is hidden.", "Please click Theme and adjust your settings.");
@@ -375,27 +391,67 @@ public final class StaticGraphMaker {
                         }
                     }
                 }
+            } // (isIn(port))
+            else if (view.containmentRel.resolve(rel)) {
+                //The relation is a containment one.
+                for (AlloyTuple tuple : instance.relation2tuples(rel)) {
+                    ArrayList<AlloyAtom> atoms = new ArrayList<AlloyAtom>(tuple.getAtoms());
+                    AlloyAtom a = atoms.get(0);
+                    atoms.remove(0);
+
+                    //containmentTuples
+                    List<List<AlloyAtom>> otherTuples = containmentTuples.get(a);
+                    if (otherTuples == null) {
+                        otherTuples = new ArrayList<List<AlloyAtom>>();
+                    }
+
+                    otherTuples.add(atoms);
+                    containmentTuples.put(a, otherTuples);
+
+                    //containedInMap
+                    for (AlloyAtom atom : atoms) {
+                        Set<AlloyAtom> containedIn = containedInMap.get(atom);
+                        if (containedIn == null) {
+                            containedIn = new TreeSet<AlloyAtom>();
+                        }
+                        containedIn.add(a);
+                        containedInMap.put(atom, containedIn);
+                    }
+                    //We also add the container in the map, but seeing this relation, it is not contained in anything.
+                    Set<AlloyAtom> containedIn = containedInMap.get(a);
+                    if (containedIn == null) {
+                        containedIn = new TreeSet<AlloyAtom>();
+                    }
+                    containedInMap.put(a, containedIn);
+                }
             }
         }
 
         for (AlloyRelation rel : model.getRelations()) {
             rels.put(rel, null);
         }
-        List<Color> colors;
-        if (view.getEdgePalette() == DotPalette.CLASSIC) {
-            colors = colorsClassic;
-        } else if (view.getEdgePalette() == DotPalette.STANDARD) {
-            colors = colorsStandard;
-        } else if (view.getEdgePalette() == DotPalette.MARTHA) {
-            colors = colorsMartha;
-        } else {
-            colors = colorsNeon;
+        //Verify there is no cycle in containment relations.
+        for (AlloyAtom atom : containedInMap.keySet()) {
+            if (!isNotCycle(atom)) {
+                new GraphNode(graph, "", "The containment relations you have precised are creating a cycle.", "Please click Theme and adjust your settings.");
+                return;
+            }
         }
+        //Call createContainingNode for every atom that is in a containmentTuple but is not contained anywhere.
+        for (AlloyAtom atom : containedInMap.keySet()) {
+            if (containedInMap.get(atom).isEmpty()) //The atom is not contained in any other atom.
+            {
+                createContainingNode(hidePrivate, hideMeta, atom, containmentTuples.get(atom), null, view.getDepthMax());
+            }
+        }
+
+        //Iteration over relations of the model:
+        // Creates edges and nodes that are linked by them.
         int ci = 0;
         for (AlloyRelation rel : model.getRelations()) {
             DotColor c = view.edgeColor.resolve(rel);
             Color cc = (c == DotColor.MAGIC) ? colors.get(ci) : c.getColor(view.getEdgePalette());
-            int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel)) ? 0 : edgesAsArcs(hidePrivate, hideMeta, rel, colors.get(ci));
+            int count = ((hidePrivate && rel.isPrivate) || !view.edgeVisible.resolve(rel)) ? 0 : edgesAsArcs(graph, hidePrivate, hideMeta, rel, colors.get(ci));
             rels.put(rel, count);
             magicColor.put(rel, cc);
             if (count > 0) {
@@ -403,19 +459,25 @@ public final class StaticGraphMaker {
             }
         }
 
+        //Iteration over the atoms of the instance:
+        // Creates unconnected nodes that are visibles and not hidden-when-unconnected.
         for (AlloyAtom atom : instance.getAllAtoms()) {
-            List<AlloySet> sets = instance.atom2sets(atom);
-            if (sets.size() > 0) {
-                for (AlloySet s : sets) {
-                    if (view.nodeVisible.resolve(s) && !view.hideUnconnected.resolve(s)) {
-                        createNode(hidePrivate, hideMeta, atom);
-                        break;
+            if (atom2node.get(atom) == null) {
+                List<AlloySet> sets = instance.atom2sets(atom); //Gets a sorted list of AlloySets containing atom.
+                if (sets.size() > 0) {
+                    for (AlloySet s : sets) {
+                        if (view.nodeVisible.resolve(s) && !view.hideUnconnected.resolve(s)) {
+                            //We now have to check if the node we are creating does not exist in any graph.
+                            createNode(hidePrivate, hideMeta, atom);
+                            break;
+                        }
                     }
+                } else if (view.nodeVisible.resolve(atom.getType()) && !view.hideUnconnected.resolve(atom.getType())) {
+                    createNode(hidePrivate, hideMeta, atom);
                 }
-            } else if (view.nodeVisible.resolve(atom.getType()) && !view.hideUnconnected.resolve(atom.getType())) {
-                createNode(hidePrivate, hideMeta, atom);
             }
         }
+        //Iteration over relations of the model to handle those that have to be shown as an attribute
         for (AlloyRelation rel : model.getRelations()) {
             if (!(hidePrivate && rel.isPrivate)) {
                 if (view.attribute.resolve(rel)) {
@@ -423,6 +485,8 @@ public final class StaticGraphMaker {
                 }
             }
         }
+
+        //For each not-null entry of attribs, we add labels (each not null string of the value-set) to the GraphNode of the realation. 
         for (Map.Entry<GraphNode, Set<String>> e : attribs.entrySet()) {
             Set<String> set = e.getValue();
             if (set != null) {
@@ -433,6 +497,8 @@ public final class StaticGraphMaker {
                 }
             }
         }
+
+        //For each relation registered in rels, we add the legend to the relation in the graph.
         for (Map.Entry<AlloyRelation, Integer> e : rels.entrySet()) {
             Color c = magicColor.get(e.getKey());
             if (c == null) {
@@ -449,14 +515,29 @@ public final class StaticGraphMaker {
 
     /**
      * Return the node for a specific AlloyAtom (create it if it doesn't exist
-     * yet).
+     * yet, and adds it to nodes).
      *
      * @return null if the atom is explicitly marked as "Don't Show".
      */
     private GraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom) {
-        GraphNode node = atom2node.get(atom);
-        if (node != null) {
-            return node;
+        return createNode(hidePrivate, hideMeta, atom, graph, 0);
+    }
+
+    /**
+     * Return the node for a specific AlloyAtom (create it if it doesn't exist
+     * yet, and adds it to nodes).
+     *
+     * @return null if the atom is explicitly marked as "Don't Show".
+     */
+    private GraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom, Graph g, int maxDepth) {
+        List<GraphNode> nodesAtom = atom2node.get(atom);
+        if (nodesAtom != null) {
+            //If there are nodes for this atom, we check if there is one with the same graph. 
+            for (GraphNode n : nodesAtom) {
+                if (n.isInGraph(g)) { //If such a node exist, we don't create it again and return it.
+                    return n;
+                }
+            }
         }
         if ((hidePrivate && atom.getType().isPrivate)
                 || (hideMeta && atom.getType().isMeta)
@@ -469,7 +550,7 @@ public final class StaticGraphMaker {
         DotShape shape = view.shape(atom, instance);
         String label = atomname(atom, false);
 
-        node = new GraphNode(graph, atom, label);
+        GraphNode node = new GraphNode(graph, atom, maxDepth, label);
         node.setShape(shape);
         node.setColor(color.getColor(view.getNodePalette()));
         node.setStyle(style);
@@ -495,15 +576,101 @@ public final class StaticGraphMaker {
             list.add("(" + setsLabel + ")");
         }
         nodes.put(node, atom);
-        atom2node.put(atom, node);
+        if (nodesAtom == null) {
+            nodesAtom = new ArrayList<GraphNode>();
+        }
+        nodesAtom.add(node);
+        atom2node.put(atom, nodesAtom);
         return node;
+    }
+
+    //[N7-R.Bossut, M.Quentin]
+    /**
+     * Function detecting if there is a cycle in the containment relation.
+     *
+     * @param contained atom whose parents will be tested.
+     * @param cantBeContained a set of atoms that can't be container of
+     * contained, at any level.
+     */
+    private boolean isNotCycle(AlloyAtom contained, Set<AlloyAtom> cantBeContainer) {
+        Set<AlloyAtom> containers = containedInMap.get(contained);
+        if (containers == null) {
+            return true; //Should not happen since every atom involved in a containment relation is a key in containedInMap. 
+        }
+        TreeSet<AlloyAtom> newCantBeContainer;
+        if (!containers.isEmpty()) {
+            for (AlloyAtom a : cantBeContainer) {
+                if (containers.contains(a)) {
+                    return false; //If any atom from cantBeContainer is a container, there is a cycle.
+                }
+            }
+            //If no cycle has been detected at this level, we have to check at next level, adding contained to the list of atoms that can't be container.
+            for (AlloyAtom a : containers) {
+                newCantBeContainer = new TreeSet(cantBeContainer);
+                newCantBeContainer.add(a);
+                if (!isNotCycle(a, newCantBeContainer)) {
+                    return false;
+                }
+            }
+        }
+        //If we arrive at this point, it means there are no cycle.
+        return true;
+    }
+
+    //[N7-R.Bossut, M.Quentin]
+    /**
+     * Function verifying there is no cycle starting from a specified atom.
+     *
+     * @param contained the starting point atom for the detection of cycles.
+     */
+    private boolean isNotCycle(AlloyAtom contained) {
+        TreeSet<AlloyAtom> set = new TreeSet<AlloyAtom>();
+        set.add(contained);
+        return isNotCycle(contained, set);
+    }
+
+    //[N7-R.Bossut, M.Quentin]
+    /**
+     * Create the node for a specific AlloyAtom and each of his children, and
+     * their childrens, and so on.
+     *
+     * @param containedInGraph the graph in which the node that has to be
+     * created is. If null, then the node is in the global graph directly.
+     * @param maxDepth the maximum depth level of representation of the subGraph
+     * of the created node.
+     * @return the englobing AlloyNode created, null if marked as "Don't Show".
+     */
+    private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds, Graph containedInGraph, int maxDepth) {
+        GraphNode containingNode;
+        if (containedInGraph == null) {
+            containingNode = createNode(hidePrivate, hideMeta, father, graph, maxDepth);
+        } else {
+            containingNode = createNode(hidePrivate, hideMeta, father, containedInGraph, maxDepth);
+        }
+        if (containingNode == null) return null;
+        if (!(directChilds == null)) { //If the given atom has childrens, we have to create corresponding node.
+            for (List<AlloyAtom> childs : directChilds) {
+                for (AlloyAtom child : childs) {
+                    //We use a recursive call because the childrens can also be father.
+                    GraphNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child), containingNode.getSubGraph(), maxDepth - 1);
+                    if (!(containingNode == null || childNode == null)) //We add the created child to the father childs.
+                    {
+                        childNode.setFather(containingNode);
+                        containingNode.addChild(childNode);
+                    }
+                }
+            }
+        }
+        return containingNode;
     }
 
     /**
      * Create an edge for a given tuple from a relation (if neither start nor
      * end node is explicitly invisible)
+     *
+     * @return the number of edges created, 0 if none.
      */
-    private boolean createEdge(final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, AlloyTuple tuple, boolean bidirectional, Color magicColor) {
+    private int createEdge(Graph parent, final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, AlloyTuple tuple, boolean bidirectional, Color magicColor) {
         // This edge represents a given tuple from a given relation.
         //
         // If the tuple's arity==2, then the label is simply the label of the relation.
@@ -514,50 +681,101 @@ public final class StaticGraphMaker {
         if ((hidePrivate && tuple.getStart().getType().isPrivate)
                 || (hideMeta && tuple.getStart().getType().isMeta)
                 || !view.nodeVisible(tuple.getStart(), instance)) {
-            return false;
+            return 0;
         }
         if ((hidePrivate && tuple.getEnd().getType().isPrivate)
                 || (hideMeta && tuple.getEnd().getType().isMeta)
                 || !view.nodeVisible(tuple.getEnd(), instance)) {
-            return false;
+            return 0;
         }
-        GraphNode start = createNode(hidePrivate, hideMeta, tuple.getStart());
-        GraphNode end = createNode(hidePrivate, hideMeta, tuple.getEnd());
-        if (start == null || end == null) {
-            return false;
+
+        AlloyAtom atomStart = tuple.getStart();
+        AlloyAtom atomEnd = tuple.getEnd();
+        int edgeArity = tuple.getArity();
+        //Check if this is a containment relation.
+        boolean isContainment = view.containmentRel.resolve(rel);
+        if (isContainment) {
+            if (edgeArity < 3) {
+                //If there is only 2 atoms in the tuple and one of them is the container, we don't create any edge. 
+                return 0;
+            }
+            atomStart = tuple.getAtoms().get(1); //First atom after the container (starting atom for the edge).
+            edgeArity--; //If we have to create an edge for a containment relation, the arity is 1 lower.
         }
-        boolean layoutBack = view.layoutBack.resolve(rel);
-        String label = view.label.get(rel);
-        if (tuple.getArity() > 2) {
-            StringBuilder moreLabel = new StringBuilder();
-            List<AlloyAtom> atoms = tuple.getAtoms();
-            for (int i = 1; i < atoms.size() - 1; i++) {
-                if (i > 1) {
-                    moreLabel.append(", ");
+
+        //If no node corresponding to the atom has already been created, we create it here.
+        List<GraphNode> starts = atom2node.get(atomStart);
+        List<GraphNode> ends = atom2node.get(atomEnd);
+        if (starts == null) {
+            createNode(hidePrivate, hideMeta, atomStart);
+            starts = atom2node.get(atomStart);
+        }
+        if (ends == null) {
+            createNode(hidePrivate, hideMeta, atomEnd);
+            ends = atom2node.get(atomEnd);
+        }
+        if (starts == null || ends == null) {
+            return 0;
+        }
+        int r = 0;
+        boolean sameGraph = false;
+        //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
+        for (GraphNode start : starts) {
+            for (GraphNode end : ends) {
+                if (end.graph == start.graph){
+                    sameGraph = true;
+                    break;
                 }
-                moreLabel.append(atomname(atoms.get(i), false));
-            }
-            if (label.length() == 0) { /* label=moreLabel.toString(); */ } else {
-                label = label + (" [" + moreLabel + "]");
             }
         }
-        DotDirection dir = bidirectional ? DotDirection.BOTH : (layoutBack ? DotDirection.BACK : DotDirection.FORWARD);
-        DotStyle style = view.edgeStyle.resolve(rel);
-        DotColor color = view.edgeColor.resolve(rel);
-        int weight = view.weight.get(rel);
-        GraphEdge e = new GraphEdge((layoutBack ? end : start), (layoutBack ? start : end), tuple, label, rel);
-        if (color == DotColor.MAGIC && magicColor != null) {
-            e.setColor(magicColor);
-        } else {
-            e.setColor(color.getColor(view.getEdgePalette()));
+            
+        for (GraphNode start : starts) {
+          for (GraphNode end : ends) {
+            if (!start.isContainedIn(end) && !end.isContainedIn(start)){
+              if (!sameGraph || (start.graph == end.graph)){
+                boolean layoutBack = view.layoutBack.resolve(rel);
+                String label = view.label.get(rel);
+                if (edgeArity > 2) {
+                    StringBuilder moreLabel = new StringBuilder();
+                    List<AlloyAtom> atoms = tuple.getAtoms();
+                    // Label of the edge: if it represents a containment relation, we have to adapt the label.
+                    // we do not add the label of the container in the [] of the label.
+                    boolean comma = false;
+                    for (int i = 1; i < atoms.size() - 1; i++) {
+                      if (!(isContainment && i == 1)){
+                        if (comma) {
+                          moreLabel.append(", ");
+                        }
+                        moreLabel.append(atomname(atoms.get(i), false));
+                        comma = true;
+                      }
+                    }
+                    if (label.length() == 0) { /* label=moreLabel.toString(); */ } else {
+                        label = label + (" [" + moreLabel + "]");
+                    }
+                }
+                DotDirection dir = bidirectional ? DotDirection.BOTH : (layoutBack ? DotDirection.BACK : DotDirection.FORWARD);
+                DotStyle style = view.edgeStyle.resolve(rel);
+                DotColor color = view.edgeColor.resolve(rel);
+                int weight = view.weight.get(rel);
+                GraphEdge e = new GraphEdge((layoutBack ? end : start), (layoutBack ? start : end), parent, tuple, label, rel);
+                if (color == DotColor.MAGIC && magicColor != null) {
+                    e.set(magicColor);
+                } else {
+                    e.set(color.getColor(view.getEdgePalette()));
+                }
+                e.set(style);
+                e.set(dir != DotDirection.FORWARD, dir != DotDirection.BACK); // Set the arrowhead
+                e.set(weight < 1 ? 1 : (weight > 100 ? 10000 : 100 * weight));
+                edges.put(e, tuple);
+                r++;
+              }
+            }
+          }
         }
-        e.setStyle(style);
-        e.set(dir != DotDirection.FORWARD, dir != DotDirection.BACK);
-        e.set(weight < 1 ? 1 : (weight > 100 ? 10000 : 100 * weight));
-        edges.put(e, tuple);
-        return true;
+        return r;
     }
-    
+
     /**
      * [N7] @Julien Richer
      * Return the port for a specific AlloyAtom (create it if it doesn't exist
@@ -654,13 +872,16 @@ public final class StaticGraphMaker {
     /**
      * Create edges for every visible tuple in the given relation.
      */
-    private int edgesAsArcs(final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, Color magicColor) {
+    private int edgesAsArcs(Graph parent, final boolean hidePrivate, final boolean hideMeta, AlloyRelation rel, Color magicColor) {
         int count = 0;
+        int nbNewEdges;
         if (!view.mergeArrows.resolve(rel)) {
-            // If we're not merging bidirectional arrows, simply create an edge for each tuple.
+            // If we're not merging bidirectional arrows, simply create edges for each tuple 
+            // (due to the duplication of some nodes in subgraph, there can be more than one edge for a tuple).
             for (AlloyTuple tuple : instance.relation2tuples(rel)) {
-                if (createEdge(hidePrivate, hideMeta, rel, tuple, false, magicColor)) {
-                    count++;
+                nbNewEdges = createEdge(parent, hidePrivate, hideMeta, rel, tuple, false, magicColor);
+                if (nbNewEdges > 0) {
+                    count = count + nbNewEdges;
                 }
             }
             return count;
@@ -674,12 +895,14 @@ public final class StaticGraphMaker {
                 // If the reverse tuple is in the same relation, and it is not a self-edge, then draw it as a <-> arrow.
                 if (reverse != null && tuples.contains(reverse) && !reverse.equals(tuple)) {
                     ignore.add(reverse);
-                    if (createEdge(hidePrivate, hideMeta, rel, tuple, true, magicColor)) {
-                        count = count + 2;
+                    nbNewEdges = createEdge(parent, hidePrivate, hideMeta, rel, tuple, true, magicColor);
+                    if (nbNewEdges > 0) {
+                        count = count + 2 * nbNewEdges;
                     }
                 } else {
-                    if (createEdge(hidePrivate, hideMeta, rel, tuple, false, magicColor)) {
-                        count = count + 1;
+                    nbNewEdges = createEdge(parent, hidePrivate, hideMeta, rel, tuple, false, magicColor);
+                    if (nbNewEdges > 0) {
+                        count = count + nbNewEdges;
                     }
                 }
             }
@@ -707,8 +930,8 @@ public final class StaticGraphMaker {
         //
         Map<GraphNode, String> map = new LinkedHashMap<GraphNode, String>();
         for (AlloyTuple tuple : instance.relation2tuples(rel)) {
-            GraphNode start = atom2node.get(tuple.getStart());
-            if (start == null) {
+            List<GraphNode> starts = atom2node.get(tuple.getStart());
+            if (starts == null) {
                 continue; // null means the node won't be shown, so we can't show any attributes
             }
             String attr = "";
@@ -722,12 +945,14 @@ public final class StaticGraphMaker {
             if (attr.length() == 0) {
                 continue;
             }
-            String oldattr = map.get(start);
-            if (oldattr != null && oldattr.length() > 0) {
-                attr = oldattr + ", " + attr;
-            }
-            if (attr.length() > 0) {
-                map.put(start, attr);
+            for (GraphNode start : starts) {
+                String oldattr = map.get(start);
+                if (oldattr != null && oldattr.length() > 0) {
+                    attr = oldattr + ", " + attr;
+                }
+                if (attr.length() > 0) {
+                    map.put(start, attr);
+                }
             }
         }
         for (Map.Entry<GraphNode, String> e : map.entrySet()) {

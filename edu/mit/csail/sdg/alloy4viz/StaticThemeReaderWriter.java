@@ -122,6 +122,10 @@ public final class StaticThemeReaderWriter {
         if (has(x, "fontsize")) {
             now.setFontSize(getint(x, "fontsize"));
         }
+        // [N7-G.Dupont]
+        if (has(x, "maxdepth")) {
+            now.setDepthMax(getint(x, "maxdepth"));
+        }
         if (has(x, "nodetheme")) {
             now.setNodePalette(parseDotPalette(x, "nodetheme"));
         }
@@ -188,6 +192,10 @@ public final class StaticThemeReaderWriter {
         }
         if (view.getFontSize() != defaultView.getFontSize()) {
             out.write(" fontsize=\"" + view.getFontSize() + "\"");
+        }
+        //[N7-G.Dupont]
+        if (view.getDepthMax() != defaultView.getDepthMax()) {
+            out.write(" maxdepth=\"" + view.getDepthMax() + "\"");
         }
         out.write(">\n");
         if (view.getProjectedTypes().size() > 0) {
@@ -504,7 +512,6 @@ public final class StaticThemeReaderWriter {
          * Each attribute, if omitted, means "no change".
          * Note: BOOLEAN is tristate.
          */
-        
         // [N7-G.Dupont]
         Boolean isport = null;
         if (has(xml, "isport")) {
@@ -555,6 +562,10 @@ public final class StaticThemeReaderWriter {
         if (has(xml, "label")) {
             view.label.put(x, xml.getAttribute("label"));
         }
+        //[N7-G.Dupont]
+        if (has(xml, "iscontainer")) {
+            view.containmentRel.put(x, getbool(xml, "iscontainer"));
+        }
     }
 
     /**
@@ -596,6 +607,9 @@ public final class StaticThemeReaderWriter {
         writeBool(out, "layout", view.layoutBack.get(x), defaultView.layoutBack.get(x));
         writeBool(out, "attribute", view.attribute.get(x), defaultView.attribute.get(x));
         writeBool(out, "constraint", view.constraint.get(x), defaultView.constraint.get(x));
+
+        //[N7-G.Dupont]
+        writeBool(out, "iscontainer", view.containmentRel.get(x), defaultView.containmentRel.get(x));
         if (view.weight.get(x) != defaultView.weight.get(x)) {
             out.write(" weight=\"" + view.weight.get(x) + "\"");
         }

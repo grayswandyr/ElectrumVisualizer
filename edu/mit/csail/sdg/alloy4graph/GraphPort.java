@@ -55,7 +55,7 @@ public class GraphPort extends AbstractGraphNode {
     /**
      * Defines the padding that separate a port from the center label of the node.
      */
-    static final int PortPadding = 2;
+    static final int PortPadding = 10;
     
     /**
      * Defines the minimal distance between two adjacent ports or from a port and
@@ -421,10 +421,10 @@ public class GraphPort extends AbstractGraphNode {
      * Draw the port component with the Artist.
      * @param gr the artist with which to draw
      * @param scale scale of the drawing
-     * @param highlight whether or not the node is highlighted
+     * @param highGroup the group that is being highlighted (not used in this method, but the parameter is needed since this method implements the one from AGN).
      */
     @Override
-    void draw(Artist gr, double scale) {
+    void draw(Artist gr, double scale, Object highGroup) {
         // Check if the requested shape is available
         boolean available = false;
         for (DotShape s : GraphPort.AvailableShapes) {

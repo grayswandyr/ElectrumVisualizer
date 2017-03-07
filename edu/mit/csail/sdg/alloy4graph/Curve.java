@@ -29,7 +29,7 @@ final class Curve {
     /**
      * starting position and ending position.
      */
-    public double startX, startY, endX, endY;
+    public double startX, startY, startDrawX, startDrawY, endX, endY;
 
     /**
      * The list of segments in this curve.
@@ -51,6 +51,8 @@ final class Curve {
      */
     public Curve dup() {
         Curve ans = new Curve(startX, startY);
+        ans.startDrawX = startDrawX;
+        ans.startDrawY = startDrawY;
         ans.endX = endX;
         ans.endY = endY;
         for (CubicCurve2D.Double x : list) {
@@ -68,6 +70,8 @@ final class Curve {
      */
     Curve join(Curve that) {
         Curve ans = new Curve(startX, startY);
+        ans.startDrawX = startDrawX;
+        ans.startDrawY = startDrawY;
         ans.list.addAll(list);
         ans.list.addAll(that.list);
         ans.endX = that.endX;

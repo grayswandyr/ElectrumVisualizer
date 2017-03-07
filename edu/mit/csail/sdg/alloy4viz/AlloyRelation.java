@@ -20,6 +20,8 @@ import java.util.List;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.ConstList.TempList;
 import edu.mit.csail.sdg.alloy4.Util;
+import java.util.ArrayList;
+import java.util.TreeSet;
 
 /**
  * Immutable; represents an Alloy relation of 2 or higher arity.

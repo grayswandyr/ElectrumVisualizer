@@ -273,10 +273,10 @@ public final strictfp class Artist {
             gr.setFont(this.currentFont);
         }
     }
-    
+
     /**
-     * Set font size.
-     * [N7-G. Dupont]
+     * Set font size. [N7-G. Dupont]
+     *
      * @param fs new font size
      */
     public void setFontSize(int fs) {
@@ -286,16 +286,16 @@ public final strictfp class Artist {
             gr.setFont(this.currentFont);
         }
     }
-    
+
     /**
-     * Get font size.
-     * [N7-G. Dupont]
+     * Get font size. [N7-G. Dupont]
+     *
      * @return the current font size
      */
     public int getFontSize() {
         return this.currentFont.getSize();
     }
-    
+
     /**
      * [N7-G.Dupont] Draws the given string at (x, y) with no rotation.
      */
@@ -305,6 +305,8 @@ public final strictfp class Artist {
 
     /**
      * [N7-G.Dupont] Draws the given string at (x,y) with given rotation angle in radians.
+     * [N7-G.Dupont] Draws the given string at (x,y) with given rotation angle
+     * in radians.
      */
     public void drawString(String text, int x, int y, double theta) {
         if (text.length() == 0) {
@@ -428,7 +430,7 @@ public final strictfp class Artist {
     public static Rectangle2D getBounds(boolean fontBoldness, String string) {
         return Artist.getBounds(fontBoldness, string, Artist.fontSize);
     }
-    
+
     public static Rectangle2D getBounds(boolean fontBoldness, String string, int fs) {
         calc(fs);
         return (fontBoldness ? cachedBoldMetrics : cachedPlainMetrics).getStringBounds(string, cachedGraphics);

@@ -241,7 +241,7 @@ public final class VizGUI implements ComponentListener {
      */
     private final Computer enumerator;
 
-	//[HASLAB]
+    //[HASLAB]
     // pt.uminho.haslab: control struture to keep a map batween a file's and the state of
     // that file
     private final Map<String, Integer> cacheForXmlState = new HashMap<String, Integer>();
@@ -253,7 +253,7 @@ public final class VizGUI implements ComponentListener {
     
     private GraphComparer graphc = null;
     
-	// ==============================================================================================//
+    // ==============================================================================================//
     /**
      * The current theme file; "" if there is no theme file loaded.
      */
@@ -327,7 +327,7 @@ public final class VizGUI implements ComponentListener {
         }
     }
 
-        // ==============================================================================================//
+    // ==============================================================================================//
     /**
      * [N7] @Louis Fauvarque
      * Checks if the buttons concerning the split panel must be visible / enabled
@@ -353,7 +353,7 @@ public final class VizGUI implements ComponentListener {
         linkTimeButton.setEnabled(timeProjected && !graphcNull);
     }
 
-	// ======== The Preferences
+    // ======== The Preferences
     // ======================================================================================//
     // ======== Note: you must make sure each preference has a unique key
     // ============================================//
@@ -1159,6 +1159,7 @@ public final class VizGUI implements ComponentListener {
         } else {
             myEvaluatorPanel.requestFocusInWindow();
         }
+        repopulateProjectionPopup();
         if (frame != null) {
             frame.validate();
         } else {
@@ -1326,7 +1327,6 @@ public final class VizGUI implements ComponentListener {
     public void loadXML(final String fileName, boolean forcefully, int state) {
         //String dfileName = splitTemporalFileName(state, fileName);  // [HASLab]
         String dfileName = fileName; // [N7-G. Dupont] Temporary fix (for the project to compile)
-
         final String xmlFileName = Util.canon(dfileName);
         File f = new File(xmlFileName);
         if (forcefully || !xmlFileName.equals(this.xmlFileName)) {

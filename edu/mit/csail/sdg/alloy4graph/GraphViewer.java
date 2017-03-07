@@ -31,6 +31,8 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -42,6 +44,7 @@ import java.io.IOException;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
@@ -49,12 +52,16 @@ import javax.swing.JViewport;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.JFrame;
 
 import edu.mit.csail.sdg.alloy4.OurDialog;
 import edu.mit.csail.sdg.alloy4.OurPDFWriter;
 import edu.mit.csail.sdg.alloy4.OurPNGWriter;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4.OurBorder;
+
+import java.util.HashMap;
 
 //[N7-G.Dupont] Use of VectorGraphics2D for PDF export
 import de.erichseifert.vectorgraphics2d.PDFGraphics2D;
@@ -460,6 +467,13 @@ public final strictfp class GraphViewer extends JPanel {
                     int newX = (int) (oldX + (ev.getX() - oldMouseX) / scale);
                     int newY = (int) (oldY + (ev.getY() - oldMouseY) / scale);
                     GraphNode n = (GraphNode) selected;
+
+                    n.setHighlight(true);
+                    if (n.getFather() != null){ //If the selected node is in a one node subgraph, we do not allow moving it.
+                      if (n.getFather().getChildren().size() <= 1)
+                        return;
+                    }
+
                     if (n.x() != newX || n.y() != newY) {
                         n.tweak(newX, newY);
                         alloyRepaint();
@@ -484,6 +498,8 @@ public final strictfp class GraphViewer extends JPanel {
                 alloyRepaint();
             }
 
+            long timeLastClick = 0;
+
             @Override
             public void mousePressed(MouseEvent ev) {
                 dragButton = 0;
@@ -505,15 +521,24 @@ public final strictfp class GraphViewer extends JPanel {
                     alloyRepaint();
                     pop.show(GraphViewer.this, ev.getX(), ev.getY());
                 } else if ((mod & BUTTON1_MASK) != 0) {
-                    // Left button clicked
                     dragButton = 1;
                     selected = alloyFind(oldMouseX = ev.getX(), oldMouseY = ev.getY());
-                    if (highlight instanceof AbstractGraphElement)  ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = null;
                     alloyRepaint();
-                    if (selected instanceof AbstractGraphNode) {
-                        oldX = ((AbstractGraphNode) selected).x();
-                        oldY = ((AbstractGraphNode) selected).y();
+                    if (selected instanceof GraphNode) {
+                        GraphNode sel = (GraphNode) selected;
+                        oldX = sel.x();
+                        oldY = sel.y();
+                        sel.setHighlight(true);
+                        long currentTime = System.currentTimeMillis();
+                        if (currentTime - timeLastClick < 800) {
+                            //Double click on a node, we have to show the subgraph if there is one.
+                            if (sel.hasChild()) {
+                                //The node double-clicked has children we have to print the subgraph in a new window.
+                                showSubgraph(sel);
+                            }
+                        }
+                        timeLastClick = System.currentTimeMillis();
                     }
                 }
             }
@@ -528,6 +553,85 @@ public final strictfp class GraphViewer extends JPanel {
                 }
             }
         });
+    }
+
+    /**
+     * Displays the subgraph of the given GraphNode in a new window.
+     */
+    private void showSubgraph(GraphNode node) {
+        JFrame windowSubgraph = new JFrame(node.uuid.toString());
+        int x = 200;
+        int y = 200;
+        //We have to duplicate the subgraph (each node and edge) so moving nodes in the window won't move those of the main graph.
+        Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale);
+        //A mapping between original nodes and copies.
+        HashMap<GraphNode, GraphNode> dupl = duplicateSubnodes(toBeShownGraph, node);
+        //We also have to 'duplicate' the edges of every subnodes.
+        for (GraphNode n : dupl.keySet()){
+            // For each child-node, we check every edge from this node.
+            for (GraphEdge e : n.outs) {
+                //If the 'to' node of the edge is also in the subgraph, we have to duplicate the edge.
+                if (dupl.containsKey(e.getB())) {
+                    GraphNode copyN = dupl.get(n);
+                    GraphNode copyB = dupl.get(e.getB());
+                    if (!(copyN == null || copyB == null)){ //This should always be true.
+                        e = new GraphEdge(e, copyN, copyB);
+                    }
+                }
+            }
+            // We don't need to check the edges of ins since checking every out of every node already covers every possible edge of the subgraph.
+        }
+        toBeShownGraph.layout();
+        int width = toBeShownGraph.getTotalWidth() + 25;
+        int height = toBeShownGraph.getTotalHeight() + 100;
+        //Create the graphviewer in a scroll panel. 
+        JScrollPane diagramScrollPanel;
+        diagramScrollPanel = OurUtil.scrollpane(new GraphViewer(toBeShownGraph), new OurBorder(true, true, true, false));
+        diagramScrollPanel.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                diagramScrollPanel.invalidate();
+                diagramScrollPanel.repaint();
+                diagramScrollPanel.validate();
+            }
+        });
+        diagramScrollPanel.getHorizontalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                diagramScrollPanel.invalidate();
+                diagramScrollPanel.repaint();
+                diagramScrollPanel.validate();
+            }
+        });
+        //We show this scroll panel in the window.
+        windowSubgraph.setContentPane(diagramScrollPanel);
+        windowSubgraph.setBackground(Color.WHITE);
+        windowSubgraph.setSize(width, height);
+        windowSubgraph.setLocation(x, y);
+        windowSubgraph.setVisible(true);
+    }
+
+    /**
+     * This method duplicates all subnodes of the given node, recursively to get greatchild.
+     * @return a map mapping old nodes to new ones. 
+     */
+    private HashMap<GraphNode, GraphNode> duplicateSubnodes(Graph toBeShownGraph, GraphNode node){
+      HashMap<GraphNode, GraphNode> map = new HashMap<GraphNode, GraphNode>();
+      if (node.getChildren().isEmpty()) return map; //If the given node has no children, we return an empty list (this should never happen).
+      for (GraphNode n : node.getChildren()){ //We duplicate each node and add them to the map.
+        GraphNode d = new GraphNode(n, toBeShownGraph);
+        map.put(n, d);
+        if (!(n.getChildren().isEmpty())){ //If the node we are duplicating have children, we dupliacte them too and add them to map.
+          HashMap<GraphNode, GraphNode> m = duplicateSubnodes(d.getSubGraph(), n);
+          for (GraphNode child : n.getChildren()){ //We have to have to precise the father of these duplicated child.
+            GraphNode duplicatedChild = m.get(child);
+            if (!(duplicatedChild == null)) {
+              duplicatedChild.setFather(d);
+              d.addChild(duplicatedChild);
+            }
+          }
+          map.putAll(m);
+        }
+      }
+      return map;
     }
 
     /**
