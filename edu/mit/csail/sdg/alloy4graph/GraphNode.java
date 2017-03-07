@@ -630,7 +630,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * calcBounds() if necessary.
      */
     @Override
-    void draw(Artist gr, double scale) {
+    void draw(Artist gr, double scale, Object group) {
         // There is nothing to draw => return
         if (shape() == null) {
             return;
@@ -745,7 +745,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 }
 
                 gr.translate(subLeft, subTop);
-                subGraph.draw(gr, scale, high, true);
+                subGraph.draw(gr, scale, group, true);
                 gr.translate(-subLeft, -subTop);
             } else { // Draw a "hider"
                 gr.setFont(true);
@@ -797,10 +797,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
         
         // [N7-G. Dupont] Draw each ports
         for (GraphPort p : this.ports) {
-            p.draw(gr, scale);
+            p.draw(gr, scale, null);
         }
         
-        drawDebug(gr);
+        //drawDebug(gr);
         
         gr.translate(-transX, -transY);
     }
