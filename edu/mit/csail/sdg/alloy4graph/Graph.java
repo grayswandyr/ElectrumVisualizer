@@ -1477,7 +1477,6 @@ public final strictfp class Graph {
         if (nodes.size() == 0) {
             return; // The rest of this procedure assumes there is at least one node
         }
-        System.out.println("=========== [ NEW GRAPH ] ===========");
         Object group = null;
         GraphNode highFirstNode = null, highLastNode = null;
         GraphEdge highFirstEdge = null, highLastEdge = null;
