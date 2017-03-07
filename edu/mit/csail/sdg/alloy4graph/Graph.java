@@ -1502,7 +1502,7 @@ public final strictfp class Graph {
         for (GraphNode n : nodes) {
             if (highFirstNode != n && highLastNode != n) {
                 n.setHighlight(n == highlight); // [N7-G.Dupont]
-                n.draw(gr, scale);
+                n.draw(gr, scale, group);
                 n.setHighlight(false); // [N7-G.Dupont]
             }
         }
@@ -1534,14 +1534,14 @@ public final strictfp class Graph {
                 if (n.shape() != null) {
                     for (GraphEdge e : n.outs) {
                       if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-                        if (e.group == group && e != highFirstEdge) {
+                        if (e.group == group && e != highFirstEdge && !(e.highlight())) {
                             e.draw(gr, scale, highFirstEdge, group);
                         }
                       }
                     }
                     for (GraphEdge e : n.selfs) {
                       if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-                        if (e.group == group && e != highFirstEdge) {
+                        if (e.group == group && e != highFirstEdge && !(e.highlight())) {
                             e.draw(gr, scale, highFirstEdge, group);
                         }
                       }
@@ -1555,12 +1555,12 @@ public final strictfp class Graph {
         }
         if (highFirstNode != null) {
             highFirstNode.setHighlight(true); // [N7-G.Dupont]
-            highFirstNode.draw(gr, scale);
+            highFirstNode.draw(gr, scale, group);
             highFirstNode.setHighlight(false); // [N7-G.Dupont]
         }
         if (highLastNode != null && highLastNode != highFirstNode) {
             highLastNode.setHighlight(true); // [N7-G.Dupont]
-            highLastNode.draw(gr, scale);
+            highLastNode.draw(gr, scale, group);
             highLastNode.setHighlight(false); // [N7-G.Dupont]
         }
         if (highFirstEdge != null) {

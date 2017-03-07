@@ -607,6 +607,19 @@ public strictfp class GraphNode extends AbstractGraphNode {
         }
         return poly.contains(x - x(), y - y());
     }
+    
+    /**
+     * Determines if coordinates are inside/on the element in the given reference.
+     * @param x x coordinate to test
+     * @param y y coordinate to test
+     * @param reference the given reference
+     * @return true if the point (x,y) is inside the shape of the element
+     */
+    boolean contains(double x, double y, GraphNode reference) {
+        double realx = transformX(x, reference, this.getFather());
+        double realy = transformY(y, reference, this.getFather());
+        return contains(realx, realy);
+    }
 
     /**
      * Returns true if the GraphNode is in the given Graph.
@@ -630,57 +643,20 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * calcBounds() if necessary.
      */
     @Override
-    void draw(Artist gr, double scale) {
+    void draw(Artist gr, double scale, Object group) {
+        // There is nothing to draw => return
         if (shape() == null) {
             return;
-        } else if (updown < 0) {
-            calcBounds();
         }
-
-        if (!hasChild()) {
-            drawRegular(gr, scale);
-        } else {
-            // [N7-Bossut, Quentin] Draw the subGraph
-            if (maxDepth > 0) {
-                drawSubgraph(gr, scale);
-            } else {
-                //We cannot draw the subgraph (it is too deep), we have to paint the node and a button the user have to click to see the subgraph.
-                drawHidder(gr, scale);
-            }
-        }
-    }
-    
-    /**
-     * [N7-G.Dupont] (debug) Print bounding box, center and points of the polygon.
-     */
-    private void drawDebug(Artist gr) {
-        // Print bounding box and center
-        gr.setColor(Color.RED);
-        gr.draw(new Rectangle(-this.side, -this.updown, 2*this.side, 2*this.updown), false);
-        gr.fillCircle(3);
-        gr.setColor(Color.BLUE);
         
-        // Print each point of the polygon
-        if (this.poly instanceof Polygon) {
-            int xp[] = ((Polygon)this.poly).xpoints;
-            int yp[] = ((Polygon)this.poly).ypoints;
-            for (int i = 0; i < ((Polygon)this.poly).npoints; i++) {
-                gr.translate(xp[i], yp[i]);
-                gr.fillCircle(2);
-                gr.drawString("M" + i + "(" + xp[i] + "," + yp[i] + ")", 3, -3);
-                gr.translate(-xp[i], -yp[i]);
-            }
-        }
-       }
-
-    /**
-     * Draws a regular node (not a containig one). Draws this node at its
-     * current (x, y) location; this method will call calcBounds() if necessary.
-     */
-    private void drawRegular(Artist gr, double scale) {
+        calcBounds();
+        
         final int top = graph.getTop(), left = graph.getLeft();
+        final int subTop  = (subGraph == null ? 0 : subGraph.getTop()),
+                  subLeft = (subGraph == null ? 0 : subGraph.getLeft());
+        
         gr.set(style, scale);
-              
+        
         int xgn = x(), ygn = y();
         GraphNode gn = this;
         while (gn.father != null) {
@@ -695,33 +671,32 @@ public strictfp class GraphNode extends AbstractGraphNode {
         for (GraphEdge e : ins) {
             if (e.highlight()) {
                 cond = true;
+                break;
             }
         }
         for (GraphEdge e : outs) {
             if (e.highlight()) {
                 cond = true;
+                break;
             }
         }
-        
-        //gr.translate(x() - left, y() - top);
-        
+
         gr.setFont(fontBold);
+        
+        int transX = x() - left, transY = y() - top;
         if (this.highlight()) {
-            if (father != null) {
-                if (cond) {
-                    gr.translate(xgn, ygn);
-                } else {
-                    gr.translate(x() - left, y() - top); 
-                }
-            } else {
-                gr.translate(x() - left, y() - top); 
-            }                
+            if (father != null && cond) {
+                transX = xgn;
+                transY = ygn;
+            }              
             gr.setColor(COLOR_CHOSENNODE);
         } else {
             gr.setColor(color);
-            gr.translate(x() - left, y() - top);
         }
+
+        gr.translate(transX, transY);
         
+        // Draw node
         if (shape() == DotShape.CIRCLE || shape() == DotShape.M_CIRCLE || shape() == DotShape.DOUBLE_CIRCLE) {
             int hw = width / 2, hh = height / 2;
             int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
@@ -770,234 +745,108 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 gr.drawLine(side, side - 8, side - 8, side);
             }
         }
+
+        // Draw subgraph
+        if (hasChild()) {
+            if (maxDepth > 0) {
+                Object high = null;
+                for (GraphNode n : getChildren()){
+                    if (n.highlight()){
+                        high = n;
+                        break;
+                    }
+                }
+
+                gr.translate(subLeft, subTop);
+                subGraph.draw(gr, scale, group, true);
+                gr.translate(-subLeft, -subTop);
+            } else { // Draw a "hider"
+                gr.setFont(true);
+                gr.set(DotStyle.SOLID, scale);
+                int clr = color.getRGB() & 0xFFFFFF;
+                gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
+                if (labels != null && labels.size() > 0) {
+                    int x = (-width / 2), y = -updown - labels.size()/2;
+                    String t = "...";
+                    int w = ((int) (getBounds(true, t).getWidth()));
+                    if (width > w) {
+                        w = (width - w) / 2;
+                    } else {
+                        w = 0;
+                    }
+                    gr.drawString(t, x + w, y + Artist.getMaxAscent());
+                }
+            }
+        }
+        
+        // Draw label
         gr.set(DotStyle.SOLID, scale);
         int clr = color.getRGB() & 0xFFFFFF;
         gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
         if (labels != null && labels.size() > 0) {
-            int x = (-width / 2), y = yShift + (-labels.size() * ad / 2);
-            for (int i = 0; i < labels.size(); i++) {
-                String t = labels.get(i);
-                int w = ((int) (getBounds(fontBold, t).getWidth())) + 1; // Round it up
-                if (width > w) {
-                    w = (width - w) / 2;
-                } else {
-                    w = 0;
+            if (hasChild() && maxDepth > 0) {
+                int maxWidth=0;
+                for (int i=0; i < labels.size(); i++ ) {
+                    maxWidth = Math.max(maxWidth, (int) getBounds(true, labels.get(i)).getWidth());
                 }
-                gr.drawString(t, x + w, y + Artist.getMaxAscent());
-                y = y + ad;
+                width = maxWidth;
             }
-        }
-        
-        //drawDebug(gr);
-
-        // [N7-G. Dupont] Draw each ports
-        for (GraphPort p : this.ports) {
-            p.draw(gr, scale);
-        }
-        
-        if (this.highlight()) {
-            if (father != null) {
-                if (cond) {
-                    gr.translate(-xgn, -ygn);
-                } else {
-                    gr.translate(left - x(), top - y());
-                }
-            } else {
-                gr.translate(left - x(), top - y());
-            }
-            
-        } else {
-            gr.translate(left - x(), top - y());
-        }
-        
-        //gr.translate(left - x(), top - y());
-    }
-
-    /**
-     * Draws a node that has children that can also be drawn (in the view of the
-     * maxDepth attribute). Layouts the subgraph and then draws (it will calls
-     * the draw method of the sub-nodes, so it works recursively). Then draws
-     * the node arround the subgraph.
-     */
-    private void drawSubgraph(Artist gr, double scale) {
-        // [N7-Bossut, Quentin] Draws the subGraph.         
-        // We have'nt reach the depth max yet, we can draw the subgraph.
-        
-        //nestedNodeBounds();
-        final int top = graph.getTop(), left = graph.getLeft();
-        final int subTop = subGraph.getTop(), subLeft = subGraph.getLeft();
-        gr.set(style, scale);      
-        
-        int xgn = x(), ygn = y();
-        GraphNode gn = this;
-        while (gn.father != null) {
-            gn = gn.father;
-            xgn += gn.x();
-            ygn += gn.y();
-        }
-        xgn -= gn.graph.getLeft();
-        ygn -= gn.graph.getTop();
-        
-        boolean cond=false;
-        for (GraphEdge e : ins) {
-            if (e.highlight()) {
-                cond = true;
-            }
-        }
-        for (GraphEdge e : outs) {
-            if (e.highlight()) {
-                cond = true;
-            }
-        }
-        
-        gr.setFont(fontBold);
-        if (this.highlight()) {
-            if (father != null) {
-                if (cond) {
-                    gr.translate(xgn, ygn);
-                } else {
-                    gr.translate(x() - left, y() - top); 
-                }
-            } else {
-                gr.translate(x() - left, y() - top); 
-            }                
-            gr.setColor(COLOR_CHOSENNODE);
-        } else {
-            gr.setColor(color);
-            gr.translate(x() - left, y() - top);
-        }
-  
-        /*
-        //gr.translate(x() - left, y() - top);
-        
-        if (this.highlight()) {
-            gr.setColor(COLOR_CHOSENNODE);
-        } else {
-            gr.setColor(color);
-        }
-        */
-        
-        Object high = null;
-        for (GraphNode n : getChildren()){
-          if (n.highlight()){
-            high = n;
-            break;
-          }
-        }
-       
-        gr.draw(poly, true);
-        gr.setColor(Color.BLACK);
-        gr.draw(poly, false);
-        gr.translate(subLeft, subTop);
-        subGraph.draw(gr, scale, high, true);
-        gr.translate(-subLeft, -subTop);
-
-        /*
-         if (poly2 != null) {
-         gr.draw(poly2, false);
-         }
-         if (poly3 != null) {
-         gr.draw(poly3, false);
-         }
-         if (style
-         == DotStyle.DOTTED || style == DotStyle.DASHED) {
-         gr.set(DotStyle.SOLID,
-         scale);
-         }
-         if (shape() == DotShape.M_DIAMOND) {
-         gr.drawLine(-side + 8,
-         -8, -side + 8, 8);
-         gr.drawLine(-8, -side + 8, 8, -side + 8);
-         gr.drawLine(side - 8, -8, side - 8, 8);
-         gr.drawLine(-8, side - 8, 8,
-         side - 8);
-         }
-         if (shape() == DotShape.M_SQUARE) {
-         gr.drawLine(-side,
-         -side + 8, -side + 8, -side);
-         gr.drawLine(side, -side + 8, side - 8,
-         -side);
-         gr.drawLine(-side, side - 8, -side + 8, side);
-         gr.drawLine(side, side - 8, side - 8, side);
-         }
-         */
-        // Draw the label into the GraphNode
-        gr.set(DotStyle.SOLID, scale);
-        int clr = color.getRGB() & 0xFFFFFF;
-        gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
-        if (labels != null && labels.size() > 0) {
-            int maxWidth=0;
-            for (int i=0; i < labels.size(); i++ ) {
-                maxWidth = Math.max(maxWidth, (int) getBounds(true, labels.get(i)).getWidth());
-            }
-            width = maxWidth;
             int x = (-width/2), y = yJumpNode/2 -updown + (labels.size() / 2);
             
             for (int i = 0; i < labels.size(); i++) {
                 String t = labels.get(i);
-                int w = ((int) (getBounds(true, t).getWidth())) + 1; // Round it up
+                int w = ((int) (getBounds((fontBold | hasChild()), t).getWidth())) + 1; // Round it up
                 if (width > w) {
                     w = (width - w) / 2;
                 } else {
                     w = 0;
                 }
-                gr.setFont(true);
+                if (hasChild() && maxDepth > 0)
+                    gr.setFont(true);
                 gr.drawString(t, x + w, y + Artist.getMaxAscent());
                 y = y + ad;
             }
         }
-
+        
         // [N7-G. Dupont] Draw each ports
         for (GraphPort p : this.ports) {
-            p.draw(gr, scale);
+            p.draw(gr, scale, null);
         }
         
-        if (this.highlight()) {
-            if (father != null) {
-                if (cond) {
-                    gr.translate(-xgn, -ygn);
-                } else {
-                    gr.translate(left - x(), top - y());
-                }
-            } else {
-                gr.translate(left - x(), top - y());
-            }
-            
-        } else {
-            gr.translate(left - x(), top - y());
-        }
+        //drawDebug(gr);
         
-        //gr.translate(left - x(), top - y());
+        gr.translate(-transX, -transY);
     }
-
+    
     /**
-     * Draws a container when it subgraph cannot be dran because of the maximum
-     * depth level. Draws the node as a regular one and an indicator meaning
-     * that the subgraph is hidden.
+     * [N7-G.Dupont] (debug) Print bounding box, center and points of the polygon.
      */
-    private void drawHidder(Artist gr, double scale) {
-        drawRegular(gr, scale);
+    private void drawDebug(Artist gr) {
+        // Print bounding box and center
+        gr.setColor(Color.RED);
+        gr.draw(new Rectangle(-this.side, -this.updown, 2*this.side, 2*this.updown), false);
+        gr.fillCircle(3);
         
-        final int top = graph.getTop(), left = graph.getLeft();
-        gr.translate(x() - left, y() - top);
-        
-        //GraphNode dad = (this.getFather() != null) ? this.getFather() : this;
-        gr.setFont(true);
-        gr.set(DotStyle.SOLID, scale);
-        int clr = color.getRGB() & 0xFFFFFF;
-        gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
-        if (labels != null && labels.size() > 0) {
-            int x = (-width / 2), y = -updown - labels.size()/2;
-            String t = "...";
-            int w = ((int) (getBounds(true, t).getWidth()));
-            if (width > w) {
-                w = (width - w) / 2;
-            } else {
-                w = 0;
-            }
-            gr.drawString(t, x + w, y + Artist.getMaxAscent());
+        if (subGraph != null && maxDepth > 0) {
+            gr.setColor(Color.GREEN);
+            gr.draw(new Rectangle(
+                    this.subGraph.getLeft(),  this.subGraph.getTop(), 
+                    this.subGraph.totalWidth, this.subGraph.totalHeight
+            ), false);
         }
-        gr.translate(left - x(), top - y());
+        
+        // Print each point of the polygon
+        gr.setColor(Color.BLUE);
+        if (this.poly instanceof Polygon) {
+            int xp[] = ((Polygon)this.poly).xpoints;
+            int yp[] = ((Polygon)this.poly).ypoints;
+            for (int i = 0; i < ((Polygon)this.poly).npoints; i++) {
+                gr.translate(xp[i], yp[i]);
+                gr.fillCircle(2);
+                gr.drawString("M" + i + "(" + xp[i] + "," + yp[i] + ")", 3, -3);
+                gr.translate(-xp[i], -yp[i]);
+            }
+        }
     }
 
     /**
@@ -1015,13 +864,13 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private void shift_edges() {
         
         for (GraphEdge e : this.outs) {
-            GraphNode b = (GraphNode) e.b();
+            AbstractGraphNode b = e.b();
             if (b.graph != graph) {
                 b.graph.relayout_edges(false);
             }
         }
         for (GraphEdge e : this.ins) {
-            GraphNode a = (GraphNode) e.a();
+            AbstractGraphNode a = e.a();
             if (a.graph != graph) {
                 a.graph.relayout_edges(false);
             }
@@ -1030,19 +879,19 @@ public strictfp class GraphNode extends AbstractGraphNode {
         if ( !children.isEmpty() ) {
             for (GraphNode child : children) {
                 for (GraphEdge e : child.outs) {
-                    GraphNode a = (GraphNode) e.a();
+                    AbstractGraphNode a = e.a();
                     a.graph.relayout_edges(false);
                     
-                    GraphNode b = (GraphNode) e.b();
+                    AbstractGraphNode b = e.b();
                     for (GraphEdge e2 : b.ins) {
                         e2.a().graph.relayout_edges(false);
                     }
                 }
                 for (GraphEdge e : child.ins) {
-                    GraphNode b = (GraphNode) e.b();
+                    AbstractGraphNode b = e.b();
                     b.graph.relayout_edges(false);
                     
-                    GraphNode a = (GraphNode) e.a();
+                    AbstractGraphNode a = e.a();
                     for (GraphEdge e2 : a.outs) {
                         e2.b().graph.relayout_edges(false);
                     }
@@ -1212,12 +1061,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else if (y() < y) {
             shiftDown(y);
         } else {
-            //graph.relayout_edges(layer());
             graph.relayout_edges(false);
+            //graph.relayout_edges(layer());
             shift_edges();
         }
         tweakFather();
-        graph.recalcBound(false);
+        nestedNodeBounds();
     }
 
     /**
@@ -1232,7 +1081,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
           father.shiftDown(father.y());
           //Changes of the bounds of the father can make other nodes of the father's graph move.
           father.adaptLayer();
-          father.graph.recalcBound(false);
+          father.calcBounds();
           father.tweakFather();
         }
     }
@@ -1329,12 +1178,11 @@ public strictfp class GraphNode extends AbstractGraphNode {
         height = hh * 2;
         updown = hh;
 
+        nestedNodeBounds(); // [N7-M.Quentin]
         portBounds(); // [N7-G.Dupont]
-
-        // [N7-M.Quentin]
-        if (hasChild()){
-          nestedNodeBounds();
-        }
+        
+        hh = updown;
+        hw = side;
 
         switch (shape()) {
             case HOUSE: {
@@ -1516,11 +1364,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
             case M_CIRCLE:
             case CIRCLE:
             case DOUBLE_CIRCLE: {
-                int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
+                //int radius = ((int) (sqrt(hw * ((double) hw) + ((double) hh) * hh))) + 2;
+                int radius = hw; //[N7-G.Dupont] Correct bounding box for circles
                 if (shape() == DotShape.DOUBLE_CIRCLE) {
                     radius = radius + 5;
                 }
-                int L = ((int) (radius / cos18)) + 2, a = (int) (L * sin36), b = (int) (L * cos36), c = (int) (radius * tan18);
+                int L = /*((int) (radius / cos18)) + 2*/radius, a = (int) (L * sin36), b = (int) (L * cos36), c = (int) (radius * tan18);
                 newPoly.addPoint(-L, 0);
                 newPoly.addPoint(-b, a);
                 newPoly.addPoint(-c, L);
@@ -1549,6 +1398,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 path.quadTo(-side, updown, -side, d);
                 path.closePath();
                 this.poly = path;
+                break;
             }
             default: { // BOX
                 if (shape() != DotShape.BOX) {
@@ -1617,17 +1467,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.side = width / 2;
 
         subGraph.move((getLabelHeight()-yJumpNode)/2, -xJumpNode/2);
-
-        //TODO 
-        //Find the dimension of the figure
-        //TODO
-        //Change the form of the polygon
-        Polygon p = new Polygon();
-        p.addPoint(-side, -updown);
-        p.addPoint(side, -updown);
-        p.addPoint(side, updown);
-        p.addPoint(-side, updown);
-        this.poly = p;
  
         graph.recalcLayerPH();
         
@@ -1715,14 +1554,21 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.updown += Math.max(minupdown, paddedupdown);
     }
     
-    public double relativeX(GraphNode root) {
-        double x = this.x();
-        GraphNode n = this;
-        while (n.father != null) {
+    /**
+     * Express an X coordinate in a reference into another reference
+     * @param startx initial coordinate
+     * @param rstart start reference
+     * @param rtarget target reference
+     * @return new coordinate
+     */
+    public static double transformX(double startx, GraphNode rstart, GraphNode rtarget) {
+        double x = startx;
+        GraphNode n = rstart;
+        while (n != null && n.father != null) {
             n = n.father;
             x += n.x();
         }
-        n = root;
+        n = rtarget;
         while (n != null) {
             x -= n.x();
             n = n.father;
@@ -1730,14 +1576,21 @@ public strictfp class GraphNode extends AbstractGraphNode {
         return x;
     }
     
-    public double relativeY(GraphNode root) {
-        double y = this.y();
-        GraphNode n = this;
-        while (n.father != null) {
+    /**
+     * Express an Y coordinate in a reference into another reference
+     * @param starty initial coordinate
+     * @param rstart start reference
+     * @param rtarget target reference
+     * @return new coordinate
+     */
+    public static double transformY(double starty, GraphNode rstart, GraphNode rtarget) {
+        double y = starty;
+        GraphNode n = rstart;
+        while (n != null && n.father != null) {
             n = n.father;
             y += n.y();
         }
-        n = root;
+        n = rtarget;
         while (n != null) {
             y -= n.y();
             n = n.father;
@@ -1745,10 +1598,36 @@ public strictfp class GraphNode extends AbstractGraphNode {
         return y;
     }
     
+    /**
+     * Express the X coordinate of this node relatively to another node
+     * @param root the other node to express the coordinate in
+     * @return the relative X coordinate
+     */
+    public double relativeX(GraphNode root) {
+        return transformX(this.x(), this, root);
+    }
+    
+    /**
+     * Express the Y coordinate of this node relatively to another node
+     * @param root the other node to express the coordinate in
+     * @return the relative Y coordinate
+     */
+    public double relativeY(GraphNode root) {
+        return transformY(this.y(), this, root);
+    }
+    
+    /**
+     * Express the global X coordinate
+     * @return the global X coordinate in the root reference
+     */
     public double absoluteX() {
         return relativeX(null);
     }
     
+    /**
+     * Express the global Y coordinate
+     * @return the global Y coordinate in the root reference
+     */
     public double absoluteY() {
         return relativeY(null);
     }

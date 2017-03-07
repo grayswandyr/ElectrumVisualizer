@@ -68,8 +68,9 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      * Draw the element thanks to given Artist.
      * @param gr the artist with which to draw the element
      * @param scale the scale to set the artist
+     * @param highGroup the group that is highlighted when we are drawing this element.
      */
-    abstract void draw(Artist gr, double scale);
+    abstract void draw(Artist gr, double scale, Object highgroup);
     
     /**
      * Determines if coordinates are inside/on the element.
