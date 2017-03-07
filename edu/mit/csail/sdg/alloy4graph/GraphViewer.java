@@ -287,43 +287,6 @@ public final strictfp class GraphViewer extends JPanel {
                     }
                     
                     if (startgn != null && endgn != null) {
-                        for (GraphNode n : graph.nodes) {
-                            if (n.shape() == null) {
-                                Object group = n.ins.get(0).group;
-                                if(group instanceof ArrayList){
-                                    ArrayList<AbstractGraphNode> groupN = (ArrayList<AbstractGraphNode>) group;
-                                    if(groupN.get(0) == startgn && groupN.get(1) == endgn){
-                                        GraphEdge e;
-                                        if (n.ins.get(0).a().shape() == null) {
-                                            e = new GraphEdge(n.ins.get(0).a(),n,uuid,label,rel);
-                                        } else {
-                                            e = new GraphEdge(startgn,n,uuid,label,rel);
-                                        }
-                                        e.setStyle(view.edgeStyle.resolve(rel));
-                        
-                                        DotColor color = view.edgeColor.resolve(rel);
-                                        e.setColor(color.getColor(view.getEdgePalette()));
-                
-                                        e.resetPath();
-                                        n.ins.get(0).a().outs.remove(n.ins.get(0));
-                                        n.ins.remove(n.ins.get(0));
-                                        
-                                        if(n.outs.get(0).b().shape() != null){
-                                            GraphEdge elast = new GraphEdge(n,endgn,uuid,label,rel);
-                                            elast.setStyle(view.edgeStyle.resolve(rel));
-                        
-                                            DotColor colorlast = view.edgeColor.resolve(rel);
-                                            elast.setColor(colorlast.getColor(view.getEdgePalette()));
-                
-                                            elast.resetPath();
-                                            n.outs.get(0).b().ins.remove(n.outs.get(0));
-                                            n.outs.remove(n.outs.get(0));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
                         if(Math.abs(startgn.layer() - endgn.layer()) <= 1){
                             GraphEdge e = new GraphEdge(startgn, endgn, uuid, label, rel);                        
                             e.setStyle(view.edgeStyle.resolve(rel));
@@ -332,6 +295,48 @@ public final strictfp class GraphViewer extends JPanel {
                             e.setColor(color.getColor(view.getEdgePalette()));
 
                             e.resetPath();
+                            e.layout_arrowHead();
+                        } else {
+                            for (GraphNode n : graph.nodes) {
+                                // We go through all the dummy nodes
+                                if (n.shape() == null) {
+                                    Object group = n.ins.get(0).group;
+                                    // If the group is an arraylist, then it is a dummy node linked to a port
+                                    if(group instanceof ArrayList){
+                                        ArrayList<AbstractGraphNode> groupN = (ArrayList<AbstractGraphNode>) group;
+                                        if(groupN.get(0) == startgn && groupN.get(1) == endgn){
+                                            GraphEdge e;
+                                            if (n.ins.get(0).a().shape() == null) {
+                                                e = new GraphEdge(n.ins.get(0).a(),n,uuid,label,rel);
+                                            } else {
+                                                e = new GraphEdge(startgn,n,uuid,label,rel);
+                                            }
+                                            e.setStyle(view.edgeStyle.resolve(rel));
+
+                                            DotColor color = view.edgeColor.resolve(rel);
+                                            e.setColor(color.getColor(view.getEdgePalette()));
+
+                                            e.resetPath();
+                                            e.layout_arrowHead();
+                                            n.ins.get(0).a().outs.remove(n.ins.get(0));
+                                            n.ins.remove(n.ins.get(0));
+
+                                            if(n.outs.get(0).b().shape() != null){
+                                                GraphEdge elast = new GraphEdge(n,endgn,uuid,label,rel);
+                                                elast.setStyle(view.edgeStyle.resolve(rel));
+
+                                                DotColor colorlast = view.edgeColor.resolve(rel);
+                                                elast.setColor(colorlast.getColor(view.getEdgePalette()));
+
+                                                elast.resetPath();
+                                                elast.layout_arrowHead();
+                                                n.outs.get(0).b().ins.remove(n.outs.get(0));
+                                                n.outs.remove(n.outs.get(0));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
