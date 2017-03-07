@@ -512,9 +512,15 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         Curve c = path();
         if (b.shape() != null) {
             double in = 1D, out = (a == b ? 0.5D : 0D);
+            boolean takein = false;
             while (StrictMath.abs(out - in) > 0.0001D) {
                 double t = (in + out) / 2;
-                if (b.contains(c.getX(t), c.getY(t))) {
+                if (b instanceof GraphNode && a instanceof GraphNode) {
+                    takein = ((GraphNode)b).contains(c.getX(t), c.getY(t), (GraphNode)a);
+                } else {
+                    takein = b.contains(c.getX(t), c.getY(t));
+                }
+                if (takein) {
                     in = t;
                 } else {
                     out = t;
@@ -551,7 +557,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         if (path == null)
             resetPath();
         int top = 0, left = 0;
-        
+                    
         if (a instanceof GraphNode && ((GraphNode)a).getFather() != null) {
             GraphNode gna = (GraphNode)a;
             top = gna.getFather().getSubGraph().getTop(); left = gna.getFather().getSubGraph().getLeft();
@@ -559,10 +565,11 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             top = a.graph.getTop(); left = a.graph.getLeft();
         }
         
-        int transX=0, transY=0;
+        int transX=-left, transY=-top;
         if (this.highlight()) {
             GraphNode gn = (GraphNode) a;
             if (gn.getFather() != null) {
+                transX = 0; transY = 0;
                 while (gn.getFather() != null) {
                     gn = gn.getFather();
                     transX += gn.x();
@@ -570,17 +577,10 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
                 }
                 transX -= gn.graph.getLeft();
                 transY -= gn.graph.getTop();
-                
-                gr.translate(transX, transY);
-            } else {
-                gr.translate(- left, - top); 
             }
-                
-        } else {
-            gr.translate(-left, -top);
         }
         
-        //gr.translate(-left, -top);
+        gr.translate(transX, transY);
 
         gr.setColor(Color.RED);
         if (highEdge==this) { 
@@ -604,6 +604,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             while(e.a.shape() == null)
                 e = e.a.ins.get(0); // Let e be the first segment of this chain of connected segments
             while(true) {
+                //e.layout_arrowHead(); e.layout_arrowTail();
                 p = (p==null) ? e.path : p.join(e.path);
                 if (e.b.shape()!=null) break;
                 e = e.b.outs.get(0);
@@ -613,18 +614,8 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             gr.drawSmoothly(p);
         }
         gr.set(DotStyle.SOLID, scale);
-        //gr.translate(left, top);
-        if (this.highlight()) {
-            if ((((GraphNode) a).getFather()) != null) {
-                gr.translate(-transX, -transY);
-
-            } else {
-                gr.translate(left, top); 
-            }
-                
-        } else {
-            gr.translate(left, top);
-        }
+        
+        gr.translate(-transX, -transY);
         
         if (highEdge==null && highGroup==null && label.length()>0) {
             drawLabel(gr, color, null);

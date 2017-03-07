@@ -607,6 +607,19 @@ public strictfp class GraphNode extends AbstractGraphNode {
         }
         return poly.contains(x - x(), y - y());
     }
+    
+    /**
+     * Determines if coordinates are inside/on the element in the given reference.
+     * @param x x coordinate to test
+     * @param y y coordinate to test
+     * @param reference the given reference
+     * @return true if the point (x,y) is inside the shape of the element
+     */
+    boolean contains(double x, double y, GraphNode reference) {
+        double realx = transformX(x, reference, this.getFather());
+        double realy = transformY(y, reference, this.getFather());
+        return contains(realx, realy);
+    }
 
     /**
      * Returns true if the GraphNode is in the given Graph.
@@ -800,7 +813,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             p.draw(gr, scale);
         }
         
-        drawDebug(gr);
+        //drawDebug(gr);
         
         gr.translate(-transX, -transY);
     }
@@ -1048,8 +1061,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         } else if (y() < y) {
             shiftDown(y);
         } else {
-            //graph.relayout_edges(layer());
             graph.relayout_edges(false);
+            //graph.relayout_edges(layer());
             shift_edges();
         }
         tweakFather();
@@ -1541,14 +1554,21 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.updown += Math.max(minupdown, paddedupdown);
     }
     
-    public double relativeX(GraphNode root) {
-        double x = this.x();
-        GraphNode n = this;
-        while (n.father != null) {
+    /**
+     * Express an X coordinate in a reference into another reference
+     * @param startx initial coordinate
+     * @param rstart start reference
+     * @param rtarget target reference
+     * @return new coordinate
+     */
+    public static double transformX(double startx, GraphNode rstart, GraphNode rtarget) {
+        double x = startx;
+        GraphNode n = rstart;
+        while (n != null && n.father != null) {
             n = n.father;
             x += n.x();
         }
-        n = root;
+        n = rtarget;
         while (n != null) {
             x -= n.x();
             n = n.father;
@@ -1556,14 +1576,21 @@ public strictfp class GraphNode extends AbstractGraphNode {
         return x;
     }
     
-    public double relativeY(GraphNode root) {
-        double y = this.y();
-        GraphNode n = this;
-        while (n.father != null) {
+    /**
+     * Express an Y coordinate in a reference into another reference
+     * @param starty initial coordinate
+     * @param rstart start reference
+     * @param rtarget target reference
+     * @return new coordinate
+     */
+    public static double transformY(double starty, GraphNode rstart, GraphNode rtarget) {
+        double y = starty;
+        GraphNode n = rstart;
+        while (n != null && n.father != null) {
             n = n.father;
             y += n.y();
         }
-        n = root;
+        n = rtarget;
         while (n != null) {
             y -= n.y();
             n = n.father;
@@ -1571,10 +1598,36 @@ public strictfp class GraphNode extends AbstractGraphNode {
         return y;
     }
     
+    /**
+     * Express the X coordinate of this node relatively to another node
+     * @param root the other node to express the coordinate in
+     * @return the relative X coordinate
+     */
+    public double relativeX(GraphNode root) {
+        return transformX(this.x(), this, root);
+    }
+    
+    /**
+     * Express the Y coordinate of this node relatively to another node
+     * @param root the other node to express the coordinate in
+     * @return the relative Y coordinate
+     */
+    public double relativeY(GraphNode root) {
+        return transformY(this.y(), this, root);
+    }
+    
+    /**
+     * Express the global X coordinate
+     * @return the global X coordinate in the root reference
+     */
     public double absoluteX() {
         return relativeX(null);
     }
     
+    /**
+     * Express the global Y coordinate
+     * @return the global Y coordinate in the root reference
+     */
     public double absoluteY() {
         return relativeY(null);
     }
