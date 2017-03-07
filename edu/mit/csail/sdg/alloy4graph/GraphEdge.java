@@ -523,12 +523,11 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             c.chopEnd(in);
         }
     }
-    
+     
     /**
      * Positions the arrow tails of the given edge properly.
      */
-    private void layout_arrowTail() {
-        Curve c = path();
+    private void layout_arrowTail(Curve c) {
         if (a.shape() != null) {
             double in = 0D, out = 1D;
             while (StrictMath.abs(out - in) > 0.0001D) {
@@ -609,7 +608,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
                 e = e.b.outs.get(0);
             }
             layout_arrowHead();
-            layout_arrowTail();
+            layout_arrowTail(p);
             gr.drawSmoothly(p);
         }
         gr.set(DotStyle.SOLID, scale);

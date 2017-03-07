@@ -1254,7 +1254,7 @@ public final strictfp class Graph {
             for (GraphEdge e : n.selfs) {
               if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                 e.resetPath();
-                e.layout_arrowHead();
+                //e.layout_arrowHead();
               }
             }
         }
@@ -1293,7 +1293,7 @@ public final strictfp class Graph {
         }
         for (GraphEdge e : edges) {
           if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-            e.layout_arrowHead();
+            //e.layout_arrowHead();
             e.repositionLabel(sp);
           }
         }
