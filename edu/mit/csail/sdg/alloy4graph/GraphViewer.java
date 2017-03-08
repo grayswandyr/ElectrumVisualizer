@@ -295,7 +295,7 @@ public final strictfp class GraphViewer extends JPanel {
                     
                     if (startgn != null && endgn != null) {
                         if(Math.abs(startgn.layer() - endgn.layer()) <= 1){
-                            GraphEdge e = new GraphEdge(startgn, endgn, uuid, label, rel);                        
+                            GraphEdge e = new GraphEdge(startgn, endgn, graph, uuid, label, rel);                        
                             e.setStyle(view.edgeStyle.resolve(rel));
 
                             DotColor color = view.edgeColor.resolve(rel);
@@ -314,9 +314,9 @@ public final strictfp class GraphViewer extends JPanel {
                                         if(groupN.get(0) == startgn && groupN.get(1) == endgn){
                                             GraphEdge e;
                                             if (n.ins.get(0).a().shape() == null) {
-                                                e = new GraphEdge(n.ins.get(0).a(),n,uuid,label,rel);
+                                                e = new GraphEdge(n.ins.get(0).a(), n, graph, uuid, label, rel);
                                             } else {
-                                                e = new GraphEdge(startgn,n,uuid,label,rel);
+                                                e = new GraphEdge(startgn, n, graph, uuid, label, rel);
                                             }
                                             e.setStyle(view.edgeStyle.resolve(rel));
 
@@ -329,7 +329,7 @@ public final strictfp class GraphViewer extends JPanel {
                                             n.ins.remove(n.ins.get(0));
 
                                             if(n.outs.get(0).b().shape() != null){
-                                                GraphEdge elast = new GraphEdge(n,endgn,uuid,label,rel);
+                                                GraphEdge elast = new GraphEdge(n, endgn, graph, uuid, label, rel);
                                                 elast.setStyle(view.edgeStyle.resolve(rel));
 
                                                 DotColor colorlast = view.edgeColor.resolve(rel);
@@ -586,7 +586,8 @@ public final strictfp class GraphViewer extends JPanel {
         int height = toBeShownGraph.getTotalHeight() + 100;
         //Create the graphviewer in a scroll panel. 
         JScrollPane diagramScrollPanel;
-        diagramScrollPanel = OurUtil.scrollpane(new GraphViewer(toBeShownGraph), new OurBorder(true, true, true, false));
+        GraphViewer view = new GraphViewer(toBeShownGraph); // [TODO] => correct cstr takes AlloyInstance, VizState and StaticGraphMaker
+        diagramScrollPanel = OurUtil.scrollpane(view, new OurBorder(true, true, true, false));
         diagramScrollPanel.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
             public void adjustmentValueChanged(AdjustmentEvent e) {
                 diagramScrollPanel.invalidate();

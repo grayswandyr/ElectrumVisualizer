@@ -233,31 +233,9 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * only)
      */
     private boolean needHighlight;
-
-    //===================================================================================================  
-    // Attributes needed for imbrication.
+    
     /**
-     * This field contains the children of this node if they exist.
-     */
-    private HashSet<GraphNode> children;
-
-    /**
-     * This field contains the subGraph of the node if it exists.
-     */
-    private Graph subGraph;
-    /**
-     * The integer representing the maximum depth level of representation of
-     * subgraphs of this GraphNode.
-     */
-    private int maxDepth;
-
-    /**
-     * This field contains the father of the node if it exists.
-     */
-    private GraphNode father = null;
-
-    /**
-     * This field is here to ensure we only layout the subgraph one time.
+     * [N7-M.Quentin] This field is here to ensure we only layout the subgraph one time.
      */
     private boolean layout = false;
 
@@ -267,9 +245,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * graph.
      */
     public GraphNode(Graph graph, Object uuid, String... labels) {
-        super(graph, uuid);
+        super(graph, uuid, null);
         this.pos = graph.nodelist.size();
-        this.children = new HashSet<>(); //[N7-R. Bossut, M. Quentin]	
         graph.nodelist.add(this);
         if (graph.layerlist.size() == 0) {
             graph.layerlist.add(new ArrayList<GraphNode>());
@@ -290,8 +267,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.numPorts.put(GraphPort.Orientation.South, 0);
         this.numPorts.put(GraphPort.Orientation.SouthEast, 0);
         this.numPorts.put(GraphPort.Orientation.SouthWest, 0);
-
-	this.maxDepth = 1;
     }
 
     //[N7-R.Bossut, M.Quentin]
@@ -306,14 +281,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * We let the calling method duplicate the subgraph and add duplicate nodes to children.
      */
     public GraphNode(GraphNode toBeCopied, Graph graph) {
-        super(graph, toBeCopied.uuid);
+        super(graph, toBeCopied.uuid, toBeCopied.getFather());
         this.pos = graph.nodelist.size();
-        this.color = toBeCopied.color;
-        this.fontBold = toBeCopied.fontBold;
-        this.style = toBeCopied.style;
-        this.set(toBeCopied.shape());
-        this.subGraph = null;
-        this.children = new HashSet<>(); //[N7-R. Bossut, M. Quentin]	
+        this.setColor(toBeCopied.getColor());
+        this.setFontBoldness(toBeCopied.getFontBoldness());
+        this.setStyle(toBeCopied.getStyle());
+        this.setShape(toBeCopied.shape());	
         this.maxDepth = toBeCopied.getMaxDepth() + 1; //We do not show the "upper depth" of the graph, we can show one level deeper.
         graph.nodelist.add(this);
         if (graph.layerlist.size() == 0) {
@@ -322,58 +295,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
         graph.layerlist.get(0).add(this);
         this.labels = toBeCopied.labels;
         this.numPorts = toBeCopied.numPorts;
-    }
-
-    /**
-     * Get the children of the Node. [N7-R. Bossut, M. Quentin]
-     */
-    public HashSet<GraphNode> getChildren() {
-        return this.children;
-    }
-
-    /**
-     * Get the SubGraph of the Node. [N7-R. Bossut, M. Quentin]
-     */
-    public Graph getSubGraph() {
-        subGraph = (subGraph == null) ? new Graph(1.0) : this.subGraph;
-        return (subGraph);
-    }
-
-    /**
-     * Get the father of the Node. [N7-R. Bossut, M. Quentin]
-     * @return the father
-     */
-    public GraphNode getFather() {
-        return father;
-    }
-
-    /**
-     * Set the father of the Node. [N7-R. Bossur, M. Quentin]
-     */
-    public void setFather(GraphNode father) {
-        this.father = father;
-    }
-
-    public boolean hasChild() {
-        return !(children.isEmpty());
-    }
-
-    /**
-     * Add a child to the family of the Node. [N7-R. Bossut, M. Quentin]
-     */
-    public void addChild(GraphNode gn) {
-        this.children.add(gn);
-        if (subGraph == null) subGraph = new Graph(1.0);
-        if (!(subGraph.nodelist.contains(gn))) {
-            subGraph.nodelist.add(gn);
-        }
-    }
-
-    /**
-     * Gets the depth level of the node. [N7-R.Bossut, M.Quentin]
-     */
-    public int getMaxDepth() {
-        return maxDepth;
     }
     
     /**
@@ -587,14 +508,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     /**
-     * Returns true if the given node is an ancestor of this.
-     * @param n the node we want to know if this is in it.
-     */
-    public boolean isContainedIn(GraphNode n){
-        return (getFather() == n) ? true : ((getFather() == null) ? false : getFather().isContainedIn(n));
-    }
-
-    /**
      * Draws this node at its current (x, y) location; this method will call
      * calcBounds() if necessary.
      */
@@ -611,12 +524,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
         final int subTop  = (subGraph == null ? 0 : subGraph.getTop()),
                   subLeft = (subGraph == null ? 0 : subGraph.getLeft());
         
-        gr.setStyle(this.getStyle(), scale);
+        gr.set(this.getStyle(), scale);
         
         int xgn = x(), ygn = y();
-        GraphNode gn = this;
-        while (gn.father != null) {
-            gn = gn.father;
+        AbstractGraphNode gn = this;
+        while (gn.getFather() != null) {
+            gn = gn.getFather();
             xgn += gn.x();
             ygn += gn.y();
         }
@@ -641,7 +554,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         
         int transX = x() - left, transY = y() - top;
         if (this.highlight()) {
-            if (father != null && cond) {
+            if (getFather() != null && cond) {
                 transX = xgn;
                 transY = ygn;
             }              
@@ -725,7 +638,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             } else { // Draw a "hider"
                 gr.setFont(true);
                 gr.set(DotStyle.SOLID, scale);
-                int clr = color.getRGB() & 0xFFFFFF;
+                int clr = getColor().getRGB() & 0xFFFFFF;
                 gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
                 if (labels != null && labels.size() > 0) {
                     int x = (-width / 2), y = -updown - labels.size()/2;
@@ -743,7 +656,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         
         // Draw label
         gr.set(DotStyle.SOLID, scale);
-        int clr = color.getRGB() & 0xFFFFFF;
+        int clr = getColor().getRGB() & 0xFFFFFF;
         gr.setColor((clr == 0x000000 || clr == 0xff0000 || clr == 0x0000ff) ? Color.WHITE : Color.BLACK);
         if (labels != null && labels.size() > 0) {
             if (hasChild() && maxDepth > 0) {
@@ -777,7 +690,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         
         // [N7-G. Dupont] Draw each ports
         for (GraphPort p : this.ports) {
-            p.draw(gr, scale);
+            p.draw(gr, scale, group);
         }
         
         gr.translate(left - x(), top - y());
@@ -851,8 +764,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         }
         
-        if ( !children.isEmpty() ) {
-            for (GraphNode child : children) {
+        if (hasChild()) {
+            for (GraphNode child : getChildren()) {
                 for (GraphEdge e : child.outs) {
                     AbstractGraphNode a = e.a();
                     a.graph.relayout_edges(false);
@@ -1046,7 +959,10 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * This manage to pass on the changes on the subgraph to fathers graphs.
      */
     void tweakFather(){
-        GraphNode father = getFather();
+        if (!(getFather() instanceof GraphNode)) {
+            throw new IllegalArgumentException("The father of this element is not a node!");
+        }
+        GraphNode father = (GraphNode)getFather();
         if (father != null){
           //Computes new bounds of the father.
           father.nestedNodeBounds();
@@ -1414,7 +1330,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         if (!(hasChild() && (maxDepth > 0)))
           return;
 
-        for (GraphNode gn : children) {
+        for (GraphNode gn : getChildren()) {
           if (gn.updown < 0) {
             gn.calcBounds();
           }
@@ -1546,84 +1462,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
 
    //===================================================================================================
     
-    /**
-     * Express an X coordinate in a reference into another reference
-     * @param startx initial coordinate
-     * @param rstart start reference
-     * @param rtarget target reference
-     * @return new coordinate
-     */
-    public static double transformX(double startx, GraphNode rstart, GraphNode rtarget) {
-        double x = startx;
-        GraphNode n = rstart;
-        while (n != null && n.father != null) {
-            n = n.father;
-            x += n.x();
-        }
-        n = rtarget;
-        while (n != null) {
-            x -= n.x();
-            n = n.father;
-        }
-        return x;
-    }
-    
-    /**
-     * Express an Y coordinate in a reference into another reference
-     * @param starty initial coordinate
-     * @param rstart start reference
-     * @param rtarget target reference
-     * @return new coordinate
-     */
-    public static double transformY(double starty, GraphNode rstart, GraphNode rtarget) {
-        double y = starty;
-        GraphNode n = rstart;
-        while (n != null && n.father != null) {
-            n = n.father;
-            y += n.y();
-        }
-        n = rtarget;
-        while (n != null) {
-            y -= n.y();
-            n = n.father;
-        }
-        return y;
-    }
-    
-    /**
-     * Express the X coordinate of this node relatively to another node
-     * @param root the other node to express the coordinate in
-     * @return the relative X coordinate
-     */
-    public double relativeX(GraphNode root) {
-        return transformX(this.x(), this, root);
-    }
-    
-    /**
-     * Express the Y coordinate of this node relatively to another node
-     * @param root the other node to express the coordinate in
-     * @return the relative Y coordinate
-     */
-    public double relativeY(GraphNode root) {
-        return transformY(this.y(), this, root);
-    }
-    
-    /**
-     * Express the global X coordinate
-     * @return the global X coordinate in the root reference
-     */
-    public double absoluteX() {
-        return relativeX(null);
-    }
-    
-    /**
-     * Express the global Y coordinate
-     * @return the global Y coordinate in the root reference
-     */
-    public double absoluteY() {
-        return relativeY(null);
-    }
-    
 
     //===================================================================================================
     /**
@@ -1684,12 +1522,5 @@ public strictfp class GraphNode extends AbstractGraphNode {
     
     public boolean getNeedHighlight(){
         return needHighlight;
-    }
-    
-    /**
-     * Getter for labels
-     */
-    public List<String> getLabels(){
-        return labels;
     }
 }

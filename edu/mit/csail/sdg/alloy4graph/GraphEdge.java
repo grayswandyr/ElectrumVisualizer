@@ -183,8 +183,8 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         this.label = toBeCopied.label;
         this.ahead = toBeCopied.ahead;
         this.bhead = toBeCopied.bhead;
-        this.style = toBeCopied.style;
-        this.color = toBeCopied.color;
+        this.setStyle(toBeCopied.getStyle());
+        this.setColor(toBeCopied.getColor());
         //Create a new labelebox.
         if (this.label.length() > 0) {
             Rectangle2D box = getBounds(false, label);
@@ -425,13 +425,17 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
                     n++;
                 }
             }
-            /**
-             * [N7] @Louis Fauvarque Adds the case of GraphPorts
-             */
-            double cx = in.relativeX(out.getFather()), cy = in.relativeY(out.getFather());
-            if (!(b instanceof GraphNode)) {
-                cx += ((GraphPort) b).node.x();
-                cy += ((GraphPort) b).node.y();
+
+            AbstractGraphNode in = b, out = a;
+            if (b instanceof GraphPort)
+                in = ((GraphPort)b).node;
+            if (a instanceof GraphPort)
+                out = ((GraphPort)a).node;
+            double cx = in.relativeX(out.getFather());
+            double cy = in.relativeY(out.getFather());
+            if (b instanceof GraphPort) {
+                cx += b.x();
+                cy += b.y();
             }
 
             double bx = (ax + cx) / 2, by = (ay + cy) / 2;
@@ -559,15 +563,15 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         int top = 0, left = 0;
                     
         if (a instanceof GraphNode && ((GraphNode)a).getFather() != null) {
-            GraphNode gna = (GraphNode)a;
-            top = gna.getFather().getSubGraph().getTop(); left = gna.getFather().getSubGraph().getLeft();
+            top = a.getFather().getSubGraph().getTop();
+            left = a.getFather().getSubGraph().getLeft();
         } else {
             top = a.graph.getTop(); left = a.graph.getLeft();
         }
         
         int transX=-left, transY=-top;
         if (this.highlight()) {
-            GraphNode gn = (GraphNode) a;
+            AbstractGraphNode gn = a;
             if (gn.getFather() != null) {
                 transX = 0; transY = 0;
                 while (gn.getFather() != null) {
@@ -617,7 +621,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
         gr.translate(-transX, -transY);
         
         if (highEdge==null && highGroup==null && label.length()>0) {
-            drawLabel(gr, color, null);
+            drawLabel(gr, getColor(), null);
         }
         drawArrowhead(gr, scale, highEdge, highGroup);
     }
@@ -634,8 +638,8 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             final int top = a.graph.getTop(), left = a.graph.getLeft();
 
             int transX=-left, transY=-top;
-            if (this.highlight() && gn.getFather() != null) {
-                GraphNode gn = (GraphNode) a;
+            if (this.highlight()) {
+                AbstractGraphNode gn = a;
                 while (gn.getFather() != null) {
                     gn = gn.getFather();
                     transX += gn.x();
@@ -677,7 +681,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
 
         int transX=0, transY=0;
         if (this.highlight() && b instanceof GraphNode) {
-            GraphNode bgn = (GraphNode) b;
+            AbstractGraphNode bgn = b;
             if (bgn.getFather() != null) {
                 while (bgn.getFather() != null) {
                     bgn = bgn.getFather();

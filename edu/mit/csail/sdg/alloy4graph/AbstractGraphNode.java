@@ -17,6 +17,7 @@
 package edu.mit.csail.sdg.alloy4graph;
 
 import java.awt.Color;
+import java.util.HashSet;
 import javax.swing.JLabel;
 import java.util.LinkedList;
 
@@ -65,13 +66,83 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      */
     private boolean fontBoldness = false;
     
+    //===================================================================================================  
+    // Attributes needed for imbrication.
+    /**
+     * This field contains the children of this node if they exist.
+     */
+    private HashSet<GraphNode> children = new HashSet<>(); //[N7-R. Bossut, M. Quentin];
+
+    /**
+     * This field contains the subGraph of the node if it exists.
+     */
+    /*package*/ Graph subGraph = null;
+    /**
+     * The integer representing the maximum depth level of representation of
+     * subgraphs of this GraphNode.
+     */
+    /*package*/ int maxDepth;
+    
+    /**
+     * This field contains the father of the node if it exists.
+     */
+    private AbstractGraphNode father = null;
+    
     /**
      * Constructor.
      * @param graph the graph this element belongs to
      * @param uuid the element's uuid
      */
-    public AbstractGraphNode(Graph graph, Object uuid) {
+    public AbstractGraphNode(Graph graph, Object uuid, AbstractGraphNode fat) {
         super(graph, uuid);
+        this.father = fat;
+        this.maxDepth = 1;
+    }
+    
+    /**
+     * Get the children of the Node. [N7-R. Bossut, M. Quentin]
+     */
+    public HashSet<GraphNode> getChildren() {
+        return this.children;
+    }
+
+    /**
+     * Get the SubGraph of the Node. [N7-R. Bossut, M. Quentin]
+     */
+    public Graph getSubGraph() {
+        subGraph = (subGraph == null) ? new Graph(1.0) : this.subGraph;
+        return (subGraph);
+    }
+
+    /**
+     * Set the father of the Node. [N7-R. Bossur, M. Quentin]
+     */
+    public void setFather(GraphNode father) {
+        this.father = father;
+    }
+
+    public boolean hasChild() {
+        return !(children.isEmpty());
+    }
+
+    /**
+     * Add a child to the family of the Node. [N7-R. Bossut, M. Quentin]
+     */
+    public void addChild(GraphNode gn) {
+        this.children.add(gn);
+        if (subGraph == null) subGraph = new Graph(1.0);
+        if (!(subGraph.nodelist.contains(gn))) {
+            subGraph.nodelist.add(gn);
+        }
+    }
+
+    /** 
+     * Get the maxDepth of the element.
+     * This function is abstract as it depends of the type of node.
+     * @return the maximum depth of this element.
+     */
+    public int getMaxDepth() {
+        return maxDepth;
     }
     
     /**
@@ -156,7 +227,7 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
         return fontBoldness;
     }
     
-    public void setFondBoldness(boolean fb) {
+    public void setFontBoldness(boolean fb) {
         fontBoldness = fb;
     }
     
@@ -181,11 +252,99 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      * @return number of the layer
      */
     abstract int layer();
-
-    /** 
-     * Get the maxDepth of the element.
-     * This function is abstract as it depends of the type of node.
-     * @return the maximum depth of this element.
+    
+    /**
+     * Get the father of this node.
+     * In the case where it is a node, it will return the father.
+     * In the case where it is a port, it will return the father of the parent node.
      */
-    public abstract int getMaxDepth();
+    public AbstractGraphNode getFather() {
+        return this.father;
+    }
+    
+    /**
+     * Returns true if the given node is an ancestor of this.
+     * @param n the node we want to know if this is in it.
+     */
+    public boolean isContainedIn(AbstractGraphNode n) {
+        return (getFather() == n) || (getFather() != null && getFather().isContainedIn(n));
+    }
+    
+    /**
+     * Express an X coordinate in a reference into another reference
+     * @param startx initial coordinate
+     * @param rstart start reference
+     * @param rtarget target reference
+     * @return new coordinate
+     */
+    public static double transformX(double startx, AbstractGraphNode rstart, AbstractGraphNode rtarget) {
+        double x = startx;
+        AbstractGraphNode n = rstart;
+        while (n != null && n.getFather() != null) {
+            n = n.getFather();
+            x += n.x();
+        }
+        n = rtarget;
+        while (n != null) {
+            x -= n.x();
+            n = n.getFather();
+        }
+        return x;
+    }
+    
+    /**
+     * Express an Y coordinate in a reference into another reference
+     * @param starty initial coordinate
+     * @param rstart start reference
+     * @param rtarget target reference
+     * @return new coordinate
+     */
+    public static double transformY(double starty, AbstractGraphNode rstart, AbstractGraphNode rtarget) {
+        double y = starty;
+        AbstractGraphNode n = rstart;
+        while (n != null && n.getFather() != null) {
+            n = n.getFather();
+            y += n.y();
+        }
+        n = rtarget;
+        while (n != null) {
+            y -= n.y();
+            n = n.getFather();
+        }
+        return y;
+    }
+    
+    /**
+     * Express the X coordinate of this node relatively to another node
+     * @param root the other node to express the coordinate in
+     * @return the relative X coordinate
+     */
+    public double relativeX(AbstractGraphNode root) {
+        return transformX(this.x(), this, root);
+    }
+    
+    /**
+     * Express the Y coordinate of this node relatively to another node
+     * @param root the other node to express the coordinate in
+     * @return the relative Y coordinate
+     */
+    public double relativeY(AbstractGraphNode root) {
+        return transformY(this.y(), this, root);
+    }
+    
+    /**
+     * Express the global X coordinate
+     * @return the global X coordinate in the root reference
+     */
+    public double absoluteX() {
+        return relativeX(null);
+    }
+    
+    /**
+     * Express the global Y coordinate
+     * @return the global Y coordinate in the root reference
+     */
+    public double absoluteY() {
+        return relativeY(null);
+    }
 }

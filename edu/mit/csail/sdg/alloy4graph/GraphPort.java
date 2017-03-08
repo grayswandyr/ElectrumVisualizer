@@ -374,7 +374,7 @@ public class GraphPort extends AbstractGraphNode {
      * @param or side of the node on which the port will be
      */
     public GraphPort(GraphNode node, Object uuid, String label, Orientation or) {
-        super(node.graph, uuid);
+        super(node.graph, uuid, node.getFather());
         this.node = node;
         this.label = label;
         this.orientation = or;
@@ -958,6 +958,11 @@ public class GraphPort extends AbstractGraphNode {
     @Override
     public String toString() {
         return this.label+"["+this.orientation+"]";
+    }
+    
+    @Override
+    public int getMaxDepth() {
+        return this.node.getMaxDepth();
     }
 }
 
