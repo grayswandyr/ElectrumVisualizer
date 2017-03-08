@@ -92,7 +92,7 @@ public final class StaticGraphMaker {
      * This maps each atom to the node representing it; if an atom doesn't have
      * a node, it won't be in the map.
      */
-    private final Map<AlloyAtom, GraphNode> atom2node = new LinkedHashMap<AlloyAtom, GraphNode>();
+    private final Map<AlloyAtom, List<GraphNode>> atom2node = new LinkedHashMap<AlloyAtom, List<GraphNode>>();
 
     /**
      * [N7] @Louis Fauvarque
@@ -195,6 +195,18 @@ public final class StaticGraphMaker {
         
         for (AlloyAtom port : portList) {
             view.nodeVisible.put(port.getType(), Boolean.FALSE);
+        }
+        
+        // Node magic colors
+        List<Color> colors;
+        if (view.getEdgePalette() == DotPalette.CLASSIC) {
+            colors = colorsClassic;
+        } else if (view.getEdgePalette() == DotPalette.STANDARD) {
+            colors = colorsStandard;
+        } else if (view.getEdgePalette() == DotPalette.MARTHA) {
+            colors = colorsMartha;
+        } else {
+            colors = colorsNeon;
         }
         
         // Ports magic colors
@@ -312,7 +324,7 @@ public final class StaticGraphMaker {
                                 ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
                                 couple.add(startPort);
                                 couple.add(endPort);
-                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                new GraphEdge(startNode, endNode, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
                             }
                         }
                     }
@@ -349,7 +361,7 @@ public final class StaticGraphMaker {
                                 ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
                                 couple.add(startNode);
                                 couple.add(endPort);
-                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                new GraphEdge(startNode, endNode, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
                             }
                         }
                     }
@@ -386,7 +398,7 @@ public final class StaticGraphMaker {
                                 ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
                                 couple.add(startPort);
                                 couple.add(endNode);
-                                new GraphEdge(startNode,endNode, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                new GraphEdge(startNode, endNode, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
                             }
                         }
                     }
@@ -1083,6 +1095,6 @@ public final class StaticGraphMaker {
     }
             
     public GraphNode getNodeFromAtom(AlloyAtom at){
-        return atom2node.get(at);
+        return atom2node.get(at); // TODO: atom2node now gets a list
     }
 }
