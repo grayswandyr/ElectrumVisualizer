@@ -1413,7 +1413,7 @@ public final strictfp class Graph {
                 return n;
             }
         }
-        for (GraphEdge e : edges) {
+        for (GraphNode n : nodes) {
             if (n.shape() == null && Math.abs(n.x() - x) < 10 && Math.abs(n.y() - y) < 10) {
                 //[N7-R.Bossut, M.Quentin]
                 // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.

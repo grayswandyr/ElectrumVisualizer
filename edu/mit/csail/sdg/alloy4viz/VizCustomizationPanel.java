@@ -580,9 +580,7 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel back = vizState.layoutBack.pick(rel, "Layout backwards", "Layout graph as if arcs were reversed");
         JPanel merge = vizState.mergeArrows.pick(rel, "Merge arrows", "Merge opposing arrows between the same nodes as one bidirectional arrow");
         JPanel constraint = vizState.constraint.pick(rel, "Influence layout", "Whether this edge influences the graph layout");
-        
-<<<<<<< HEAD
-        
+                
         /**
          * [N7] @Julien Richer
          * Ports settings
@@ -683,13 +681,14 @@ public final class VizCustomizationPanel extends JPanel {
         
         // Initialization of the ports settings activation
         Boolean portChecked = vizState.isPort.resolve(rel);
+        Boolean contChecked = vizState.containmentRel.resolve(rel);
         // Enabled
         orientBox.setEnabled(portChecked);
         colorBox.setEnabled(portChecked);
         shapeBox.setEnabled(portChecked);
         portLabel.setEnabled(portChecked);
         // Disabled
-        visible.setEnabled(!portChecked);
+        visible.setEnabled(!portChecked || !contChecked);
         weightSpinner.setEnabled(!portChecked);
         color.setEnabled(!portChecked);
         style.setEnabled(!portChecked);
@@ -713,10 +712,17 @@ public final class VizCustomizationPanel extends JPanel {
             }
         });
 
+        // [N7] M. Quentin & R. Bossut
+        // Checkbox to define relations as containment relations
+        JPanel contains = vizState.containmentRel.pick(rel, "Show as containment", "Show relation as containment relation.", new VizState.Callback<Boolean>() {
+            public void call(Boolean a) {
+                visible.setEnabled(!a);
+            }
+        });
         
         // Panels layout
-        JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, port, portLabel);
-        JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, constraint);
+        JPanel panel1 = OurUtil.makeVR(wcolor, visible, attr, contains, port);
+        JPanel panel2 = OurUtil.makeVR(wcolor, back, merge, constraint, portLabel);
         
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
@@ -725,7 +731,7 @@ public final class VizCustomizationPanel extends JPanel {
         JPanel panelPort = OurUtil.makeHB(wcolor, orientPanel, colorPanel, shapePanel);
 
         parent.add(OurUtil.makeVL(wcolor, panelPort));
-
+/*
         visible.setEnabled(!vizState.containmentRel.resolve(rel));
         JPanel contains = vizState.containmentRel.pick(rel, "Show as containment", "Show relation as containment relation.", new VizState.Callback<Boolean>() {
             public void call(Boolean a) {
@@ -738,11 +744,11 @@ public final class VizCustomizationPanel extends JPanel {
         parent.add(makelabel("<html>&nbsp;" + Util.encode(rel.toString()) + "</html>"));
         parent.add(OurUtil.makeH(10, labelText, wcolor, 5, color, 5, style, 3, weightPanel, 2, null));
         parent.add(OurUtil.makeHT(wcolor, 10, panel3, 15, panel4, 2, null));
-       
+        
         // If we are in a containing relation, then show as arc doesn't work anymore
         if (vizState.containmentRel.resolve(rel)) {
             visible.setEnabled(false);
-        }
+        }*/
     }
 
     //=============================================================================================================//
@@ -910,7 +916,7 @@ public final class VizCustomizationPanel extends JPanel {
         parent.add(OurUtil.makeH(wcolor, 25, mLabel, 5, meta, 2, null));
         parent.add(OurUtil.makeH(wcolor, 25, hideLabel, 5, hideLabelPanel, 2, null)); // [N7] @Julien Richer
 
-        parent.add(OurUtil.makeH(wcolor, 25, pLabel, 5, priv, 10, mLabel, 5, meta, 2, null));
+        //parent.add(OurUtil.makeH(wcolor, 25, pLabel, 5, priv, 10, mLabel, 5, meta, 2, null));
         parent.add(OurUtil.makeH(wcolor, 20, depthPanel, 2, null));
     }
 
