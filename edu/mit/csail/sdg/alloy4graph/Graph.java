@@ -130,7 +130,7 @@ public final strictfp class Graph {
      * GraphNode.pos (every node is in exactly one graph's nodelist, and appears
      * exactly once in that graph's nodelist)
      */
-    final List<GraphNode> nodelist = new ArrayList<GraphNode>();
+    final List<AbstractGraphNode> nodelist = new ArrayList<AbstractGraphNode>();
 
     /**
      * The list of edges; must stay in sync with GraphEdge.a.graph and
@@ -154,7 +154,7 @@ public final strictfp class Graph {
     /**
      * An unmodifiable view of the list of nodes.
      */
-    public final List<GraphNode> nodes = Collections.unmodifiableList(nodelist);
+    public final List<AbstractGraphNode> nodes = Collections.unmodifiableList(nodelist);
 
     /**
      * An unmodifiable view of the list of edges.
@@ -221,7 +221,7 @@ public final strictfp class Graph {
      * Moves the graph.
      */
     public void move(int dispTop, int dispLeft){
-        for (GraphNode n : nodes){
+        for (AbstractGraphNode n : nodes){
           n.move(dispLeft, dispTop);
         }
         recalcBound(true);
@@ -258,17 +258,17 @@ public final strictfp class Graph {
     /**
      * Sort the list of nodes according to the order in the given list.
      */
-    void sortNodes(Iterable<GraphNode> newOrder) {
+    void sortNodes(Iterable<AbstractGraphNode> newOrder) {
         // The nodes that are common to this.nodelist and newOrder are moved to the front of the list, in the given order.
         // The nodes that are in this.nodelist but not in newOrder are moved to the back in an unspecified order.
         // The nodes that are in newOrder but not in this.nodelist are ignored.
         int i = 0, n = nodelist.size();
         again:
-        for (GraphNode x : newOrder) {
+        for (AbstractGraphNode x : newOrder) {
             for (int j = i; j < n; j++) {
                 if (nodelist.get(j) == x) {
                     if (i != j) {
-                        GraphNode tmp = nodelist.get(i);
+                        AbstractGraphNode tmp = nodelist.get(i);
                         nodelist.set(i, x);
                         nodelist.set(j, tmp);
                     }
@@ -278,8 +278,9 @@ public final strictfp class Graph {
             }
         }
         i = 0;
-        for (GraphNode x : nodelist) {
-            x.pos = i;
+        for (AbstractGraphNode x : nodelist) {
+            if (x instanceof GraphNode)
+                ((GraphNode)x).pos = i;
             i++;
         }
     }
@@ -323,16 +324,16 @@ public final strictfp class Graph {
         // Now, allocate 2n+1 bins labeled -n .. n
         // Note: inside this method, whenever we see #in and #out, we ignore repeated edges.
         // Note: since Java ArrayList always start at 0, we'll index it by adding "n" to it.
-        final List<List<GraphNode>> bins = new ArrayList<List<GraphNode>>(2 * num + 1);
+        final List<List<AbstractGraphNode>> bins = new ArrayList<List<AbstractGraphNode>>(2 * num + 1);
         for (int i = 0; i < 2 * num + 1; i++) {
-            bins.add(new LinkedList<GraphNode>());
+            bins.add(new LinkedList<AbstractGraphNode>());
         }
         // For each N, figure out its in-neighbors and out-neighbors, then put it in the correct bin
         ArrayList<LinkedList<GraphNode>> grIN = new ArrayList<LinkedList<GraphNode>>(num);
         ArrayList<LinkedList<GraphNode>> grOUT = new ArrayList<LinkedList<GraphNode>>(num);
         int[] grBIN = new int[num];
-        for (GraphNode n : nodes) {
-            int ni = n.pos();
+        for (AbstractGraphNode n : nodes) {
+            int ni = n.pos;
             LinkedList<GraphNode> in = new LinkedList<GraphNode>(), out = new LinkedList<GraphNode>();
             for (GraphEdge e : n.ins) {
                 if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
@@ -368,9 +369,9 @@ public final strictfp class Graph {
             // bin[n + n] = { v | #in=0 and #out>0 }
         }
         // Main loop
-        final LinkedList<GraphNode> s1 = new LinkedList<GraphNode>(), s2 = new LinkedList<GraphNode>();
+        final LinkedList<AbstractGraphNode> s1 = new LinkedList<AbstractGraphNode>(), s2 = new LinkedList<AbstractGraphNode>();
         while (true) {
-            GraphNode x = null;
+            AbstractGraphNode x = null;
             if (!bins.get(0).isEmpty()) {
                 // If a sink exists, take a sink X and prepend X to S2
                 x = bins.get(0).remove(bins.get(0).size() - 1);
@@ -378,7 +379,7 @@ public final strictfp class Graph {
             } else {
                 for (int j = 2 * num; j > 0; j--) {
                     // Otherwise, let x be a source if one exists, or a node with the highest #out-#in. Then append X to S1.
-                    List<GraphNode> bin = bins.get(j);
+                    List<AbstractGraphNode> bin = bins.get(j);
                     int sz = bin.size();
                     if (sz > 0) {
                         x = bin.remove(sz - 1);
@@ -390,14 +391,14 @@ public final strictfp class Graph {
             if (x == null) {
                 break; // This means we're done; else, delete X from its bin, and move each of X's neighbor into their new bin
             }
-            bins.get(grBIN[x.pos()]).remove(x);
-            for (GraphNode n : grIN.get(x.pos())) {
+            bins.get(grBIN[x.pos]).remove(x);
+            for (GraphNode n : grIN.get(x.pos)) {
                 grOUT.get(n.pos()).remove(x);
             }
-            for (GraphNode n : grOUT.get(x.pos())) {
+            for (GraphNode n : grOUT.get(x.pos)) {
                 grIN.get(n.pos()).remove(x);
             }
-            for (GraphNode n : Util.fastJoin(grIN.get(x.pos()), grOUT.get(x.pos()))) {
+            for (GraphNode n : Util.fastJoin(grIN.get(x.pos), grOUT.get(x.pos))) {
                 int ni = n.pos(), out = grOUT.get(ni).size(), in = grIN.get(ni).size();
                 int b = (out == 0) ? 0 : (in == 0 ? (2 * num) : (out - in + num));
                 if (grBIN[ni] != b) {
@@ -437,7 +438,7 @@ public final strictfp class Graph {
         // Here, for each node X, I compute its maximum length to a sink; if X is a sink, its length to sink is 0.
         final int n = nodes.size();
         int[] len = new int[n];
-        for (GraphNode x : nodes) {
+        for (AbstractGraphNode x : nodes) {
             // Since we ensured that arrows only ever go from a node with bigger pos() to a node with smaller pos(),
             // we can compute the "len" array in O(n) time by visiting each node IN THE SORTED ORDER
             int max = 0;
@@ -453,16 +454,17 @@ public final strictfp class Graph {
                 }
               }
             }
-            len[x.pos()] = max;
+            len[x.pos] = max;
         }
         // Now, we simply do the simplest thing: assign each node to the layer corresponding to its max-length-to-sink.
-        for (GraphNode x : nodes) {
-            x.setLayer(len[x.pos()]);
+        for (AbstractGraphNode x : nodes) {
+            if (x instanceof GraphNode)
+                ((GraphNode)x).setLayer(len[x.pos]);
         }
         // Now, apply a simple trick: whenever every one of X's incoming edge is more than one layer above, then move X up
         while (true) {
             boolean changed = false;
-            for (GraphNode x : nodes) {
+            for (AbstractGraphNode x : nodes) {
                 if (x.ins.size() > 0) {
                     int closestLayer = layers() + 1;
                     for (GraphEdge e : x.ins) {
@@ -475,7 +477,8 @@ public final strictfp class Graph {
                         }
                     }
                     if (closestLayer - 1 > x.layer()) {
-                        x.setLayer(closestLayer - 1);
+                        if (x instanceof GraphNode)
+                            ((GraphNode)x).setLayer(closestLayer - 1);
                         changed = true;
                     }
                 }
@@ -619,7 +622,7 @@ public final strictfp class Graph {
     public void layoutSubGraph() {
         //================================= Creation of the subGraph layers ================================================= //
         // This is the set containing all the children of the father node
-        HashSet<GraphNode> children = new HashSet<>();
+        HashSet<AbstractGraphNode> children = new HashSet<>();
         children.addAll(this.nodes);
         
         // The number of incoming and outgoing edges within the subGraph
@@ -627,10 +630,10 @@ public final strictfp class Graph {
         int nIns;
 
         // The map containing the layers and ordered according to the sum of nIns and nOuts
-        TreeMap<Integer, ArrayList<GraphNode>> nodaList = new TreeMap<Integer, ArrayList<GraphNode>>();
+        TreeMap<Integer, ArrayList<AbstractGraphNode>> nodaList = new TreeMap<Integer, ArrayList<AbstractGraphNode>>();
 
         // We fill the Map
-        for (GraphNode child : children) {
+        for (AbstractGraphNode child : children) {
             nOuts = 0;
             nIns = 0;
 
@@ -659,7 +662,7 @@ public final strictfp class Graph {
             }
 
             // Now we can construct the layers and add them to the Map
-            ArrayList<GraphNode> auxList;
+            ArrayList<AbstractGraphNode> auxList;
             if (nodaList.get(nOuts + nIns) == null) {
                 auxList = new ArrayList<>();
                 auxList.add(child);
@@ -689,12 +692,15 @@ public final strictfp class Graph {
         // We fill the two list
         int childHeight;
         int i = nbLayers;
-        ArrayList<GraphNode> currentLayer;
-        for (ArrayList<GraphNode> childList : nodaList.values()) { //for (List<GraphNode> childList : layerlist)
-            currentLayer= new ArrayList<GraphNode>();
+        ArrayList<AbstractGraphNode> currentLayer;
+        for (ArrayList<AbstractGraphNode> childList : nodaList.values()) { //for (List<GraphNode> childList : layerlist)
+            currentLayer= new ArrayList<AbstractGraphNode>();
             int maxLayerHeight = 0;
-            for (GraphNode child : childList) {
-                child.setLayer(nbLayers - i);
+            for (AbstractGraphNode child : childList) {
+                if (!(child instanceof GraphNode))
+                    continue;
+                
+                ((GraphNode)child).setLayer(nbLayers - i);
                 currentLayer.add(child);
 
                 childHeight = child.getHeight();
@@ -723,19 +729,19 @@ public final strictfp class Graph {
 
         int layer = 0;
         int maxHeight;
-        for (ArrayList<GraphNode> childList : nodaList.values()) {
+        for (ArrayList<AbstractGraphNode> childList : nodaList.values()) {
             layer = childList.get(0).layer();
             startX = (childList.size() > 1) ? -layerWidth[layer] / 2 + GraphNode.xJumpNode : 0;
 
             // The height can vary from a node to an other, so we have to consider the biggest height for the layer
             maxHeight = 0;
-            for (GraphNode child : childList) {
+            for (AbstractGraphNode child : childList) {
                 childHeight = child.getHeight();
                 maxHeight = Math.max(childHeight, maxHeight);
             }
             startY -= (layer > 0) ? maxHeight / 2 : 0;
 
-            for (GraphNode child : childList) {
+            for (AbstractGraphNode child : childList) {
 
                 startX += (childList.size() > 1) ? child.getWidth() / 2 : 0;
 
@@ -756,12 +762,12 @@ public final strictfp class Graph {
      * The method takes the nodaList as the entry and computes the good layers in
      * order to respect the fact that two linked nodes can be in the same layer.
      */
-    private void layout_decideLayerSubGraph(TreeMap<Integer, ArrayList<GraphNode>> nodaList) {
+    private void layout_decideLayerSubGraph(TreeMap<Integer, ArrayList<AbstractGraphNode>> nodaList) {
         // The temporary list used to do the calculations
-        List<List<GraphNode>> tempList = new ArrayList<>();
+        List<List<AbstractGraphNode>> tempList = new ArrayList<>();
 
         // We fill the list using the nodaLIst data
-        for (ArrayList<GraphNode> list : nodaList.values()) {
+        for (ArrayList<AbstractGraphNode> list : nodaList.values()) {
             tempList.add(list);
         }
 
@@ -770,10 +776,10 @@ public final strictfp class Graph {
 
         int listSize = tempList.size(); // This integer is used to cumpute dynamically the size of the tempList
         for (int k = 0; k < listSize; k++) {
-            List<GraphNode> list = tempList.get(k);
+            List<AbstractGraphNode> list = tempList.get(k);
             int cpt = list.size(); //This integer is used to compute dynamically the size of the list
             for (int j = 0; j < cpt; j++) {
-                GraphNode gn = list.get(j);
+                AbstractGraphNode gn = list.get(j);
                 for (GraphEdge e : gn.outs) {
                   if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
                     if (e.b() instanceof GraphNode) {
@@ -781,7 +787,7 @@ public final strictfp class Graph {
                             list.remove(gn);
                             cpt--;
                             if (k + 1 >= tempList.size()) {
-                                List<GraphNode> auxList = new ArrayList<GraphNode>();
+                                List<AbstractGraphNode> auxList = new ArrayList<AbstractGraphNode>();
                                 auxList.add(gn);
                                 tempList.add(k + 1, auxList);
                                 listSize++;
@@ -986,7 +992,7 @@ public final strictfp class Graph {
             b = tmp;
         }
         Line2D.Double line = new Line2D.Double(a.x(), a.y(), b.x(), b.y());
-        for (GraphNode n : nodes) {
+        for (AbstractGraphNode n : nodes) {
             if (n != a && n != b && a.layer() < n.layer() && n.layer() < b.layer() && n.shape() != null) {
                 if (line.intersects(n.getBoundingBox(10, 10))) {
                     return false;
@@ -1007,8 +1013,9 @@ public final strictfp class Graph {
         }
 
         // Calculate each node's width and height
-        for (GraphNode n : nodes) {
-            n.calcBounds();
+        for (AbstractGraphNode n : nodes) {
+            if (n instanceof GraphNode)
+                ((GraphNode)n).calcBounds();
         }
 
         // Layout the nodes
@@ -1083,7 +1090,7 @@ public final strictfp class Graph {
         // Find the leftmost and rightmost pixel
         int minX = nodes.get(0).x() - nodes.get(0).getWidth() / 2 - 5;
         int maxX = nodes.get(0).x() + nodes.get(0).getWidth() / 2 + nodes.get(0).getReserved() + 5;
-        for (GraphNode n : nodes) {
+        for (AbstractGraphNode n : nodes) {
             int min = n.x() - n.getWidth() / 2 - 5;
             if (minX > min) {
                 minX = min;
@@ -1152,7 +1159,7 @@ public final strictfp class Graph {
         // Move pairs of virtual nodes to straighten the lines if possible
         if (straighten) {
             for (int i = 0; i < 5; i++) {
-                for (GraphNode n : nodes) {
+                for (AbstractGraphNode n : nodes) {
                     if (n.shape() == null) {
                         GraphEdge e1 = n.ins.get(0), e2 = n.outs.get(0);
                         if (!(e1.a() instanceof GraphNode) || !(e2.b() instanceof GraphNode)) {
@@ -1255,7 +1262,7 @@ public final strictfp class Graph {
         }
         // Now, for each edge, adjust its arrowhead and label.
         AvailableSpace sp = new AvailableSpace();
-        for (GraphNode n : nodes) {
+        for (AbstractGraphNode n : nodes) {
             if (n.shape() != null) {
                 sp.add(n.x() - n.getWidth() / 2, n.y() - n.getHeight() / 2, n.getWidth() + n.getReserved(), n.getHeight());
             }
@@ -1353,7 +1360,7 @@ public final strictfp class Graph {
         }
         // Now, for each edge, adjust its arrowhead and label.
         AvailableSpace sp = new AvailableSpace();
-        for (GraphNode n : nodes) {
+        for (AbstractGraphNode n : nodes) {
             if (n.shape() != null) {
                 sp.add(n.x() - n.getWidth() / 2, n.y() - n.getHeight() / 2, n.getWidth() + n.getReserved(), n.getHeight());
             }
@@ -1398,11 +1405,13 @@ public final strictfp class Graph {
                 return e.getKey();
             }
         }
-        for (GraphNode n : nodes) {
-            // [N7-G.Dupont] Added finding in the ports of each nodes
-            for (GraphPort p : n.ports) {
-                if (p.contains(x, y)) {
-                    return p;
+        for (AbstractGraphNode n : nodes) {
+            if (n instanceof GraphNode) {
+                // [N7-G.Dupont] Added finding in the ports of each nodes
+                for (GraphPort p : ((GraphNode)n).ports) {
+                    if (p.contains(x, y)) {
+                        return p;
+                    }
                 }
             }
             
@@ -1413,7 +1422,7 @@ public final strictfp class Graph {
                 return n;
             }
         }
-        for (GraphNode n : nodes) {
+        for (AbstractGraphNode n : nodes) {
             if (n.shape() == null && Math.abs(n.x() - x) < 10 && Math.abs(n.y() - y) < 10) {
                 //[N7-R.Bossut, M.Quentin]
                 // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.
@@ -1486,7 +1495,7 @@ public final strictfp class Graph {
                 return e.getKey();
             }
         }
-        for (GraphNode n : nodes) {
+        for (AbstractGraphNode n : nodes) {
             if (n.shape() == null && Math.abs(n.x() - x) < 10 && Math.abs(n.y() - y) < 10) {
                 //[N7-R.Bossut, M.Quentin]
                 // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.
@@ -1590,7 +1599,7 @@ public final strictfp class Graph {
             group = highlight;
         }
         //Draw the nodes first
-        for (GraphNode n : nodes) {
+        for (AbstractGraphNode n : nodes) {
             if (highFirstNode != n && highLastNode != n) {
                 n.setHighlight(n == highlight); // [N7-G.Dupont]
                 n.draw(gr, scale, group);
@@ -1601,7 +1610,7 @@ public final strictfp class Graph {
         // we must make sure we only draw out edges from non-dummy-nodes
         // Draws the unselected edges
         int maxAscent = Artist.getMaxAscent();
-        for (GraphNode n : nodes) {
+        for (AbstractGraphNode n : nodes) {
             if (n.shape() != null) {
                 for (GraphEdge e : n.outs) {
                     if (e.group != group && !e.highlight() && e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
@@ -1618,22 +1627,24 @@ public final strictfp class Graph {
                  * [N7] @Louis Fauvarque
                  * Draw the Edges between the ports
                  */
-                for (GraphPort port : n.ports) {
-                    for (GraphEdge e : port.outs) {
-                        if (e != null && e.group != group && !e.highlight() && e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
-                            e.draw(gr, scale, highFirstEdge, group);
+                if (n instanceof GraphNode) {
+                    for (GraphPort port : ((GraphNode)n).ports) {
+                        for (GraphEdge e : port.outs) {
+                            if (e != null && e.group != group && !e.highlight() && e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
+                                e.draw(gr, scale, highFirstEdge, group);
+                            }
                         }
-                    }
-                    for (GraphEdge e : port.selfs) {
-                        if (e != null && e.group != group && !e.highlight() && e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
-                            e.draw(gr, scale, highFirstEdge, group);
+                        for (GraphEdge e : port.selfs) {
+                            if (e != null && e.group != group && !e.highlight() && e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
+                                e.draw(gr, scale, highFirstEdge, group);
+                            }
                         }
                     }
                 }
             }
         }
         if (group != null) {
-            for (GraphNode n : nodes) {
+            for (AbstractGraphNode n : nodes) {
                 if (n.shape() != null) {
                     for (GraphEdge e : n.outs) {
                         if (e != null && e.group == group && e != highFirstEdge &&
@@ -1651,17 +1662,19 @@ public final strictfp class Graph {
                 /**
                  * [N7] @Louis Fauvarque
                  */
-                for (GraphPort port : n.ports) {
-                    for (GraphEdge e : port.outs) {
-                        if (e != null && e.group == group && e != highFirstEdge &&
-                            e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
-                            e.draw(gr, scale, highFirstEdge, group);
+                if (n instanceof GraphNode) {
+                    for (GraphPort port : ((GraphNode)n).ports) {
+                        for (GraphEdge e : port.outs) {
+                            if (e != null && e.group == group && e != highFirstEdge &&
+                                e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
+                                e.draw(gr, scale, highFirstEdge, group);
+                            }
                         }
-                    }
-                    for (GraphEdge e : port.selfs) {
-                        if (e != null && e.group == group && e != highFirstEdge && !(e.highlight()) && 
-                            e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
-                            e.draw(gr, scale, highFirstEdge, group);
+                        for (GraphEdge e : port.selfs) {
+                            if (e != null && e.group == group && e != highFirstEdge && !(e.highlight()) && 
+                                e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
+                                e.draw(gr, scale, highFirstEdge, group);
+                            }
                         }
                     }
                 }
@@ -1670,7 +1683,7 @@ public final strictfp class Graph {
                 highFirstEdge.draw(gr, scale, highFirstEdge, group);
             }
         }
-        for (GraphNode n : nodes) {
+        for (AbstractGraphNode n : nodes) {
             if (highFirstNode != n && highLastNode != n) {
                 n.setHighlight(n == highlight); // [N7-G.Dupont]
                 n.draw(gr, scale, group);
@@ -1728,8 +1741,9 @@ public final strictfp class Graph {
         
         // [N7-G.Dupont] Draw tooltips
         gr.setTransform(at); // Reset transformation
-        for (GraphNode gn : this.nodelist) {
-            gn.drawTooltips(gr);
+        for (AbstractGraphNode gn : this.nodelist) {
+            if (gn instanceof GraphNode)
+                ((GraphNode)gn).drawTooltips(gr);
         }
     }
 
@@ -1765,7 +1779,7 @@ public final strictfp class Graph {
             sb.append(e);
           }
         }
-        for (GraphNode n : nodes) {
+        for (AbstractGraphNode n : nodes) {
             sb.append(n);
         }
         sb.append("}\n");

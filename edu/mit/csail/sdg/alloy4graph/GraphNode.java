@@ -120,12 +120,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * The layer that this node is in; must stay in sync with Graph.layerlist
      */
     private int layer = 0;
-
-    /**
-     * The current position of this node in the graph's node list; must stay in
-     * sync with Graph.nodelist.
-     */
-    int pos;
     
     /**
      * A list of ports on the node.
@@ -452,17 +446,19 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * Returns the bounding rectangle (with 2*xfluff added to the width, and
      * 2*yfluff added to the height)
      */
+    @Override
     Rectangle2D getBoundingBox(int xfluff, int yfluff) {
         if (updown < 0) {
             calcBounds();
         }
-        return new Rectangle2D.Double(x() - side - xfluff, y() - updown - yfluff, side + side + xfluff + xfluff, updown + updown + yfluff + yfluff);
+        return super.getBoundingBox(xfluff, yfluff);
     }
 
     /**
      * Returns the amount of space we need to reserve on the right hand side for
      * the self edges (0 if this has no self edges now)
      */
+    @Override
     int getReserved() {
         if (selfs.isEmpty()) {
             return 0;
@@ -496,15 +492,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
         double realx = transformX(x, reference, this.getFather());
         double realy = transformY(y, reference, this.getFather());
         return contains(realx, realy);
-    }
-
-    /**
-     * Returns true if the GraphNode is in the given Graph.
-     *
-     * @param graph the graph in which we want to know if the GraphNode is.
-     */
-    public boolean isInGraph(Graph g) {
-        return (this.graph == g);
     }
 
     /**
@@ -625,7 +612,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         if (hasChild()) {
             if (maxDepth > 0) {
                 Object high = null;
-                for (GraphNode n : getChildren()){
+                for (AbstractGraphNode n : getChildren()){
                     if (n.highlight()){
                         high = n;
                         break;
@@ -765,7 +752,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         }
         
         if (hasChild()) {
-            for (GraphNode child : getChildren()) {
+            for (AbstractGraphNode child : getChildren()) {
                 for (GraphEdge e : child.outs) {
                     AbstractGraphNode a = e.a();
                     a.graph.relayout_edges(false);
@@ -1330,10 +1317,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         if (!(hasChild() && (maxDepth > 0)))
           return;
 
-        for (GraphNode gn : getChildren()) {
-          if (gn.updown < 0) {
-            gn.calcBounds();
-          }
+        for (AbstractGraphNode gn : getChildren()) {
+            gn.getWidth();
         }
 
         if (!layout){

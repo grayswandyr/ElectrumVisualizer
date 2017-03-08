@@ -92,19 +92,19 @@ public final class StaticGraphMaker {
      * This maps each atom to the node representing it; if an atom doesn't have
      * a node, it won't be in the map.
      */
-    private final Map<AlloyAtom, List<GraphNode>> atom2node = new LinkedHashMap<AlloyAtom, List<GraphNode>>();
+    private final Map<AlloyAtom, List<AbstractGraphNode>> atom2node = new LinkedHashMap<AlloyAtom, List<AbstractGraphNode>>();
 
     /**
      * [N7] @Louis Fauvarque
      * This maps each port to the atom representing it
      */
-    private final Map<AlloyAtom, GraphPort> atom2port = new LinkedHashMap<AlloyAtom,GraphPort>();
+    private final Map<AlloyAtom, List<AbstractGraphNode>> atom2port = new LinkedHashMap<AlloyAtom,List<AbstractGraphNode>>();
     
     /**
      * This stores a set of additional labels we want to add to an existing
      * node.
      */
-    private final Map<GraphNode, Set<String>> attribs = new LinkedHashMap<GraphNode, Set<String>>();
+    private final Map<AbstractGraphNode, Set<String>> attribs = new LinkedHashMap<AbstractGraphNode, Set<String>>();
 
     /**
      * The resulting graph.
@@ -184,6 +184,10 @@ public final class StaticGraphMaker {
         instance = StaticProjector.project(originalInstance, proj);
         model = instance.model;
         
+        for (AlloyRelation rel : model.getRelations()) {
+            rels.put(rel, null);
+        }
+        
         /**
          * [N7] Modified by @Louis Fauvarque @Julien Richer
          * Make the ports not visible
@@ -220,6 +224,65 @@ public final class StaticGraphMaker {
         } else {
             portColors = colorsNeon;
         }
+        
+        
+         //[N7-R.Bossut, M.Quentin]
+        //Creation of a Map to store atoms that are instances of a containment relation.
+        // The key of the Map is an AlloyAtom which is the container of the containmentTuple.
+        // The value is a List of List of AlloyAtoms; each List represents the rest of a containmentTuple (contained in key).
+        for (AlloyRelation rel : model.getRelations()) {
+            if (view.containmentRel.resolve(rel)) {
+                //The relation is a containment one.
+                for (AlloyTuple tuple : instance.relation2tuples(rel)) {
+                    ArrayList<AlloyAtom> atoms = new ArrayList<AlloyAtom>(tuple.getAtoms());
+                    AlloyAtom a = atoms.get(0);
+                    atoms.remove(0);
+
+                    //containmentTuples
+                    List<List<AlloyAtom>> otherTuples = containmentTuples.get(a);
+                    if (otherTuples == null) {
+                        otherTuples = new ArrayList<List<AlloyAtom>>();
+                    }
+
+                    otherTuples.add(atoms);
+                    containmentTuples.put(a, otherTuples);
+
+                    //containedInMap
+                    for (AlloyAtom atom : atoms) {
+                        Set<AlloyAtom> containedIn = containedInMap.get(atom);
+                        if (containedIn == null) {
+                            containedIn = new TreeSet<AlloyAtom>();
+                        }
+                        containedIn.add(a);
+                        containedInMap.put(atom, containedIn);
+                    }
+                    //We also add the container in the map, but seeing this relation, it is not contained in anything.
+                    Set<AlloyAtom> containedIn = containedInMap.get(a);
+                    if (containedIn == null) {
+                        containedIn = new TreeSet<AlloyAtom>();
+                    }
+                    containedInMap.put(a, containedIn);
+                }
+            }
+        }
+
+        //Verify there is no cycle in containment relations.
+        for (AlloyAtom atom : containedInMap.keySet()) {
+            if (!isNotCycle(atom)) {
+                new GraphNode(graph, "", "The containment relations you have precised are creating a cycle.", "Please click Theme and adjust your settings.");
+                return;
+            }
+        }
+        //Call createContainingNode for every atom that is in a containmentTuple but is not contained anywhere.
+        for (AlloyAtom atom : containedInMap.keySet()) {
+            if (containedInMap.get(atom).isEmpty()) //The atom is not contained in any other atom.
+            {
+                createContainingNode(hidePrivate, hideMeta, atom, containmentTuples.get(atom), null, view.getDepthMax());
+            }
+        }
+        
+        
+        
         int cj = 0;
         for (AlloyRelation rel : portRelations) {
             DotColor c = view.portColor.resolve(rel);
@@ -247,26 +310,35 @@ public final class StaticGraphMaker {
             Color magicol = magicPortColor.get(rel);
             tupleSet = instance.relation2tuples(rel);
             for(AlloyTuple tuple : tupleSet){
+                AlloyAtom ts = tuple.getStart();
+                AlloyAtom te = tuple.getEnd();
+                
                 // Create a new GraphRelation and stock it in the list
-                relList.add(new GraphRelation(rel,tuple.getEnd(),tuple.getStart()));
+                relList.add(new GraphRelation(rel,te,ts));
                 
                 // Create a new port if necessary
                 // Output port
-                if(isPort(portRelations,tuple.getStart())) {
-                    GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getEnd());
-                    if (node != null) {
-                        Orientation defaultOri = GraphPort.AvailableOrientations.get(node.shape())[0];
-                        GraphPort port = createPort(tuple.getStart(), node, rel, tuple.getStart().toString(), defaultOri);
-                        setPortColor(port,rel,magicol);
+                if(isPort(portRelations,ts)) {
+                    if (atom2node.get(ts).isEmpty())
+                        createNode(view.hidePrivate(), view.hideMeta(), te);
+                    for (AbstractGraphNode n : atom2node.get(ts)){
+                        if (n != null && n instanceof GraphNode) {
+                            Orientation defaultOri = GraphPort.AvailableOrientations.get(n.shape())[0];
+                            GraphPort port = createPort(ts, (GraphNode)n, rel, ts.toString(), defaultOri);
+                            setPortColor(port,rel,magicol);
+                        }
                     }
                 }
                 // Input port
-                if(isPort(portRelations,tuple.getEnd())) {
-                    GraphNode node = createNode(view.hidePrivate(), view.hideMeta(), tuple.getStart());
-                    if (node != null) {
-                        Orientation defaultOri = GraphPort.AvailableOrientations.get(node.shape())[0];
-                        GraphPort port = createPort(tuple.getEnd(), node, rel, tuple.getEnd().toString(), defaultOri);
-                        setPortColor(port,rel,magicol);
+                if(isPort(portRelations,te)) {
+                    if (atom2node.get(te).isEmpty())
+                        createNode(view.hidePrivate(), view.hideMeta(), ts);
+                    for (AbstractGraphNode n : atom2node.get(te)){
+                        if (n != null && n instanceof GraphNode) {
+                            Orientation defaultOri = GraphPort.AvailableOrientations.get(n.shape())[0];
+                            GraphPort port = createPort(te, (GraphNode)n, rel, te.toString(), defaultOri);
+                            setPortColor(port,rel,magicol);
+                        }
                     }
                 }
             }
@@ -302,29 +374,51 @@ public final class StaticGraphMaker {
                         
                         // Create the 2 nodes and the 2 ports
                         if(atomStart!=null && atomEnd!=null && relStart!=null && relEnd!=null) {
-                            GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                            GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            if (atom2node.get(atomStart).isEmpty())
+                                createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                            List<AbstractGraphNode> startNodes = atom2node.get(atomStart);
+                            if (atom2node.get(atomEnd).isEmpty())
+                                createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            List<AbstractGraphNode> endNodes = atom2node.get(atomEnd);
                             GraphPort startPort = null;
                             GraphPort endPort = null;
                             
                             // Output port
-                            if (startNode != null) {
-                                Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
-                                startPort = createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
+                            for (AbstractGraphNode n : startNodes){
+                                if (n != null && n instanceof GraphNode) {
+                                    Orientation defaultStartOri = GraphPort.AvailableOrientations.get(n.shape())[0];
+                                    startPort = createPort(tuple.getStart(), (GraphNode)n, relStart, tuple.getStart().toString(), defaultStartOri);
+                                }
                             }
                             
                             // Input port
-                            if (endNode != null) {
-                                Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
-                                endPort = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                            for (AbstractGraphNode n : endNodes){
+                                if (n != null && n instanceof GraphNode) {
+                                    Orientation defaultEndOri = GraphPort.AvailableOrientations.get(n.shape())[0];
+                                    endPort = createPort(tuple.getEnd(), (GraphNode)n, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                                }
                             }
 
                             // Create the blank edge between the 2 nodes connected through the 2 ports
-                            if (startNode != null && endNode != null){
-                                ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
-                                couple.add(startPort);
-                                couple.add(endPort);
-                                new GraphEdge(startNode, endNode, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                            boolean sameGraph = false;
+                            //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
+                            for (AbstractGraphNode start : startNodes) {
+                                for (AbstractGraphNode end : endNodes) {
+                                    if (end.graph == start.graph){
+                                        sameGraph = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            for (AbstractGraphNode start : startNodes){
+                                for (AbstractGraphNode end : endNodes){
+                                    if (start != null && end != null && (!sameGraph || start.graph == end.graph)){
+                                        ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
+                                        couple.add(startPort);
+                                        couple.add(endPort);
+                                        new GraphEdge(start, end, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                    }
+                                }
                             }
                         }
                     }
@@ -345,23 +439,44 @@ public final class StaticGraphMaker {
                         
                         // Create the 2 nodes and the port
                         if(atomStart!=null && atomEnd!=null && relEnd!=null) {
-                            GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                            GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            if (atom2node.get(atomStart).isEmpty())
+                                createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                            List<AbstractGraphNode> startNodes = atom2node.get(atomStart);
+                            if (atom2node.get(atomEnd).isEmpty())
+                                createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            List<AbstractGraphNode> endNodes = atom2node.get(atomEnd);
+                            
                             GraphPort endPort = null;
      
                             // Input port
-                            if (endNode != null) {
-                                Orientation defaultEndOri = GraphPort.AvailableOrientations.get(endNode.shape())[0];
-                                endPort = createPort(tuple.getEnd(), endNode, relEnd, tuple.getEnd().toString(), defaultEndOri);
-                                setPortColor(endPort,rel,magicol);
+                            for (AbstractGraphNode n : endNodes){
+                                if (n != null && n instanceof GraphNode) {
+                                    Orientation defaultEndOri = GraphPort.AvailableOrientations.get(n.shape())[0];
+                                    endPort = createPort(tuple.getEnd(), (GraphNode)n, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                                    setPortColor(endPort,rel,magicol);
+                                }
                             }
 
                             // Create the blank edge between the 2 nodes connected through the port
-                            if (startNode != null && endNode != null){
-                                ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
-                                couple.add(startNode);
-                                couple.add(endPort);
-                                new GraphEdge(startNode, endNode, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                            boolean sameGraph = false;
+                            //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
+                            for (AbstractGraphNode start : startNodes) {
+                                for (AbstractGraphNode end : endNodes) {
+                                    if (end.graph == start.graph){
+                                        sameGraph = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            for (AbstractGraphNode start : startNodes){
+                                for (AbstractGraphNode end : endNodes){
+                                    if (start != null && end != null && (!sameGraph || start.graph == end.graph)){
+                                        ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
+                                        couple.add(start);
+                                        couple.add(endPort);
+                                        new GraphEdge(start, end, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                    }
+                                }
                             }
                         }
                     }
@@ -382,28 +497,49 @@ public final class StaticGraphMaker {
                         
                         // Create the 2 nodes and the port
                         if(atomStart!=null && atomEnd!=null && relStart!=null) {
-                            GraphNode startNode = createNode(view.hidePrivate(), view.hideMeta(), atomStart);
-                            GraphNode endNode = createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            if (atom2node.get(atomStart).isEmpty())
+                                createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                            List<AbstractGraphNode> startNodes = atom2node.get(atomStart);
+                            if (atom2node.get(atomEnd).isEmpty())
+                                createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            List<AbstractGraphNode> endNodes = atom2node.get(atomEnd);
+                            
                             GraphPort startPort = null;
                             
                             // Output port
-                            if (startNode != null) {
-                                Orientation defaultStartOri = GraphPort.AvailableOrientations.get(startNode.shape())[0];
-                                startPort = createPort(tuple.getStart(), startNode, relStart, tuple.getStart().toString(), defaultStartOri);
-                                setPortColor(startPort,rel,magicol);
+                            for (AbstractGraphNode n : startNodes){
+                                if (n != null && n instanceof GraphNode) {
+                                    Orientation defaultStartOri = GraphPort.AvailableOrientations.get(n.shape())[0];
+                                    startPort = createPort(tuple.getStart(), (GraphNode)n, relStart, tuple.getStart().toString(), defaultStartOri);
+                                    setPortColor(startPort,rel,magicol);
+                                }
                             }
 
                             // Create the blank edge between the 2 nodes connected through the port
-                            if (startNode != null && endNode != null){
-                                ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
-                                couple.add(startPort);
-                                couple.add(endNode);
-                                new GraphEdge(startNode, endNode, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                            boolean sameGraph = false;
+                            //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
+                            for (AbstractGraphNode start : startNodes) {
+                                for (AbstractGraphNode end : endNodes) {
+                                    if (end.graph == start.graph){
+                                        sameGraph = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            for (AbstractGraphNode start : startNodes){
+                                for (AbstractGraphNode end : endNodes){
+                                    if (start != null && end != null && (!sameGraph || start.graph == end.graph)){
+                                        ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
+                                        couple.add(startPort);
+                                        couple.add(end);
+                                        new GraphEdge(start, end, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            } // (isIn(port))
+            }/* // (isIn(port))
             else if (view.containmentRel.resolve(rel)) {
                 //The relation is a containment one.
                 for (AlloyTuple tuple : instance.relation2tuples(rel)) {
@@ -436,9 +572,9 @@ public final class StaticGraphMaker {
                     }
                     containedInMap.put(a, containedIn);
                 }
-            }
+            }*/
         }
-
+/*
         for (AlloyRelation rel : model.getRelations()) {
             rels.put(rel, null);
         }
@@ -455,7 +591,7 @@ public final class StaticGraphMaker {
             {
                 createContainingNode(hidePrivate, hideMeta, atom, containmentTuples.get(atom), null, view.getDepthMax());
             }
-        }
+        }*/
 
         //Iteration over relations of the model:
         // Creates edges and nodes that are linked by them.
@@ -499,12 +635,13 @@ public final class StaticGraphMaker {
         }
 
         //For each not-null entry of attribs, we add labels (each not null string of the value-set) to the GraphNode of the realation. 
-        for (Map.Entry<GraphNode, Set<String>> e : attribs.entrySet()) {
+        for (Map.Entry<AbstractGraphNode, Set<String>> e : attribs.entrySet()) {
             Set<String> set = e.getValue();
             if (set != null) {
                 for (String s : set) {
                     if (s.length() > 0) {
-                        e.getKey().addLabel(s);
+                        if (e.getKey() instanceof GraphNode)
+                            ((GraphNode)e.getKey()).addLabel(s);
                     }
                 }
             }
@@ -531,7 +668,7 @@ public final class StaticGraphMaker {
      *
      * @return null if the atom is explicitly marked as "Don't Show".
      */
-    private GraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom) {
+     private AbstractGraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom) {
         return createNode(hidePrivate, hideMeta, atom, graph, 0);
     }
 
@@ -541,11 +678,11 @@ public final class StaticGraphMaker {
      *
      * @return null if the atom is explicitly marked as "Don't Show".
      */
-    private GraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom, Graph g, int maxDepth) {
-        List<GraphNode> nodesAtom = atom2node.get(atom);
+    private AbstractGraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom, Graph g, int maxDepth) {
+        List<AbstractGraphNode> nodesAtom = atom2node.get(atom);
         if (nodesAtom != null) {
             //If there are nodes for this atom, we check if there is one with the same graph. 
-            for (GraphNode n : nodesAtom) {
+            for (AbstractGraphNode n : nodesAtom) {
                 if (n.isInGraph(g)) { //If such a node exist, we don't create it again and return it.
                     return n;
                 }
@@ -589,7 +726,7 @@ public final class StaticGraphMaker {
         }
         nodes.put(node, atom);
         if (nodesAtom == null) {
-            nodesAtom = new ArrayList<GraphNode>();
+            nodesAtom = new ArrayList<AbstractGraphNode>();
         }
         nodesAtom.add(node);
         atom2node.put(atom, nodesAtom);
@@ -652,8 +789,8 @@ public final class StaticGraphMaker {
      * of the created node.
      * @return the englobing AlloyNode created, null if marked as "Don't Show".
      */
-    private GraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds, Graph containedInGraph, int maxDepth) {
-        GraphNode containingNode;
+    private AbstractGraphNode createContainingNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom father, List<List<AlloyAtom>> directChilds, Graph containedInGraph, int maxDepth) {
+        AbstractGraphNode containingNode;
         if (containedInGraph == null) {
             containingNode = createNode(hidePrivate, hideMeta, father, graph, maxDepth);
         } else {
@@ -664,7 +801,7 @@ public final class StaticGraphMaker {
             for (List<AlloyAtom> childs : directChilds) {
                 for (AlloyAtom child : childs) {
                     //We use a recursive call because the childrens can also be father.
-                    GraphNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child), containingNode.getSubGraph(), maxDepth - 1);
+                    AbstractGraphNode childNode = createContainingNode(hidePrivate, hideMeta, child, containmentTuples.get(child), containingNode.getSubGraph(), maxDepth - 1);
                     if (!(containingNode == null || childNode == null)) //We add the created child to the father childs.
                     {
                         childNode.setFather(containingNode);
@@ -716,8 +853,8 @@ public final class StaticGraphMaker {
         }
 
         //If no node corresponding to the atom has already been created, we create it here.
-        List<GraphNode> starts = atom2node.get(atomStart);
-        List<GraphNode> ends = atom2node.get(atomEnd);
+        List<AbstractGraphNode> starts = atom2node.get(atomStart);
+        List<AbstractGraphNode> ends = atom2node.get(atomEnd);
         if (starts == null) {
             createNode(hidePrivate, hideMeta, atomStart);
             starts = atom2node.get(atomStart);
@@ -732,8 +869,8 @@ public final class StaticGraphMaker {
         int r = 0;
         boolean sameGraph = false;
         //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
-        for (GraphNode start : starts) {
-            for (GraphNode end : ends) {
+        for (AbstractGraphNode start : starts) {
+            for (AbstractGraphNode end : ends) {
                 if (end.graph == start.graph){
                     sameGraph = true;
                     break;
@@ -741,8 +878,8 @@ public final class StaticGraphMaker {
             }
         }
             
-        for (GraphNode start : starts) {
-          for (GraphNode end : ends) {
+        for (AbstractGraphNode start : starts) {
+          for (AbstractGraphNode end : ends) {
             if (!start.isContainedIn(end) && !end.isContainedIn(start)){
               if (!sameGraph || (start.graph == end.graph)){
                 boolean layoutBack = view.layoutBack.resolve(rel);
@@ -800,7 +937,13 @@ public final class StaticGraphMaker {
             return null;
         }
         
-        GraphPort port = atom2port.get(atom);
+        GraphPort port = null;
+        List<AbstractGraphNode> lports = atom2port.get(atom);
+        for (AbstractGraphNode p : lports){
+            if (p instanceof GraphPort)
+                if (((GraphPort)p).getNode() == node)
+                    port = (GraphPort)p;
+        }
         
         // Create the port if it does not exist
         if (port == null) {
@@ -829,8 +972,10 @@ public final class StaticGraphMaker {
             port = new GraphPort(node, null, label, ori);
             
             // Add it to the maps
+            lports = new ArrayList<AbstractGraphNode>();
+            lports.add(port);
             ports.put(port, atom);
-            atom2port.put(atom, port);
+            atom2port.put(atom, lports);
             
             // Erase the node that became a port
             view.nodeVisible.put(atom.getType(), Boolean.FALSE);
@@ -940,9 +1085,9 @@ public final class StaticGraphMaker {
         //   and SET2's "show in relational attribute" is on,
         //   then the A node would have a line that says "F: B (SET1, SET2)->C, D->E"
         //
-        Map<GraphNode, String> map = new LinkedHashMap<GraphNode, String>();
+        Map<AbstractGraphNode, String> map = new LinkedHashMap<AbstractGraphNode, String>();
         for (AlloyTuple tuple : instance.relation2tuples(rel)) {
-            List<GraphNode> starts = atom2node.get(tuple.getStart());
+            List<AbstractGraphNode> starts = atom2node.get(tuple.getStart());
             if (starts == null) {
                 continue; // null means the node won't be shown, so we can't show any attributes
             }
@@ -957,7 +1102,7 @@ public final class StaticGraphMaker {
             if (attr.length() == 0) {
                 continue;
             }
-            for (GraphNode start : starts) {
+            for (AbstractGraphNode start : starts) {
                 String oldattr = map.get(start);
                 if (oldattr != null && oldattr.length() > 0) {
                     attr = oldattr + ", " + attr;
@@ -967,8 +1112,8 @@ public final class StaticGraphMaker {
                 }
             }
         }
-        for (Map.Entry<GraphNode, String> e : map.entrySet()) {
-            GraphNode node = e.getKey();
+        for (Map.Entry<AbstractGraphNode, String> e : map.entrySet()) {
+            AbstractGraphNode node = e.getKey();
             Set<String> list = attribs.get(node);
             if (list == null) {
                 attribs.put(node, list = new TreeSet<String>());
@@ -1090,11 +1235,11 @@ public final class StaticGraphMaker {
         return res;
     }
     
-    public GraphPort getPortFromAtom(AlloyAtom at){
+    public List<AbstractGraphNode> getPortsFromAtom(AlloyAtom at){
         return atom2port.get(at);
     }
             
-    public GraphNode getNodeFromAtom(AlloyAtom at){
-        return atom2node.get(at); // TODO: atom2node now gets a list
+    public List<AbstractGraphNode> getNodesFromAtom(AlloyAtom at){
+        return atom2node.get(at);
     }
 }

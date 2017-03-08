@@ -276,69 +276,86 @@ public final strictfp class GraphViewer extends JPanel {
                     }
                     
                     // Build edges between ports
-                    AbstractGraphNode startgn = null, endgn = null;
+                    List<AbstractGraphNode> startgn = null, endgn = null;
                     // From port to port
                     if (sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)) {
-                        startgn = sgm.getPortFromAtom(start);
-                        endgn = sgm.getPortFromAtom(end);
+                        startgn = sgm.getPortsFromAtom(start);
+                        endgn = sgm.getPortsFromAtom(end);
                     }
                     // From node to port
                     else if (!sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)){
-                        startgn = sgm.getNodeFromAtom(start);
-                        endgn = sgm.getPortFromAtom(end);
+                        startgn = sgm.getNodesFromAtom(start);
+                        endgn = sgm.getPortsFromAtom(end);
                     }
                     // From port to node
                     else if (sgm.isPort(portRelations, start) && !sgm.isPort(portRelations, end)){
-                        startgn = sgm.getPortFromAtom(start);
-                        endgn = sgm.getNodeFromAtom(end);
+                        startgn = sgm.getPortsFromAtom(start);
+                        endgn = sgm.getNodesFromAtom(end);
                     }
                     
-                    if (startgn != null && endgn != null) {
-                        if(Math.abs(startgn.layer() - endgn.layer()) <= 1){
-                            GraphEdge e = new GraphEdge(startgn, endgn, graph, uuid, label, rel);                        
-                            e.setStyle(view.edgeStyle.resolve(rel));
+                    boolean sameGraph = false;
+                    //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
+                    for (AbstractGraphNode sgn : startgn) {
+                        for (AbstractGraphNode egn : endgn) {
+                            if (egn.graph == sgn.graph){
+                                sameGraph = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    for (AbstractGraphNode sgn : startgn){
+                        for (AbstractGraphNode egn : endgn){
+                            if (sgn != null && egn != null && (!sameGraph || sgn.graph == egn.graph)) {
+                                if(Math.abs(sgn.layer() - egn.layer()) <= 1){
+                                    GraphEdge e = new GraphEdge(sgn, egn, graph, uuid, label, rel);                        
+                                    e.setStyle(view.edgeStyle.resolve(rel));
 
-                            DotColor color = view.edgeColor.resolve(rel);
-                            e.setColor(color.getColor(view.getEdgePalette()));
+                                    DotColor color = view.edgeColor.resolve(rel);
+                                    e.setColor(color.getColor(view.getEdgePalette()));
 
-                            e.resetPath();
-                            e.layout_arrowHead();
-                        } else {
-                            for (GraphNode n : graph.nodes) {
-                                // We go through all the dummy nodes
-                                if (n.shape() == null) {
-                                    Object group = n.ins.get(0).group;
-                                    // If the group is an arraylist, then it is a dummy node linked to a port
-                                    if(group instanceof ArrayList){
-                                        ArrayList<AbstractGraphNode> groupN = (ArrayList<AbstractGraphNode>) group;
-                                        if(groupN.get(0) == startgn && groupN.get(1) == endgn){
-                                            GraphEdge e;
-                                            if (n.ins.get(0).a().shape() == null) {
-                                                e = new GraphEdge(n.ins.get(0).a(), n, graph, uuid, label, rel);
-                                            } else {
-                                                e = new GraphEdge(startgn, n, graph, uuid, label, rel);
-                                            }
-                                            e.setStyle(view.edgeStyle.resolve(rel));
+                                    e.resetPath();
+                                    e.layout_arrowHead();
+                                } else {
+                                    for (AbstractGraphNode n : graph.nodes) {
+                                        if (n instanceof GraphNode){
+                                            // We go through all the dummy nodes
+                                            if (n.shape() == null) {
+                                                Object group = n.ins.get(0).group;
+                                                // If the group is an arraylist, then it is a dummy node linked to a port
+                                                if(group instanceof ArrayList){
+                                                    ArrayList<AbstractGraphNode> groupN = (ArrayList<AbstractGraphNode>) group;
+                                                    if(groupN.get(0) == startgn && groupN.get(1) == endgn){
+                                                        GraphEdge e;
+                                                        if (n.ins.get(0).a().shape() == null) {
+                                                            e = new GraphEdge(n.ins.get(0).a(), n, graph, uuid, label, rel);
+                                                        } else {
+                                                            e = new GraphEdge(sgn, n, graph, uuid, label, rel);
+                                                        }
+                                                        e.setStyle(view.edgeStyle.resolve(rel));
 
-                                            DotColor color = view.edgeColor.resolve(rel);
-                                            e.setColor(color.getColor(view.getEdgePalette()));
+                                                        DotColor color = view.edgeColor.resolve(rel);
+                                                        e.setColor(color.getColor(view.getEdgePalette()));
 
-                                            e.resetPath();
-                                            e.layout_arrowHead();
-                                            n.ins.get(0).a().outs.remove(n.ins.get(0));
-                                            n.ins.remove(n.ins.get(0));
+                                                        e.resetPath();
+                                                        e.layout_arrowHead();
+                                                        n.ins.get(0).a().outs.remove(n.ins.get(0));
+                                                        n.ins.remove(n.ins.get(0));
 
-                                            if(n.outs.get(0).b().shape() != null){
-                                                GraphEdge elast = new GraphEdge(n, endgn, graph, uuid, label, rel);
-                                                elast.setStyle(view.edgeStyle.resolve(rel));
+                                                        if(n.outs.get(0).b().shape() != null){
+                                                            GraphEdge elast = new GraphEdge(n, egn, graph, uuid, label, rel);
+                                                            elast.setStyle(view.edgeStyle.resolve(rel));
 
-                                                DotColor colorlast = view.edgeColor.resolve(rel);
-                                                elast.setColor(colorlast.getColor(view.getEdgePalette()));
+                                                            DotColor colorlast = view.edgeColor.resolve(rel);
+                                                            elast.setColor(colorlast.getColor(view.getEdgePalette()));
 
-                                                elast.resetPath();
-                                                elast.layout_arrowHead();
-                                                n.outs.get(0).b().ins.remove(n.outs.get(0));
-                                                n.outs.remove(n.outs.get(0));
+                                                            elast.resetPath();
+                                                            elast.layout_arrowHead();
+                                                            n.outs.get(0).b().ins.remove(n.outs.get(0));
+                                                            n.outs.remove(n.outs.get(0));
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -617,19 +634,22 @@ public final strictfp class GraphViewer extends JPanel {
     private HashMap<GraphNode, GraphNode> duplicateSubnodes(Graph toBeShownGraph, GraphNode node){
       HashMap<GraphNode, GraphNode> map = new HashMap<GraphNode, GraphNode>();
       if (node.getChildren().isEmpty()) return map; //If the given node has no children, we return an empty list (this should never happen).
-      for (GraphNode n : node.getChildren()){ //We duplicate each node and add them to the map.
-        GraphNode d = new GraphNode(n, toBeShownGraph);
-        map.put(n, d);
-        if (!(n.getChildren().isEmpty())){ //If the node we are duplicating have children, we dupliacte them too and add them to map.
-          HashMap<GraphNode, GraphNode> m = duplicateSubnodes(d.getSubGraph(), n);
-          for (GraphNode child : n.getChildren()){ //We have to have to precise the father of these duplicated child.
-            GraphNode duplicatedChild = m.get(child);
-            if (!(duplicatedChild == null)) {
-              duplicatedChild.setFather(d);
-              d.addChild(duplicatedChild);
+      for (AbstractGraphNode an : node.getChildren()){ //We duplicate each node and add them to the map.
+        if (an instanceof GraphNode){
+            GraphNode n = (GraphNode)an;
+            GraphNode d = new GraphNode(n, toBeShownGraph);
+            map.put(n, d);
+            if (!(n.getChildren().isEmpty())){ //If the node we are duplicating have children, we dupliacte them too and add them to map.
+              HashMap<GraphNode, GraphNode> m = duplicateSubnodes(d.getSubGraph(), n);
+              for (AbstractGraphNode child : n.getChildren()){ //We have to have to precise the father of these duplicated child.
+                GraphNode duplicatedChild = m.get(child);
+                if (!(duplicatedChild == null)) {
+                  duplicatedChild.setFather(d);
+                  d.addChild(duplicatedChild);
+                }
+              }
+              map.putAll(m);
             }
-          }
-          map.putAll(m);
         }
       }
       return map;

@@ -17,6 +17,7 @@
 package edu.mit.csail.sdg.alloy4graph;
 
 import java.awt.Color;
+import java.awt.geom.Rectangle2D;
 import java.util.HashSet;
 import javax.swing.JLabel;
 import java.util.LinkedList;
@@ -71,7 +72,7 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
     /**
      * This field contains the children of this node if they exist.
      */
-    private HashSet<GraphNode> children = new HashSet<>(); //[N7-R. Bossut, M. Quentin];
+    private HashSet<AbstractGraphNode> children = new HashSet<>(); //[N7-R. Bossut, M. Quentin];
 
     /**
      * This field contains the subGraph of the node if it exists.
@@ -89,6 +90,12 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
     private AbstractGraphNode father = null;
     
     /**
+     * The current position of this node in the graph's node list; must stay in
+     * sync with Graph.nodelist.
+     */
+    int pos;
+    
+    /**
      * Constructor.
      * @param graph the graph this element belongs to
      * @param uuid the element's uuid
@@ -102,7 +109,7 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
     /**
      * Get the children of the Node. [N7-R. Bossut, M. Quentin]
      */
-    public HashSet<GraphNode> getChildren() {
+    public HashSet<AbstractGraphNode> getChildren() {
         return this.children;
     }
 
@@ -117,7 +124,7 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
     /**
      * Set the father of the Node. [N7-R. Bossur, M. Quentin]
      */
-    public void setFather(GraphNode father) {
+    public void setFather(AbstractGraphNode father) {
         this.father = father;
     }
 
@@ -128,7 +135,7 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
     /**
      * Add a child to the family of the Node. [N7-R. Bossut, M. Quentin]
      */
-    public void addChild(GraphNode gn) {
+    public void addChild(AbstractGraphNode gn) {
         this.children.add(gn);
         if (subGraph == null) subGraph = new Graph(1.0);
         if (!(subGraph.nodelist.contains(gn))) {
@@ -271,6 +278,15 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
     }
     
     /**
+     * Returns true if the GraphNode is in the given Graph.
+     *
+     * @param graph the graph in which we want to know if the GraphNode is.
+     */
+    public boolean isInGraph(Graph g) {
+        return (this.graph == g);
+    }
+    
+    /**
      * Express an X coordinate in a reference into another reference
      * @param startx initial coordinate
      * @param rstart start reference
@@ -347,4 +363,18 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
     public double absoluteY() {
         return relativeY(null);
     }
+    
+    /**
+     * Returns the bounding rectangle (with 2*xfluff added to the width, and
+     * 2*yfluff added to the height)
+     */
+    Rectangle2D getBoundingBox(int xfluff, int yfluff) {
+        return new Rectangle2D.Double(x() - getWidth()/2 - xfluff, y() - getHeight()/2 - yfluff, getWidth() + xfluff + xfluff, getHeight() + yfluff + yfluff);
+    }
+    
+    /**
+     * Returns the amount of space we need to reserve on the right hand side for
+     * the self edges (0 if this has no self edges now)
+     */
+    abstract int getReserved();
 }

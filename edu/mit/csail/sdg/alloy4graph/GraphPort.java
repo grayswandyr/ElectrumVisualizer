@@ -964,5 +964,14 @@ public class GraphPort extends AbstractGraphNode {
     public int getMaxDepth() {
         return this.node.getMaxDepth();
     }
+    
+    public GraphNode getNode() {
+        return this.node;
+    }
+    
+    @Override
+    int getReserved() {
+        return 0;
+    }
 }
 
