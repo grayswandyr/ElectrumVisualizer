@@ -184,6 +184,9 @@ public final class StaticGraphMaker {
         instance = StaticProjector.project(originalInstance, proj);
         model = instance.model;
         
+        this.graph.sgm = this;
+        this.graph.instance = originalInstance;
+        
         /**
          * [N7] Modified by @Louis Fauvarque @Julien Richer
          * Make the ports not visible

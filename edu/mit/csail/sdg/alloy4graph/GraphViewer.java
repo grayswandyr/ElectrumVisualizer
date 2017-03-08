@@ -137,6 +137,11 @@ public final strictfp class GraphViewer extends JPanel {
     public final JPopupMenu pop = new JPopupMenu();
 
     /**
+     * The VizState associated to the GraphViewer.
+     */
+    private VizState state;
+    
+    /**
      * Locates the node or edge at the given (X,Y) location.
      */
     private Object alloyFind(int mouseX, int mouseY) {
@@ -234,9 +239,10 @@ public final strictfp class GraphViewer extends JPanel {
         setBorder(null);
         this.scale = graph.defaultScale;
         this.graph = graph;
+        this.state = view;
         
         graph.layout();
-        
+              
         /**
          * [N7] @Julien Richer @Louis Fauvarque
          * Add the edges linked to ports
@@ -586,7 +592,7 @@ public final strictfp class GraphViewer extends JPanel {
         int height = toBeShownGraph.getTotalHeight() + 100;
         //Create the graphviewer in a scroll panel. 
         JScrollPane diagramScrollPanel;
-        GraphViewer view = new GraphViewer(toBeShownGraph); // [TODO] => correct cstr takes AlloyInstance, VizState and StaticGraphMaker
+        GraphViewer view = new GraphViewer(toBeShownGraph, getGraph().instance, state, getGraph().sgm); // [TODO] => correct cstr takes AlloyInstance, VizState and StaticGraphMaker
         diagramScrollPanel = OurUtil.scrollpane(view, new OurBorder(true, true, true, false));
         diagramScrollPanel.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
             public void adjustmentValueChanged(AdjustmentEvent e) {

@@ -31,6 +31,8 @@ import java.util.TreeMap;
 
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4viz.AlloyInstance;
+import edu.mit.csail.sdg.alloy4viz.StaticGraphMaker;
 import java.awt.geom.AffineTransform;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -108,6 +110,16 @@ public final strictfp class Graph {
      */
     private int totalHeight = 0;
 
+    /**
+     * The staticGraphMaker wich created this graph.
+     */
+    public StaticGraphMaker sgm;
+    
+    /**
+     * The instance which corresponds to the graph.
+     */
+    public AlloyInstance instance;
+    
     /**
      * The height of each layer.
      */
