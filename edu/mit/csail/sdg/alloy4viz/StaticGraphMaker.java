@@ -138,7 +138,7 @@ public final class StaticGraphMaker {
         if (graph.nodes.size() == 0) {
             new GraphNode(graph, "", "Due to your theme settings, every atom is hidden.", "Please click Theme and adjust your settings.");
         }
-        return new GraphViewer(graph,instance,view, sgm);
+        return new GraphViewer(graph,instance,view);
     }
 
     /**
@@ -187,6 +187,9 @@ public final class StaticGraphMaker {
         for (AlloyRelation rel : model.getRelations()) {
             rels.put(rel, null);
         }
+
+        this.graph.sgm = this;
+        this.graph.instance = originalInstance;
         
         /**
          * [N7] Modified by @Louis Fauvarque @Julien Richer
@@ -319,9 +322,11 @@ public final class StaticGraphMaker {
                 // Create a new port if necessary
                 // Output port
                 if(isPort(portRelations,ts)) {
-                    if (atom2node.get(ts).isEmpty())
+                    System.out.println("create output port 1");
+                    if (atom2node.get(te) == null || atom2node.get(te).isEmpty()) {
                         createNode(view.hidePrivate(), view.hideMeta(), te);
-                    for (AbstractGraphNode n : atom2node.get(ts)){
+                    }
+                    for (AbstractGraphNode n : atom2node.get(te)){
                         if (n != null && n instanceof GraphNode) {
                             Orientation defaultOri = GraphPort.AvailableOrientations.get(n.shape())[0];
                             GraphPort port = createPort(ts, (GraphNode)n, rel, ts.toString(), defaultOri);
@@ -331,9 +336,11 @@ public final class StaticGraphMaker {
                 }
                 // Input port
                 if(isPort(portRelations,te)) {
-                    if (atom2node.get(te).isEmpty())
-                        createNode(view.hidePrivate(), view.hideMeta(), ts);
-                    for (AbstractGraphNode n : atom2node.get(te)){
+                    System.out.println("create input port 1");
+                    if (atom2node.get(ts) == null || atom2node.get(ts).isEmpty()) {
+                        createNode(view.hidePrivate(), view.hideMeta(), ts);                        
+                    }
+                    for (AbstractGraphNode n : atom2node.get(ts)){
                         if (n != null && n instanceof GraphNode) {
                             Orientation defaultOri = GraphPort.AvailableOrientations.get(n.shape())[0];
                             GraphPort port = createPort(te, (GraphNode)n, rel, te.toString(), defaultOri);
@@ -374,10 +381,10 @@ public final class StaticGraphMaker {
                         
                         // Create the 2 nodes and the 2 ports
                         if(atomStart!=null && atomEnd!=null && relStart!=null && relEnd!=null) {
-                            if (atom2node.get(atomStart).isEmpty())
+                            if (atom2node.get(atomStart) == null || atom2node.get(atomStart).isEmpty())
                                 createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                             List<AbstractGraphNode> startNodes = atom2node.get(atomStart);
-                            if (atom2node.get(atomEnd).isEmpty())
+                            if (atom2node.get(atomEnd) == null || atom2node.get(atomEnd).isEmpty())
                                 createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
                             List<AbstractGraphNode> endNodes = atom2node.get(atomEnd);
                             GraphPort startPort = null;
@@ -439,42 +446,48 @@ public final class StaticGraphMaker {
                         
                         // Create the 2 nodes and the port
                         if(atomStart!=null && atomEnd!=null && relEnd!=null) {
-                            if (atom2node.get(atomStart).isEmpty())
+                            if (atom2node.get(atomStart) == null || atom2node.get(atomStart).isEmpty()) {
                                 createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                            }   
                             List<AbstractGraphNode> startNodes = atom2node.get(atomStart);
-                            if (atom2node.get(atomEnd).isEmpty())
+                            if (atom2node.get(atomEnd) == null || atom2node.get(atomEnd).isEmpty()) {
                                 createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            }
                             List<AbstractGraphNode> endNodes = atom2node.get(atomEnd);
                             
                             GraphPort endPort = null;
      
                             // Input port
-                            for (AbstractGraphNode n : endNodes){
-                                if (n != null && n instanceof GraphNode) {
-                                    Orientation defaultEndOri = GraphPort.AvailableOrientations.get(n.shape())[0];
-                                    endPort = createPort(tuple.getEnd(), (GraphNode)n, relEnd, tuple.getEnd().toString(), defaultEndOri);
-                                    setPortColor(endPort,rel,magicol);
+                            if (endNodes != null){
+                                for (AbstractGraphNode n : endNodes){
+                                    if (n != null && n instanceof GraphNode) {
+                                        Orientation defaultEndOri = GraphPort.AvailableOrientations.get(n.shape())[0];
+                                        endPort = createPort(tuple.getEnd(), (GraphNode)n, relEnd, tuple.getEnd().toString(), defaultEndOri);
+                                        setPortColor(endPort,rel,magicol);
+                                    }
                                 }
                             }
 
                             // Create the blank edge between the 2 nodes connected through the port
                             boolean sameGraph = false;
                             //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
-                            for (AbstractGraphNode start : startNodes) {
-                                for (AbstractGraphNode end : endNodes) {
-                                    if (end.graph == start.graph){
-                                        sameGraph = true;
-                                        break;
+                            if (startNodes != null && endNodes != null){
+                                for (AbstractGraphNode start : startNodes) {
+                                    for (AbstractGraphNode end : endNodes) {
+                                        if (end.graph == start.graph){
+                                            sameGraph = true;
+                                            break;
+                                        }
                                     }
                                 }
-                            }
-                            for (AbstractGraphNode start : startNodes){
-                                for (AbstractGraphNode end : endNodes){
-                                    if (start != null && end != null && (!sameGraph || start.graph == end.graph)){
-                                        ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
-                                        couple.add(start);
-                                        couple.add(endPort);
-                                        new GraphEdge(start, end, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                for (AbstractGraphNode start : startNodes){
+                                    for (AbstractGraphNode end : endNodes){
+                                        if (start != null && end != null && (!sameGraph || start.graph == end.graph)){
+                                            ArrayList<AbstractGraphNode> couple = new ArrayList<AbstractGraphNode>();
+                                            couple.add(start);
+                                            couple.add(endPort);
+                                            new GraphEdge(start, end, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                        }
                                     }
                                 }
                             }
@@ -497,10 +510,10 @@ public final class StaticGraphMaker {
                         
                         // Create the 2 nodes and the port
                         if(atomStart!=null && atomEnd!=null && relStart!=null) {
-                            if (atom2node.get(atomStart).isEmpty())
+                            if (atom2node.get(atomStart) == null || atom2node.get(atomStart).isEmpty())
                                 createNode(view.hidePrivate(), view.hideMeta(), atomStart);
                             List<AbstractGraphNode> startNodes = atom2node.get(atomStart);
-                            if (atom2node.get(atomEnd).isEmpty())
+                            if (atom2node.get(atomEnd) == null || atom2node.get(atomEnd).isEmpty())
                                 createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
                             List<AbstractGraphNode> endNodes = atom2node.get(atomEnd);
                             
@@ -679,6 +692,7 @@ public final class StaticGraphMaker {
      * @return null if the atom is explicitly marked as "Don't Show".
      */
     private AbstractGraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom, Graph g, int maxDepth) {
+        System.out.println("createNode1");
         List<AbstractGraphNode> nodesAtom = atom2node.get(atom);
         if (nodesAtom != null) {
             //If there are nodes for this atom, we check if there is one with the same graph. 
@@ -693,7 +707,7 @@ public final class StaticGraphMaker {
                 || !view.nodeVisible(atom, instance)) {
             return null;
         }
-        // Make the node
+        // Make the nodereturn
         DotColor color = view.nodeColor(atom, instance);
         DotStyle style = view.nodeStyle(atom, instance);
         DotShape shape = view.shape(atom, instance);
@@ -703,6 +717,8 @@ public final class StaticGraphMaker {
         node.setShape(shape);
         node.setColor(color.getColor(view.getNodePalette()));
         node.setStyle(style);
+        
+        System.out.println("createNode2");
         
         // Get the label based on the sets and relations
         String setsLabel = "";
@@ -730,6 +746,8 @@ public final class StaticGraphMaker {
         }
         nodesAtom.add(node);
         atom2node.put(atom, nodesAtom);
+        System.out.println("createNode2.5, nodes atom = " + atom2node.get(atom));
+        System.out.println("createNode3");
         return node;
     }
 
@@ -932,6 +950,7 @@ public final class StaticGraphMaker {
      * Color has to be set with the following setPortColor method
      */
     private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori) {
+        System.out.println("createPort");
 
         if (node == null) {
             return null;
@@ -939,14 +958,7 @@ public final class StaticGraphMaker {
         
         GraphPort port = null;
         List<AbstractGraphNode> lports = atom2port.get(atom);
-        for (AbstractGraphNode p : lports){
-            if (p instanceof GraphPort)
-                if (((GraphPort)p).getNode() == node)
-                    port = (GraphPort)p;
-        }
-        
-        // Create the port if it does not exist
-        if (port == null) {
+        if (lports == null){
             // Get the label based on the sets and relations
             String setsLabel = "";
             boolean showLabelByDefault = view.showAsLabel.get(null);
@@ -967,44 +979,52 @@ public final class StaticGraphMaker {
                 }
                 list.add("(" + setsLabel + ")");
             }
-            
+
             // Make the port
             port = new GraphPort(node, null, label, ori);
-            
+
             // Add it to the maps
+            ports.put(port, atom);
             lports = new ArrayList<AbstractGraphNode>();
             lports.add(port);
-            ports.put(port, atom);
             atom2port.put(atom, lports);
             
             // Erase the node that became a port
-            view.nodeVisible.put(atom.getType(), Boolean.FALSE);
+            view.nodeVisible.put(atom.getType(), Boolean.FALSE);       
         }
 
-        // Set the port orientation
-        GraphPort.Orientation orient = view.orientations.get(rel);
-        if(orient!=null) {
-            port.setOrientation(orient);
+        GraphPort result = null;
+        for (AbstractGraphNode n : atom2port.get(atom)){
+            if (n instanceof GraphPort){
+                port = (GraphPort)n;
+            
+                // Set the port orientation
+                GraphPort.Orientation orient = view.orientations.get(rel);
+                if(orient!=null) {
+                    port.setOrientation(orient);
+                }
+                else {
+                    // Default orientation
+                    port.setOrientation(ori);
+                }
+
+                // Set the port shape
+                DotShape shape = view.portShape.resolve(rel);
+                if(shape!=null) {
+                    port.setShape(shape);
+                }
+                else {
+                    // Default shape
+                    port.setShape(DotShape.BOX);
+                }
+
+                // Set the label visibility
+                port.setHideLabel(view.portHideLabel.resolve(rel));
+                if (port.getNode() == node)
+                    result = port;
+            }
         }
-        else {
-            // Default orientation
-            port.setOrientation(ori);
-        }
-        
-        // Set the port shape
-        DotShape shape = view.portShape.resolve(rel);
-        if(shape!=null) {
-            port.setShape(shape);
-        }
-        else {
-            // Default shape
-            port.setShape(DotShape.BOX);
-        }
-        
-        // Set the label visibility
-        port.setHideLabel(view.portHideLabel.resolve(rel));
-        
-        return port;
+        return result;
     }
     
     /**

@@ -117,7 +117,7 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      * Get the SubGraph of the Node. [N7-R. Bossut, M. Quentin]
      */
     public Graph getSubGraph() {
-        subGraph = (subGraph == null) ? new Graph(1.0) : this.subGraph;
+        subGraph = (subGraph == null) ? new Graph(1.0, this.graph.sgm) : this.subGraph;
         return (subGraph);
     }
 
@@ -137,7 +137,7 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
      */
     public void addChild(AbstractGraphNode gn) {
         this.children.add(gn);
-        if (subGraph == null) subGraph = new Graph(1.0);
+        if (subGraph == null) subGraph = new Graph(1.0, this.graph.sgm);
         if (!(subGraph.nodelist.contains(gn))) {
             subGraph.nodelist.add(gn);
         }

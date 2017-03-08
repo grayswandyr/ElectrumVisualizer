@@ -679,8 +679,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         for (GraphPort p : this.ports) {
             p.draw(gr, scale, group);
         }
-        
-        gr.translate(left - x(), top - y());
+             
+        gr.translate(-transX, -transY);
     }
     
     public void drawTooltips(Artist gr) {
@@ -946,20 +946,22 @@ public strictfp class GraphNode extends AbstractGraphNode {
      * This manage to pass on the changes on the subgraph to fathers graphs.
      */
     void tweakFather(){
+        if (getFather() == null)
+            return;
+        
         if (!(getFather() instanceof GraphNode)) {
             throw new IllegalArgumentException("The father of this element is not a node!");
         }
         GraphNode father = (GraphNode)getFather();
-        if (father != null){
-          //Computes new bounds of the father.
-          father.nestedNodeBounds();
-          father.shiftUp(father.y());
-          father.shiftDown(father.y());
-          //Changes of the bounds of the father can make other nodes of the father's graph move.
-          father.adaptLayer();
-          father.calcBounds();
-          father.tweakFather();
-        }
+
+        //Computes new bounds of the father.
+        father.nestedNodeBounds();
+        father.shiftUp(father.y());
+        father.shiftDown(father.y());
+        //Changes of the bounds of the father can make other nodes of the father's graph move.
+        father.adaptLayer();
+        father.calcBounds();
+        father.tweakFather();
     }
 
 

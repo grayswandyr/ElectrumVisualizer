@@ -137,6 +137,11 @@ public final strictfp class GraphViewer extends JPanel {
     public final JPopupMenu pop = new JPopupMenu();
 
     /**
+     * The VizState associated to the GraphViewer.
+     */
+    private VizState state;
+    
+    /**
      * Locates the node or edge at the given (X,Y) location.
      */
     private Object alloyFind(int mouseX, int mouseY) {
@@ -229,14 +234,17 @@ public final strictfp class GraphViewer extends JPanel {
      * @param instance : The instance of the model
      * @param view : The State of the model
      */
-    public GraphViewer(final Graph graph, AlloyInstance instance, VizState view, StaticGraphMaker sgm) {
+    public GraphViewer(final Graph graph, AlloyInstance instance, VizState view) {
         OurUtil.make(this, BLACK, WHITE, new EmptyBorder(0, 0, 0, 0));
         setBorder(null);
         this.scale = graph.defaultScale;
         this.graph = graph;
+        this.state = view;
+        
+        StaticGraphMaker sgm = this.graph.sgm;
         
         graph.layout();
-        
+              
         /**
          * [N7] @Julien Richer @Louis Fauvarque
          * Add the edges linked to ports
@@ -249,66 +257,98 @@ public final strictfp class GraphViewer extends JPanel {
         Set<AlloyRelation> relations = instance.model.getRelations();
         
         Set<AlloyTuple> tupleSet = null;
+
         for (AlloyRelation rel : relations) {
-            if (!portRelations.contains(rel)) {
-                tupleSet = instance.relation2tuples(rel);
-                for (AlloyTuple tuple : tupleSet) {
-                    AlloyAtom start = tuple.getStart();
-                    AlloyAtom end = tuple.getEnd();
-                    String uuid = "Port[" + tuple + "]";
-                    
-                    // [N7-G.Dupont] Add a proper label to the arcs
-                    String label = view.label.get(rel);
-                    if (tuple.getArity() > 2) {
-                        StringBuilder moreLabel = new StringBuilder();
-                        List<AlloyAtom> atoms = tuple.getAtoms();
-                        for (int i = 1; i < atoms.size() - 1; i++) {
-                            if (i > 1) {
-                                moreLabel.append(", ");
-                            }
-                            moreLabel.append(sgm.atomname(atoms.get(i), false));
+            if (portRelations.contains(rel))
+                continue;
+            tupleSet = instance.relation2tuples(rel);
+
+            for (AlloyTuple tuple : tupleSet) {
+                AlloyAtom start = tuple.getStart();
+                AlloyAtom end = tuple.getEnd();
+                String uuid = "Port[" + tuple + "]";
+
+                // [N7-G.Dupont] Add a proper label to the arcs
+                String label = view.label.get(rel);
+                if (tuple.getArity() > 2) {
+                    StringBuilder moreLabel = new StringBuilder();
+                    List<AlloyAtom> atoms = tuple.getAtoms();
+                    for (int i = 1; i < atoms.size() - 1; i++) {
+                        if (i > 1) {
+                            moreLabel.append(", ");
                         }
-                        if (label.length() == 0) { 
-                            //label=moreLabel.toString();
+                        moreLabel.append(sgm.atomname(atoms.get(i), false));
+                    }
+                    if (label.length() == 0) { 
+                        //label=moreLabel.toString();
+                    } else {
+                        label = label + (" [" + moreLabel + "]");
+                    }
+                }
+
+                // Build edges between ports
+                List<AbstractGraphNode> startgn = null, endgn = null;
+                // From port to port
+                if (sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)) {
+                    startgn = sgm.getPortsFromAtom(start);
+                    endgn = sgm.getPortsFromAtom(end);
+                }
+                // From node to port
+                else if (!sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)){
+                    startgn = sgm.getNodesFromAtom(start);
+                    endgn = sgm.getPortsFromAtom(end);
+                }
+                // From port to node
+                else if (sgm.isPort(portRelations, start) && !sgm.isPort(portRelations, end)){
+                    startgn = sgm.getPortsFromAtom(start);
+                    endgn = sgm.getNodesFromAtom(end);
+                }
+
+                boolean sameGraph = false;
+                //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
+                if (startgn == null || endgn == null)
+                    continue;
+                for (AbstractGraphNode sgn : startgn) {
+                    for (AbstractGraphNode egn : endgn) {
+                        if (egn.graph == sgn.graph){
+                            sameGraph = true;
+                            break;
+                        }
+                    }
+                }
+
+                for (AbstractGraphNode sgn : startgn){
+                    for (AbstractGraphNode egn : endgn){
+                        if (sgn == null || egn == null || (sameGraph && sgn.graph != egn.graph))
+                            continue;
+                        
+                        if(Math.abs(sgn.layer() - egn.layer()) <= 1){
+                            GraphEdge e = new GraphEdge(sgn, egn, graph, uuid, label, rel);                        
+                            e.setStyle(view.edgeStyle.resolve(rel));
+
+                            DotColor color = view.edgeColor.resolve(rel);
+                            e.setColor(color.getColor(view.getEdgePalette()));
+
+                            e.resetPath();
+                            e.layout_arrowHead();
                         } else {
-                            label = label + (" [" + moreLabel + "]");
-                        }
-                    }
-                    
-                    // Build edges between ports
-                    List<AbstractGraphNode> startgn = null, endgn = null;
-                    // From port to port
-                    if (sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)) {
-                        startgn = sgm.getPortsFromAtom(start);
-                        endgn = sgm.getPortsFromAtom(end);
-                    }
-                    // From node to port
-                    else if (!sgm.isPort(portRelations, start) && sgm.isPort(portRelations, end)){
-                        startgn = sgm.getNodesFromAtom(start);
-                        endgn = sgm.getPortsFromAtom(end);
-                    }
-                    // From port to node
-                    else if (sgm.isPort(portRelations, start) && !sgm.isPort(portRelations, end)){
-                        startgn = sgm.getPortsFromAtom(start);
-                        endgn = sgm.getNodesFromAtom(end);
-                    }
-                    
-                    boolean sameGraph = false;
-                    //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
-                    for (AbstractGraphNode sgn : startgn) {
-                        for (AbstractGraphNode egn : endgn) {
-                            if (egn.graph == sgn.graph){
-                                sameGraph = true;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    for (AbstractGraphNode sgn : startgn){
-                        for (AbstractGraphNode egn : endgn){
-                            if (sgn != null && egn != null && (!sameGraph || sgn.graph == egn.graph)) {
-                                if(Math.abs(sgn.layer() - egn.layer()) <= 1){
-                                    GraphEdge e = new GraphEdge(sgn, egn, graph, uuid, label, rel);                        
+                            for (AbstractGraphNode n : graph.nodes) {
+                                // We go through all the dummy nodes
+                                if (n.shape() != null)
+                                    continue;
+                                Object group = n.ins.get(0).group;
+                                // If the group is an arraylist, then it is a dummy node linked to a port
+                                if (!(group instanceof ArrayList))
+                                    continue;
+
+                                ArrayList<AbstractGraphNode> groupN = (ArrayList<AbstractGraphNode>) group;
+                                if(groupN.get(0) == startgn && groupN.get(1) == endgn){
+                                    GraphEdge e;
+                                    if (n.ins.get(0).a().shape() == null) {
+                                        e = new GraphEdge(n.ins.get(0).a(), n, graph, uuid, label, rel);
+                                    } else {
+                                        e = new GraphEdge(sgn, n, graph, uuid, label, rel);
+                                    }
                                     e.setStyle(view.edgeStyle.resolve(rel));
 
                                     DotColor color = view.edgeColor.resolve(rel);
@@ -316,58 +356,29 @@ public final strictfp class GraphViewer extends JPanel {
 
                                     e.resetPath();
                                     e.layout_arrowHead();
-                                } else {
-                                    for (AbstractGraphNode n : graph.nodes) {
-                                        if (n instanceof GraphNode){
-                                            // We go through all the dummy nodes
-                                            if (n.shape() == null) {
-                                                Object group = n.ins.get(0).group;
-                                                // If the group is an arraylist, then it is a dummy node linked to a port
-                                                if(group instanceof ArrayList){
-                                                    ArrayList<AbstractGraphNode> groupN = (ArrayList<AbstractGraphNode>) group;
-                                                    if(groupN.get(0) == startgn && groupN.get(1) == endgn){
-                                                        GraphEdge e;
-                                                        if (n.ins.get(0).a().shape() == null) {
-                                                            e = new GraphEdge(n.ins.get(0).a(), n, graph, uuid, label, rel);
-                                                        } else {
-                                                            e = new GraphEdge(sgn, n, graph, uuid, label, rel);
-                                                        }
-                                                        e.setStyle(view.edgeStyle.resolve(rel));
+                                    n.ins.get(0).a().outs.remove(n.ins.get(0));
+                                    n.ins.remove(n.ins.get(0));
 
-                                                        DotColor color = view.edgeColor.resolve(rel);
-                                                        e.setColor(color.getColor(view.getEdgePalette()));
+                                    if(n.outs.get(0).b().shape() != null){
+                                        GraphEdge elast = new GraphEdge(n, egn, graph, uuid, label, rel);
+                                        elast.setStyle(view.edgeStyle.resolve(rel));
 
-                                                        e.resetPath();
-                                                        e.layout_arrowHead();
-                                                        n.ins.get(0).a().outs.remove(n.ins.get(0));
-                                                        n.ins.remove(n.ins.get(0));
+                                        DotColor colorlast = view.edgeColor.resolve(rel);
+                                        elast.setColor(colorlast.getColor(view.getEdgePalette()));
 
-                                                        if(n.outs.get(0).b().shape() != null){
-                                                            GraphEdge elast = new GraphEdge(n, egn, graph, uuid, label, rel);
-                                                            elast.setStyle(view.edgeStyle.resolve(rel));
-
-                                                            DotColor colorlast = view.edgeColor.resolve(rel);
-                                                            elast.setColor(colorlast.getColor(view.getEdgePalette()));
-
-                                                            elast.resetPath();
-                                                            elast.layout_arrowHead();
-                                                            n.outs.get(0).b().ins.remove(n.outs.get(0));
-                                                            n.outs.remove(n.outs.get(0));
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        elast.resetPath();
+                                        elast.layout_arrowHead();
+                                        n.outs.get(0).b().ins.remove(n.outs.get(0));
+                                        n.outs.remove(n.outs.get(0));
                                     }
                                 }
-                            }
-                        }
-                    }
-                }
-            }
+                            } //<for(n : graph.nodes)>
+                        } // [else]<Math.abs(sgn.layer() - egn.layer()) <= 1>
+                    } //<for(egn : endgn)>
+                } //<for(sgn : startgn)>
+            } //<for(tuple : tupleSet)>
         }
         
-
         // GUI related
         final JMenuItem zoomIn = new JMenuItem("Zoom In");
         final JMenuItem zoomOut = new JMenuItem("Zoom Out");
@@ -580,7 +591,7 @@ public final strictfp class GraphViewer extends JPanel {
         int x = 200;
         int y = 200;
         //We have to duplicate the subgraph (each node and edge) so moving nodes in the window won't move those of the main graph.
-        Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale);
+        Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale, graph.sgm);
         //A mapping between original nodes and copies.
         HashMap<GraphNode, GraphNode> dupl = duplicateSubnodes(toBeShownGraph, node);
         //We also have to 'duplicate' the edges of every subnodes.
@@ -603,7 +614,7 @@ public final strictfp class GraphViewer extends JPanel {
         int height = toBeShownGraph.getTotalHeight() + 100;
         //Create the graphviewer in a scroll panel. 
         JScrollPane diagramScrollPanel;
-        GraphViewer view = new GraphViewer(toBeShownGraph); // [TODO] => correct cstr takes AlloyInstance, VizState and StaticGraphMaker
+        GraphViewer view = new GraphViewer(toBeShownGraph, getGraph().instance, state);
         diagramScrollPanel = OurUtil.scrollpane(view, new OurBorder(true, true, true, false));
         diagramScrollPanel.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
             public void adjustmentValueChanged(AdjustmentEvent e) {

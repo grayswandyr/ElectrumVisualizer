@@ -79,19 +79,22 @@ public class GraphComparer {
         graph1 = vgp1.getGraph();
         graph2 = vgp2.getGraph();
         if (graph1 != null && graph2 != null) {
-            for (GraphNode n : graph2.nodes) {
-                n.setNeedHighlight(true);
+            for (AbstractGraphNode n : graph2.nodes) {
+                if (n instanceof GraphNode)
+                    ((GraphNode)n).setNeedHighlight(true);
             }
-            for (GraphNode n1 : graph1.nodes) {
+            for (AbstractGraphNode n1 : graph1.nodes) {
                 boolean found = false;
-                for (GraphNode n2 : graph2.nodes) {
-                    if (setStringCompare(n1.getLabels(),n2.getLabels())) {
-                        found = true;
-                        n2.setNeedHighlight(false);
-                        break;
+                for (AbstractGraphNode n2 : graph2.nodes) {
+                    if (n1 instanceof GraphNode && n2 instanceof GraphNode){
+                        if (setStringCompare(((GraphNode)n1).getLabels(), ((GraphNode)n2).getLabels())) {
+                            found = true;
+                            ((GraphNode)n2).setNeedHighlight(false);
+                            break;
+                        }
                     }
                 }
-                n1.setNeedHighlight(!found);
+                ((GraphNode)n1).setNeedHighlight(!found);
             }
         }
         harmonize();
@@ -101,13 +104,15 @@ public class GraphComparer {
     
     public void resetHighlight(){
         if(graph2 != null){
-            for (GraphNode n : graph2.nodes) {
-                n.setNeedHighlight(false);
+            for (AbstractGraphNode n : graph2.nodes) {
+                if (n instanceof GraphNode)
+                    ((GraphNode)n).setNeedHighlight(false);
             }
         }
         if(graph1 != null){
-            for (GraphNode n : graph1.nodes) {
-                n.setNeedHighlight(false);
+            for (AbstractGraphNode n : graph1.nodes) {
+                if (n instanceof GraphNode)
+                    ((GraphNode)n).setNeedHighlight(false);
             }
         }
     }

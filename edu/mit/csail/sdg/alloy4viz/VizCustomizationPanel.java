@@ -179,7 +179,7 @@ public final class VizCustomizationPanel extends JPanel {
         if (divider != null && divider.getDividerLocation() > dim.width) {
             dim.width = divider.getDividerLocation();
         }
-        dim.height = 200;
+        dim.height = 250;
         zoomPane.setPreferredSize(dim);
         dim.width = 450;
         zoomPane.setMinimumSize(dim);
