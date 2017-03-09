@@ -334,15 +334,16 @@ public final strictfp class GraphViewer extends JPanel {
                         } else {
                             for (AbstractGraphNode n : graph.nodes) {
                                 // We go through all the dummy nodes
-                                if (n.shape() != null)
+                                if (n.shape() != null){
                                     continue;
+                                }
                                 Object group = n.ins.get(0).group;
                                 // If the group is an arraylist, then it is a dummy node linked to a port
-                                if (!(group instanceof ArrayList))
+                                if (!(group instanceof ArrayList)){
                                     continue;
-
+                                }
                                 ArrayList<AbstractGraphNode> groupN = (ArrayList<AbstractGraphNode>) group;
-                                if(groupN.get(0) == startgn && groupN.get(1) == endgn){
+                                if (groupN.get(0) == sgn && groupN.get(1) == egn) {
                                     GraphEdge e;
                                     if (n.ins.get(0).a().shape() == null) {
                                         e = new GraphEdge(n.ins.get(0).a(), n, graph, uuid, label, rel);
@@ -359,7 +360,7 @@ public final strictfp class GraphViewer extends JPanel {
                                     n.ins.get(0).a().outs.remove(n.ins.get(0));
                                     n.ins.remove(n.ins.get(0));
 
-                                    if(n.outs.get(0).b().shape() != null){
+                                    if (n.outs.get(0).b().shape() != null) {
                                         GraphEdge elast = new GraphEdge(n, egn, graph, uuid, label, rel);
                                         elast.setStyle(view.edgeStyle.resolve(rel));
 
