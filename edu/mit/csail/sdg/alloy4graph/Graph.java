@@ -1269,9 +1269,14 @@ public final strictfp class Graph {
         }
         // Now layout the edges, initially as straight lines
         for (GraphEdge e : edges) {
-          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-            e.resetPath();
-          }
+            if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                e.resetPath();
+            }
+        }
+        for (GraphEdge e : portEdges){
+            if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                e.resetPath();
+            }
         }
         // Now, scan layer-by-layer to find edges that intersect nodes improperly, and bend them accordingly
         for (int layer = layers() - 1; layer > 0; layer--) {
@@ -1289,16 +1294,16 @@ public final strictfp class Graph {
         }
         for (GraphEdge e : edges) {
             if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-            e.layout_arrowHead();
-            e.repositionLabel(sp);
+                e.layout_arrowHead();
+                e.repositionLabel(sp);
             }
         }
         
         for(GraphEdge e : portEdges){
-          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-            e.layout_arrowHead();
-            e.repositionLabel(sp);
-          }
+            if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                e.layout_arrowHead();
+                e.repositionLabel(sp);
+            }
         }
     }
 
@@ -1313,17 +1318,17 @@ public final strictfp class Graph {
         }
         for (GraphNode n : layer(i)) {
             for (GraphEdge e : n.selfs) {
-                if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-                e.resetPath();
-                e.layout_arrowHead();
+                if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                    e.resetPath();
+                    e.layout_arrowHead();
                 }
             }
 
-            for (GraphPort port : n.ports){
-                for (GraphEdge e : port.outs){
-                    if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-                    e.resetPath();
-                    e.layout_arrowHead();
+            for (GraphPort port : n.ports) {
+                for (GraphEdge e : port.outs) {
+                    if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                        e.resetPath();
+                        e.layout_arrowHead();
                     }
                 }
             }
@@ -1332,20 +1337,19 @@ public final strictfp class Graph {
             List<GraphNode> top = layer(i), bottom = layer(i - 1);
             for (GraphNode n : top) {
                 for (GraphEdge e : n.outs) {
-                    if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-                    e.resetPath();
-                  }
+                    if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                        e.resetPath();
+                    }
                 }
-                
+
                 /**
-                 * [N7] @Louis Fauvarque
-                 * Refresh the port edges
+                 * [N7] @Louis Fauvarque Refresh the port edges
                  */
                 for (GraphPort port : n.ports) {
                     for (GraphEdge e : port.outs) {
-                        if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-                        e.resetPath();
-                      }
+                        if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                            e.resetPath();
+                        }
                     }
                 }
             }
@@ -1357,20 +1361,19 @@ public final strictfp class Graph {
             List<GraphNode> top = layer(i + 1), bottom = layer(i);
             for (GraphNode n : top) {
                 for (GraphEdge e : n.outs) {
-                    if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-                    e.resetPath();
-                  }
+                    if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                        e.resetPath();
+                    }
                 }
 
                 /**
-                 * [N7] @Louis Fauvarque
-                 * Refresh the port edges
+                 * [N7] @Louis Fauvarque Refresh the port edges
                  */
                 for (GraphPort port : n.ports) {
                     for (GraphEdge e : port.outs) {
-                        if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-                    e.resetPath();
-                  }
+                        if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                            e.resetPath();
+                        }
                     }
                 }
             }
@@ -1386,17 +1389,17 @@ public final strictfp class Graph {
             }
         }
         for (GraphEdge e : edges) {
-            if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-            e.layout_arrowHead();
-            e.repositionLabel(sp);
-          }
+            if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                e.layout_arrowHead();
+                e.repositionLabel(sp);
+            }
         }
 
         for (GraphEdge e : portEdges) {
-            if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-            e.layout_arrowHead();
-            e.repositionLabel(sp);
-          }
+            if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                e.layout_arrowHead();
+                e.repositionLabel(sp);
+            }
         }
     }
 

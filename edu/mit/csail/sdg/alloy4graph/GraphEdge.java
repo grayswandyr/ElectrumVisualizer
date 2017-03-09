@@ -391,8 +391,8 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
          */
         double ax = a.x(), ay = a.y();
         if (!(a instanceof GraphNode)) {
-            ax = ((GraphPort) a).node.x();
-            ay = ((GraphPort) a).node.y();
+            ax = ((GraphPort) a).node.x() + ((GraphPort) a).x();
+            ay = ((GraphPort) a).node.y() + ((GraphPort) a).y();
         }
         if (a == b) {
             double w = 0;
@@ -427,10 +427,12 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             }
 
             AbstractGraphNode in = b, out = a;
-            if (b instanceof GraphPort)
-                in = ((GraphPort)b).node;
-            if (a instanceof GraphPort)
-                out = ((GraphPort)a).node;
+            if (b instanceof GraphPort) {
+                in = ((GraphPort) b).node;
+            }
+            if (a instanceof GraphPort) {
+                out = ((GraphPort) a).node;
+            }
             double cx = in.relativeX(out.getFather());
             double cy = in.relativeY(out.getFather());
             if (b instanceof GraphPort) {
