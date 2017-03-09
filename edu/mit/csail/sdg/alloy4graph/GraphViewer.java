@@ -480,12 +480,12 @@ public final strictfp class GraphViewer extends JPanel {
                     if (highlight != null && highlight instanceof AbstractGraphElement)
                         ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = obj;
-                    if (obj instanceof AbstractGraphElement)
+                    if (highlight instanceof AbstractGraphElement)
                         ((AbstractGraphElement)highlight).setHighlight(true); //[N7-G.Dupont]
                     
                     needRepaint = true;
                 }
-                
+                 
                 if (needRepaint)
                     alloyRepaint();
             }

@@ -613,7 +613,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         // Draw subgraph
         if (hasChild()) {
             if (maxDepth > 0) {
-                Object high = null;
+                Object high = group;
                 for (AbstractGraphNode n : getChildren()){
                     if (n.highlight()){
                         high = n;
@@ -622,7 +622,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 }
 
                 gr.translate(subLeft, subTop);
-                subGraph.draw(gr, scale, group, true);
+                subGraph.draw(gr, scale, high, true);
                 gr.translate(-subLeft, -subTop);
             } else { // Draw a "hider"
                 gr.setFont(true);
