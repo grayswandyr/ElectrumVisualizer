@@ -261,6 +261,8 @@ public strictfp class GraphNode extends AbstractGraphNode {
         this.numPorts.put(GraphPort.Orientation.South, 0);
         this.numPorts.put(GraphPort.Orientation.SouthEast, 0);
         this.numPorts.put(GraphPort.Orientation.SouthWest, 0);
+        this.numPorts.put(GraphPort.Orientation.West, 0);
+        this.numPorts.put(GraphPort.Orientation.East, 0);
     }
 
     //[N7-R.Bossut, M.Quentin]
