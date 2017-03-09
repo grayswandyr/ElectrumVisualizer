@@ -889,8 +889,9 @@ public class GraphPort extends AbstractGraphNode {
         // Properly remove the port from old side
         this.node.decNumPorts(this.orientation);
         for (GraphPort gp : this.node.ports) {
-            if (gp.getOrientation().equals(this.orientation) && gp.order > this.order)
+            if (gp.getOrientation().equals(this.orientation) && gp.order > this.order){
                 gp.order--;
+            }
         }
         
         // Append the port to the right side
