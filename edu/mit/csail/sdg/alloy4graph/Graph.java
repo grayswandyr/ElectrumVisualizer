@@ -1437,15 +1437,6 @@ public final strictfp class Graph {
                     }
                 }
             }
-            
-            if (n.shape() == null && Math.abs(n.x() - x) < 10 && Math.abs(n.y() - y) < 10) {
-                return n;
-            }
-            if (n.contains(x, y)) {
-                return n;
-            }
-        }
-        for (AbstractGraphNode n : nodes) {
             if (n.shape() == null && Math.abs(n.x() - x) < 10 && Math.abs(n.y() - y) < 10) {
                 //[N7-R.Bossut, M.Quentin]
                 // We have to return the deepest node at this (x,y), to do so, we do a recursive call of find on the subgraph, if it exists.
@@ -1670,14 +1661,16 @@ public final strictfp class Graph {
             for (AbstractGraphNode n : nodes) {
                 if (n.shape() != null) {
                     for (GraphEdge e : n.outs) {
-                        if (e != null && e.group == group && e != highFirstEdge &&
-                            e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
+                        if (e != null && e.group == group && !e.highlight() && 
+                            e != highFirstEdge && e.a().getMaxDepth() >= 0 && 
+                            e.b().getMaxDepth() >= 0) {
                             e.draw(gr, scale, highFirstEdge, group);
                         }
                     }
                     for (GraphEdge e : n.selfs) {
-                        if (e != null && e.group == group && e != highFirstEdge &&
-                            e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
+                        if (e != null && e.group == group && !e.highlight() && 
+                            e != highFirstEdge && e.a().getMaxDepth() >= 0 && 
+                            e.b().getMaxDepth() >= 0) {
                             e.draw(gr, scale, highFirstEdge, group);
                         }
                     }
@@ -1705,14 +1698,7 @@ public final strictfp class Graph {
             if (highFirstEdge != null) {
                 highFirstEdge.draw(gr, scale, highFirstEdge, group);
             }
-        }
-        for (AbstractGraphNode n : nodes) {
-            if (highFirstNode != n && highLastNode != n) {
-                n.setHighlight(n == highlight); // [N7-G.Dupont]
-                n.draw(gr, scale, group);
-                n.setHighlight(false); // [N7-G.Dupont]
-            }
-        }
+        }       
         if (highFirstNode != null) {
             highFirstNode.setHighlight(true); // [N7-G.Dupont]
             highFirstNode.draw(gr, scale, group);

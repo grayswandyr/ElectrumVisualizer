@@ -536,7 +536,7 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
     /**
      * Positions the arrow tails of the given edge properly.
      */
-    private void layout_arrowTail() {
+    void layout_arrowTail() {
         Curve c = path();
         if (a.shape() != null) {
             double in = 0D, out = 1D;
