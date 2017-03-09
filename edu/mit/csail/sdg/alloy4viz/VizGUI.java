@@ -1662,7 +1662,12 @@ public final class VizGUI implements ComponentListener {
         // splitPanel == true => the second panel needs to be shown
         myState.splitPanel = !myState.splitPanel && myState.getProjectedTypes().size() > 0;
         if(graphc == null){
-            graphc = new GraphComparer(null,null,myState);
+            /*
+             * The default comparer is "LabelComparer" (@see GraphComparer)
+             * To extend comparison capabilities, write your own comparer and pass it as
+             * the last argument of this constructor.
+             */
+            graphc = new GraphComparer(null, null, myState, new GraphComparer.LabelComparer());
         } else if(!myState.splitPanel){
             if(graphc.timeLinked){
                 graphc.linkTime();

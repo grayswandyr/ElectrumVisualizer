@@ -599,6 +599,12 @@ public final strictfp class GraphEdge extends AbstractGraphElement {
             gr.set(this.getStyle(), scale);
         }
         
+        if (getNeedHighlight()) {
+            gr.set(DotStyle.DASHED, scale);
+        } else {
+            gr.set(this.getStyle(), scale);
+        }
+        
         if (a == b) {
             gr.draw(path);
         } else {

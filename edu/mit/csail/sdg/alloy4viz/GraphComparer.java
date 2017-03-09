@@ -30,34 +30,84 @@ import java.util.Set;
  * [N7] @Louis Fauvarque
  */
 public class GraphComparer {
-
     /**
-     * The list of colors, in order, to assign each legend.
+     * A comparer callback interface.
+     * This interface is actually a AbstractGraphNode -> AbstractGraphNode -> boolean callback.
+     * It shall return TRUE when the comparison criterion is FULLFILLED.
+     * (e.g.: if the two nodes being compared are identical).
+     * 
+     * To get any comparison criterion done, you must implement this interface
+     * (see "LabelComparer" for an example).
      */
-    private static final List<Color> colorsClassic = Util.asList(
-            new Color(228, 26, 28), new Color(166, 86, 40), new Color(255, 127, 0), new Color(77, 175, 74), new Color(55, 126, 184), new Color(152, 78, 163)
-    );
-
+    public interface Comparer {
+        /**
+         * Compare two elements and yield true where they are said to be equal
+         * @param e1 first element
+         * @param e2 second element
+         * @return a boolean indicating that the elements are equal
+         */
+        boolean compare(AbstractGraphElement e1, AbstractGraphElement e2);
+    }
+    
     /**
-     * The list of colors, in order, to assign each legend.
+     * A comparer callback implementation.
+     * This implementation establishes equality via the comparison of the
+     * labels of the compared nodes.
      */
-    private static final List<Color> colorsStandard = Util.asList(
-            new Color(227, 26, 28), new Color(255, 127, 0), new Color(251 * 8 / 10, 154 * 8 / 10, 153 * 8 / 10), new Color(51, 160, 44), new Color(31, 120, 180)
-    );
-
-    /**
-     * The list of colors, in order, to assign each legend.
-     */
-    private static final List<Color> colorsMartha = Util.asList(
-            new Color(231, 138, 195), new Color(252, 141, 98), new Color(166, 216, 84), new Color(102, 194, 165), new Color(141, 160, 203)
-    );
-
-    /**
-     * The list of colors, in order, to assign each legend.
-     */
-    private static final List<Color> colorsNeon = Util.asList(
-            new Color(231, 41, 138), new Color(217, 95, 2), new Color(166, 118, 29), new Color(102, 166, 30), new Color(27, 158, 119), new Color(117, 112, 179)
-    );
+    public static class LabelComparer implements Comparer {
+        /**
+         * Cstr. (empty)
+         */
+        public LabelComparer() {}
+        
+        /**
+         * Compare two nodes, yielding true whenever their labels are identical.
+         * @param n1 first node
+         * @param n2 second node
+         * @return a boolean indicating that the nodes are equal
+         */
+        @Override
+        public boolean compare(AbstractGraphElement e1, AbstractGraphElement e2) {
+            if (e1 instanceof GraphNode && e2 instanceof GraphNode) {
+                return setStringCompare(((GraphNode)e1).getLabels(), ((GraphNode)e2).getLabels());
+            } else if (e1 instanceof GraphEdge && e2 instanceof GraphEdge) {
+                GraphEdge edge1 = (GraphEdge)e1;
+                GraphEdge edge2 = (GraphEdge)e2;
+                return ((GraphEdge)e1).label().equals(((GraphEdge)e2).label());
+            } else { // "getLabels" does not have any sense regarding other elements than nodes
+                return false;
+            }
+        }
+        
+        /**
+        * Compares two lists of strings
+        * @param labels1
+        * @param labels2
+        * @return true if the two list are composed of the same elements
+        */
+        private static boolean setStringCompare(List<String> labels1, List<String> labels2) {
+            boolean found;
+            if(labels1 == null || labels2 == null){
+                return false;
+            }
+            if(labels1.size() != labels2.size()){
+                return false;
+            }
+            for(String s1 : labels1){
+                found = false;
+                for(String s2 : labels2){
+                    found = s1.equals(s2);
+                    if(found){
+                        break;
+                    }
+                }
+                if(!found){
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
     
     private Graph graph1, graph2;
     private VizGraphPanel vgp1,vgp2;
@@ -65,11 +115,13 @@ public class GraphComparer {
     int curIndex = 0;
     int maxIndex = 0;
     boolean timeLinked = false;
+    Comparer comp;
 
-    public GraphComparer(VizGraphPanel vgp1, VizGraphPanel vgp2, VizState vizState) {
+    public GraphComparer(VizGraphPanel vgp1, VizGraphPanel vgp2, VizState vizState, Comparer comp) {
         this.vgp1 = vgp1;
         this.vgp2 = vgp2;
         this.vizState = vizState;
+        this.comp = comp;
     }
 
     /**
@@ -79,22 +131,41 @@ public class GraphComparer {
         graph1 = vgp1.getGraph();
         graph2 = vgp2.getGraph();
         if (graph1 != null && graph2 != null) {
-            for (AbstractGraphNode n : graph2.nodes) {
-                if (n instanceof GraphNode)
-                    ((GraphNode)n).setNeedHighlight(true);
+            List<AbstractGraphElement> eltsGraph1 = new ArrayList<AbstractGraphElement>();
+            List<AbstractGraphElement> eltsGraph2 = new ArrayList<AbstractGraphElement>();
+            
+            for (GraphEdge e : graph1.edges) {
+                eltsGraph1.add(e);
             }
-            for (AbstractGraphNode n1 : graph1.nodes) {
+            for (GraphEdge e : graph1.portEdges) {
+                eltsGraph1.add(e);
+            }
+            for (AbstractGraphNode n : graph1.nodes) {
+                eltsGraph1.add(n);
+            }
+            
+            for (GraphEdge e : graph2.edges) {
+                eltsGraph2.add(e);
+                e.setNeedHighlight(true);
+            }
+            for (GraphEdge e : graph2.portEdges) {
+                eltsGraph2.add(e);
+                e.setNeedHighlight(true);
+            }
+            for (AbstractGraphNode n : graph2.nodes) {
+                eltsGraph2.add(n);
+                n.setNeedHighlight(true);
+            }
+            
+            for (AbstractGraphElement e1 : eltsGraph1) {
                 boolean found = false;
-                for (AbstractGraphNode n2 : graph2.nodes) {
-                    if (n1 instanceof GraphNode && n2 instanceof GraphNode){
-                        if (setStringCompare(((GraphNode)n1).getLabels(), ((GraphNode)n2).getLabels())) {
-                            found = true;
-                            ((GraphNode)n2).setNeedHighlight(false);
-                            break;
-                        }
+                for (AbstractGraphElement e2 : eltsGraph2) {
+                    if (comp.compare(e1, e2)) {
+                        found = true;
+                        e2.setNeedHighlight(false);
                     }
                 }
-                ((GraphNode)n1).setNeedHighlight(!found);
+                e1.setNeedHighlight(!found);
             }
         }
         harmonize();
@@ -155,16 +226,7 @@ public class GraphComparer {
                     }
                 }
             }
-            List<Color> colors;
-            if (vizState.getEdgePalette() == DotPalette.CLASSIC) {
-                colors = colorsClassic;
-            } else if (vizState.getEdgePalette() == DotPalette.STANDARD) {
-                colors = colorsStandard;
-            } else if (vizState.getEdgePalette() == DotPalette.MARTHA) {
-                colors = colorsMartha;
-            } else {
-                colors = colorsNeon;
-            }
+            List<Color> colors = StaticGraphMaker.GetPalette(vizState.getEdgePalette());
             List<Color> availableColors = new ArrayList<Color>(colors);
             for(Color col : groupMap.values()){
                 availableColors.remove(col);
@@ -185,35 +247,6 @@ public class GraphComparer {
                 }
             }
         }
-    }
-    
-    /**
-     * Compares two lists of strings
-     * @param labels1
-     * @param labels2
-     * @return true if the two list are composed of the same elements
-     */
-    private boolean setStringCompare(List<String> labels1, List<String> labels2) {
-        boolean found;
-        if(labels1 == null || labels2 == null){
-            return false;
-        }
-        if(labels1.size() != labels2.size()){
-            return false;
-        }
-        for(String s1 : labels1){
-            found = false;
-            for(String s2 : labels2){
-                found = s1.equals(s2);
-                if(found){
-                    break;
-                }
-            }
-            if(!found){
-                return false;
-            }
-        }
-        return true;
     }
 
     public void forwardTime() {

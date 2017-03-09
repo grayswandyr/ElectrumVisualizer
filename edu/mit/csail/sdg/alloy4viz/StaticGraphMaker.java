@@ -144,30 +144,51 @@ public final class StaticGraphMaker {
     /**
      * The list of colors, in order, to assign each legend.
      */
-    private static final List<Color> colorsClassic = Util.asList(
+    static final List<Color> colorsClassic = Util.asList(
             new Color(228, 26, 28), new Color(166, 86, 40), new Color(255, 127, 0), new Color(77, 175, 74), new Color(55, 126, 184), new Color(152, 78, 163)
     );
 
     /**
      * The list of colors, in order, to assign each legend.
      */
-    private static final List<Color> colorsStandard = Util.asList(
+    static final List<Color> colorsStandard = Util.asList(
             new Color(227, 26, 28), new Color(255, 127, 0), new Color(251 * 8 / 10, 154 * 8 / 10, 153 * 8 / 10), new Color(51, 160, 44), new Color(31, 120, 180)
     );
 
     /**
      * The list of colors, in order, to assign each legend.
      */
-    private static final List<Color> colorsMartha = Util.asList(
+    static final List<Color> colorsMartha = Util.asList(
             new Color(231, 138, 195), new Color(252, 141, 98), new Color(166, 216, 84), new Color(102, 194, 165), new Color(141, 160, 203)
     );
 
     /**
      * The list of colors, in order, to assign each legend.
      */
-    private static final List<Color> colorsNeon = Util.asList(
+    static final List<Color> colorsNeon = Util.asList(
             new Color(231, 41, 138), new Color(217, 95, 2), new Color(166, 118, 29), new Color(102, 166, 30), new Color(27, 158, 119), new Color(117, 112, 179)
     );
+    
+    /**
+     * Get the actual color palette as a list of colors from a palette name.
+     */
+    static List<Color> GetPalette(DotPalette p) {
+        List<Color> res = null;
+        switch (p) {
+            case CLASSIC:
+                res = colorsClassic;
+                break;
+            case STANDARD:
+                res = colorsStandard;
+                break;
+            case MARTHA:
+                res = colorsMartha;
+                break;
+            default:
+                res = colorsNeon;
+        }
+        return res;
+    }
 
     /**
      * The constructor takes an Instance and a View, then insert the generate
@@ -205,28 +226,10 @@ public final class StaticGraphMaker {
         }
         
         // Node magic colors
-        List<Color> colors;
-        if (view.getEdgePalette() == DotPalette.CLASSIC) {
-            colors = colorsClassic;
-        } else if (view.getEdgePalette() == DotPalette.STANDARD) {
-            colors = colorsStandard;
-        } else if (view.getEdgePalette() == DotPalette.MARTHA) {
-            colors = colorsMartha;
-        } else {
-            colors = colorsNeon;
-        }
+        List<Color> colors = GetPalette(view.getEdgePalette());
         
         // Ports magic colors
-        List<Color> portColors;
-        if (view.getPortPalette() == DotPalette.CLASSIC) {
-            portColors = colorsClassic;
-        } else if (view.getPortPalette() == DotPalette.STANDARD) {
-            portColors = colorsStandard;
-        } else if (view.getPortPalette() == DotPalette.MARTHA) {
-            portColors = colorsMartha;
-        } else {
-            portColors = colorsNeon;
-        }
+        List<Color> portColors = GetPalette(view.getPortPalette());
         
         
          //[N7-R.Bossut, M.Quentin]
