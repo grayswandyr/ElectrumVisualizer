@@ -322,7 +322,6 @@ public final class StaticGraphMaker {
                 // Create a new port if necessary
                 // Output port
                 if(isPort(portRelations,ts)) {
-                    System.out.println("create output port 1");
                     if (atom2node.get(te) == null || atom2node.get(te).isEmpty()) {
                         createNode(view.hidePrivate(), view.hideMeta(), te);
                     }
@@ -336,7 +335,6 @@ public final class StaticGraphMaker {
                 }
                 // Input port
                 if(isPort(portRelations,te)) {
-                    System.out.println("create input port 1");
                     if (atom2node.get(ts) == null || atom2node.get(ts).isEmpty()) {
                         createNode(view.hidePrivate(), view.hideMeta(), ts);                        
                     }
@@ -692,7 +690,6 @@ public final class StaticGraphMaker {
      * @return null if the atom is explicitly marked as "Don't Show".
      */
     private AbstractGraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom, Graph g, int maxDepth) {
-        System.out.println("createNode1");
         List<AbstractGraphNode> nodesAtom = atom2node.get(atom);
         if (nodesAtom != null) {
             //If there are nodes for this atom, we check if there is one with the same graph. 
@@ -717,8 +714,6 @@ public final class StaticGraphMaker {
         node.setShape(shape);
         node.setColor(color.getColor(view.getNodePalette()));
         node.setStyle(style);
-        
-        System.out.println("createNode2");
         
         // Get the label based on the sets and relations
         String setsLabel = "";
@@ -746,8 +741,6 @@ public final class StaticGraphMaker {
         }
         nodesAtom.add(node);
         atom2node.put(atom, nodesAtom);
-        System.out.println("createNode2.5, nodes atom = " + atom2node.get(atom));
-        System.out.println("createNode3");
         return node;
     }
 
@@ -950,7 +943,6 @@ public final class StaticGraphMaker {
      * Color has to be set with the following setPortColor method
      */
     private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori) {
-        System.out.println("createPort");
 
         if (node == null) {
             return null;
