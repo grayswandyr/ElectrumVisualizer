@@ -896,9 +896,6 @@ public class GraphPort extends AbstractGraphNode {
         
         // Append the port to the right side
         this.orientation = orientation;
-        if(orientation == null) {
-            System.out.println("Chaussette");
-        }
         this.order = this.node.incNumPorts(orientation);
         
         // In the end, update attributes
