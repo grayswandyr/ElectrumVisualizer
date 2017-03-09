@@ -189,9 +189,10 @@ public final strictfp class Graph {
     /**
      * Constructs an empty Graph object.
      */
-    public Graph(double defaultScale, StaticGraphMaker sgm) {
+    public Graph(double defaultScale, StaticGraphMaker sgm, AlloyInstance inst) {
         this.defaultScale = defaultScale;
         this.sgm = sgm;
+        this.instance = inst;
     }
     
     /**

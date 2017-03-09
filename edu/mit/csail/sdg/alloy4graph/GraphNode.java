@@ -606,7 +606,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
         // Draw subgraph
         if (hasChild()) {
             if (maxDepth > 0) {
-                Object high = null;
+                Object high = group;
                 for (AbstractGraphNode n : getChildren()){
                     if (n.highlight()){
                         high = n;
@@ -615,7 +615,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 }
 
                 gr.translate(subLeft, subTop);
-                subGraph.draw(gr, scale, group, true);
+                subGraph.draw(gr, scale, high, true);
                 gr.translate(-subLeft, -subTop);
             } else { // Draw a "hider"
                 gr.setFont(true);
@@ -961,6 +961,9 @@ public strictfp class GraphNode extends AbstractGraphNode {
         father.adaptLayer();
         father.calcBounds();
         father.tweakFather();
+        //If father is in the englobing graph, we have to recalc bound to avoid nodes on top to go out of the window.
+        if (father.getFather() == null)
+            father.graph.recalcBound(false);
     }
 
 

@@ -442,9 +442,6 @@ public class GraphPort extends AbstractGraphNode {
         // If we need to recalc (boundaries)
         if (this.needRecalc){
             recalc();
-            for (GraphEdge e : this.outs){
-                e.resetPath();
-            }
         }
         
         // Set style
@@ -855,6 +852,12 @@ public class GraphPort extends AbstractGraphNode {
         
         this.setX(x);
         this.setY(y);
+        for(GraphEdge e : ins){
+            e.resetPath();
+        }
+        for(GraphEdge e : outs){
+            e.resetPath();
+        }
         this.needRecalc = false;
     }
     

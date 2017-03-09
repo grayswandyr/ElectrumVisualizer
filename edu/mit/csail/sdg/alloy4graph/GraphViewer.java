@@ -306,8 +306,9 @@ public final strictfp class GraphViewer extends JPanel {
 
                 boolean sameGraph = false;
                 //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
-                if (startgn == null || endgn == null)
+                if (startgn == null || endgn == null) {
                     continue;
+                }
                 for (AbstractGraphNode sgn : startgn) {
                     for (AbstractGraphNode egn : endgn) {
                         if (egn.graph == sgn.graph){
@@ -480,12 +481,12 @@ public final strictfp class GraphViewer extends JPanel {
                     if (highlight != null && highlight instanceof AbstractGraphElement)
                         ((AbstractGraphElement)highlight).setHighlight(false); //[N7-G.Dupont]
                     highlight = obj;
-                    if (obj instanceof AbstractGraphElement)
+                    if (highlight instanceof AbstractGraphElement)
                         ((AbstractGraphElement)highlight).setHighlight(true); //[N7-G.Dupont]
                     
                     needRepaint = true;
                 }
-                
+                 
                 if (needRepaint)
                     alloyRepaint();
             }
@@ -592,7 +593,8 @@ public final strictfp class GraphViewer extends JPanel {
         int x = 200;
         int y = 200;
         //We have to duplicate the subgraph (each node and edge) so moving nodes in the window won't move those of the main graph.
-        Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale, graph.sgm);
+        Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale, graph.sgm, graph.instance);
+
         //A mapping between original nodes and copies.
         HashMap<GraphNode, GraphNode> dupl = duplicateSubnodes(toBeShownGraph, node);
         //We also have to 'duplicate' the edges of every subnodes.
