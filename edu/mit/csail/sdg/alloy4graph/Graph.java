@@ -1705,14 +1705,7 @@ public final strictfp class Graph {
             if (highFirstEdge != null) {
                 highFirstEdge.draw(gr, scale, highFirstEdge, group);
             }
-        }
-        for (AbstractGraphNode n : nodes) {
-            if (highFirstNode != n && highLastNode != n) {
-                n.setHighlight(n == highlight); // [N7-G.Dupont]
-                n.draw(gr, scale, group);
-                n.setHighlight(false); // [N7-G.Dupont]
-            }
-        }
+        }       
         if (highFirstNode != null) {
             highFirstNode.setHighlight(true); // [N7-G.Dupont]
             highFirstNode.draw(gr, scale, group);
