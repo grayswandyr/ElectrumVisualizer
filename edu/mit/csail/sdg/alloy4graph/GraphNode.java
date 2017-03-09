@@ -938,8 +938,12 @@ public strictfp class GraphNode extends AbstractGraphNode {
             //graph.relayout_edges(layer());
             shift_edges();
         }
-        tweakFather();
-        nestedNodeBounds();
+        if(getFather() != null){
+            tweakFather();
+            nestedNodeBounds();
+        }else{
+            graph.recalcBound(false);
+        }        
     }
 
     /**
