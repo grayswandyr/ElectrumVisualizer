@@ -691,7 +691,7 @@ public final class StaticGraphMaker {
      */
     private AbstractGraphNode createNode(final boolean hidePrivate, final boolean hideMeta, final AlloyAtom atom, Graph g, int maxDepth) {
         List<AbstractGraphNode> nodesAtom = atom2node.get(atom);
-        if (nodesAtom != null) {
+        if (nodesAtom != null) {            
             //If there are nodes for this atom, we check if there is one with the same graph. 
             for (AbstractGraphNode n : nodesAtom) {
                 if (n.isInGraph(g)) { //If such a node exist, we don't create it again and return it.
@@ -710,7 +710,7 @@ public final class StaticGraphMaker {
         DotShape shape = view.shape(atom, instance);
         String label = atomname(atom, false);
 
-        GraphNode node = new GraphNode(graph, atom, maxDepth, label);
+        GraphNode node = new GraphNode(g, atom, maxDepth, label);
         node.setShape(shape);
         node.setColor(color.getColor(view.getNodePalette()));
         node.setStyle(style);
