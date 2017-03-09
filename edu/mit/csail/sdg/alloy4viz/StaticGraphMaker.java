@@ -379,15 +379,17 @@ public final class StaticGraphMaker {
                         
                         // Create the 2 nodes and the 2 ports
                         if(atomStart!=null && atomEnd!=null && relStart!=null && relEnd!=null) {
-                            if (atom2node.get(atomStart) == null || atom2node.get(atomStart).isEmpty())
+                            if (atom2node.get(atomStart) == null || atom2node.get(atomStart).isEmpty()) {
                                 createNode(view.hidePrivate(), view.hideMeta(), atomStart);
+                            }
                             List<AbstractGraphNode> startNodes = atom2node.get(atomStart);
-                            if (atom2node.get(atomEnd) == null || atom2node.get(atomEnd).isEmpty())
+                            if (atom2node.get(atomEnd) == null || atom2node.get(atomEnd).isEmpty()) {
                                 createNode(view.hidePrivate(), view.hideMeta(), atomEnd);
+                            }
                             List<AbstractGraphNode> endNodes = atom2node.get(atomEnd);
                             GraphPort startPort = null;
                             GraphPort endPort = null;
-                            
+
                             // Output port
                             for (AbstractGraphNode n : startNodes){
                                 if (n != null && n instanceof GraphNode) {

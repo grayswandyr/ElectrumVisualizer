@@ -306,8 +306,9 @@ public final strictfp class GraphViewer extends JPanel {
 
                 boolean sameGraph = false;
                 //If there is one start and one end in a same graph, we shall not draw edges between different graphs.
-                if (startgn == null || endgn == null)
+                if (startgn == null || endgn == null) {
                     continue;
+                }
                 for (AbstractGraphNode sgn : startgn) {
                     for (AbstractGraphNode egn : endgn) {
                         if (egn.graph == sgn.graph){
