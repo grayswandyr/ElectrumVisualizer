@@ -174,17 +174,23 @@ public class GraphComparer {
     }
     
     public void resetHighlight(){
-        if(graph2 != null){
-            for (AbstractGraphNode n : graph2.nodes) {
-                if (n instanceof GraphNode)
-                    ((GraphNode)n).setNeedHighlight(false);
-            }
+        for (GraphEdge e : graph1.edges) {
+            e.setNeedHighlight(false);
         }
-        if(graph1 != null){
-            for (AbstractGraphNode n : graph1.nodes) {
-                if (n instanceof GraphNode)
-                    ((GraphNode)n).setNeedHighlight(false);
-            }
+        for (GraphEdge e : graph1.portEdges) {
+            e.setNeedHighlight(false);
+        }
+        for (AbstractGraphNode e : graph1.nodes) {
+            e.setNeedHighlight(false);
+        }
+        for (GraphEdge e : graph2.edges) {
+            e.setNeedHighlight(false);
+        }
+        for (GraphEdge e : graph2.portEdges) {
+            e.setNeedHighlight(false);
+        }
+        for (AbstractGraphNode e : graph2.nodes) {
+            e.setNeedHighlight(false);
         }
     }
 
@@ -303,6 +309,10 @@ public class GraphComparer {
         tp2.getAtomCombo().setEnabled(!timeLinked);
         tp2.getLeft().setEnabled(!timeLinked && (curIndex > 0));
         tp2.getRight().setEnabled(!timeLinked && (curIndex < tp2.getAtomCombo().getItemCount()-1));
+    }
+    
+    public void setComparer(Comparer c) {
+        this.comp = c;
     }
 
 }
