@@ -593,7 +593,8 @@ public final strictfp class GraphViewer extends JPanel {
         int x = 200;
         int y = 200;
         //We have to duplicate the subgraph (each node and edge) so moving nodes in the window won't move those of the main graph.
-        Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale, graph.sgm);
+        Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale, graph.sgm, graph.instance);
+
         //A mapping between original nodes and copies.
         HashMap<GraphNode, GraphNode> dupl = duplicateSubnodes(toBeShownGraph, node);
         //We also have to 'duplicate' the edges of every subnodes.
