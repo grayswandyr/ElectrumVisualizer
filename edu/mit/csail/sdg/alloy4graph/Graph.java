@@ -1661,14 +1661,16 @@ public final strictfp class Graph {
             for (AbstractGraphNode n : nodes) {
                 if (n.shape() != null) {
                     for (GraphEdge e : n.outs) {
-                        if (e != null && e.group == group && e != highFirstEdge &&
-                            e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
+                        if (e != null && e.group == group && !e.highlight() && 
+                            e != highFirstEdge && e.a().getMaxDepth() >= 0 && 
+                            e.b().getMaxDepth() >= 0) {
                             e.draw(gr, scale, highFirstEdge, group);
                         }
                     }
                     for (GraphEdge e : n.selfs) {
-                        if (e != null && e.group == group && e != highFirstEdge &&
-                            e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) {
+                        if (e != null && e.group == group && !e.highlight() && 
+                            e != highFirstEdge && e.a().getMaxDepth() >= 0 && 
+                            e.b().getMaxDepth() >= 0) {
                             e.draw(gr, scale, highFirstEdge, group);
                         }
                     }
