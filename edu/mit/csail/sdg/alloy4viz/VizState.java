@@ -447,14 +447,6 @@ public final class VizState {
         return ConstSet.make(projectedTypes);
     }
     
-    /**
-     * [N7] @Louis Fauvarque
-     * Add a type to be considered as a port
-     * 
-     */
-    public void addPortType(final AlloyType type){
-        projectedTypes.add(type);
-    }
 
     /**
      * Returns true iff the type is not univ, and it is a toplevel type.

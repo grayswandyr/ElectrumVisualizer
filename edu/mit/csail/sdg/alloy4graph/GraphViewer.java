@@ -253,8 +253,14 @@ public final strictfp class GraphViewer extends JPanel {
          */
         
         // Create the port edges
-        ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
+        ArrayList<AlloyRelation> portRelations = new ArrayList<AlloyRelation>();
         Set<AlloyRelation> relations = instance.model.getRelations();
+        for (AlloyRelation rel : relations){
+            if(view.isPort.resolve(rel)){
+                portRelations.add(rel);
+                System.out.println(rel);
+            }
+        }
         
         Set<AlloyTuple> tupleSet = null;
 

@@ -1785,9 +1785,9 @@ public final strictfp class Graph {
         StringBuilder sb = new StringBuilder();
         sb.append("digraph \"graph\" {\n" + "graph [fontsize=12]\n" + "node [fontsize=12]\n" + "edge [fontsize=12]\n" + "rankdir=TB;\n");
         for (GraphEdge e : edges) {
-          if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0){ //[N7] If the edge is connecting too deep node, we don't take it in account.
-            sb.append(e);
-          }
+            if (e.a().getMaxDepth() >= 0 && e.b().getMaxDepth() >= 0) { //[N7] If the edge is connecting too deep node, we don't take it in account.
+                sb.append(e);
+            }
         }
         for (AbstractGraphNode n : nodes) {
             sb.append(n);
