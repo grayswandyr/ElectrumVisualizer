@@ -729,7 +729,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
     }
 
     /**
-     * Method to layout the edges bewtween the node and a node from another graph.
+     * Method to layout the edges between nodes from different graphs.
      */
     private void shift_edges() {
         
