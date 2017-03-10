@@ -953,14 +953,22 @@ public final class StaticGraphMaker {
      * Color has to be set with the following setPortColor method
      */
     private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori) {
-
         if (node == null) {
             return null;
         }
         
         GraphPort port = null;
         List<AbstractGraphNode> lports = atom2port.get(atom);
-        if (lports == null){
+        boolean create = true;
+        if (lports != null){
+            for(AbstractGraphNode n : lports){
+                if (n instanceof GraphPort && ((GraphPort)n).getNode() == node){
+                    create = false;
+                    break;
+                }
+            }
+        }
+        if (lports == null || create){
             // Get the label based on the sets and relations
             String setsLabel = "";
             boolean showLabelByDefault = view.showAsLabel.get(null);
@@ -983,11 +991,12 @@ public final class StaticGraphMaker {
             }
 
             // Make the port
-            port = new GraphPort(node, null, label, ori);
+            port = new GraphPort(node, label + "(" + rel.getName() + ")", label, ori);
 
             // Add it to the maps
             ports.put(port, atom);
-            lports = new ArrayList<AbstractGraphNode>();
+            if (lports == null)
+                lports = new ArrayList<AbstractGraphNode>();
             lports.add(port);
             atom2port.put(atom, lports);
             
@@ -1022,8 +1031,9 @@ public final class StaticGraphMaker {
 
                 // Set the label visibility
                 port.setHideLabel(view.portHideLabel.resolve(rel));
-                if (port.getNode() == node)
+                if (port.getNode() == node){
                     result = port;
+                }
             }
         }
         return result;
