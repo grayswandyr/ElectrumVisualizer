@@ -351,6 +351,11 @@ public final class VizGUI implements ComponentListener {
         timeBackwardButton.setEnabled(timeProjected && !graphcNull && graphc.timeLinked && graphc.curIndex > 0);
         timeForwardButton.setEnabled(timeProjected && !graphcNull && graphc.timeLinked && graphc.curIndex < graphc.maxIndex-1);
         linkTimeButton.setEnabled(timeProjected && !graphcNull);
+        if(graphcNull){
+            splitButton.setText("Split");
+        } else {
+            splitButton.setText("Unsplit");
+        }
     }
 
     // ======== The Preferences
@@ -1662,7 +1667,12 @@ public final class VizGUI implements ComponentListener {
         // splitPanel == true => the second panel needs to be shown
         myState.splitPanel = !myState.splitPanel && myState.getProjectedTypes().size() > 0;
         if(graphc == null){
-            graphc = new GraphComparer(null,null,myState);
+            /*
+             * The default comparer is "LabelComparer" (@see GraphComparer)
+             * To extend comparison capabilities, write your own comparer and pass it as
+             * the last argument of this constructor.
+             */
+            graphc = new GraphComparer(null, null, myState, new GraphComparer.LabelComparer());
         } else if(!myState.splitPanel){
             if(graphc.timeLinked){
                 graphc.linkTime();

@@ -39,7 +39,6 @@ import edu.mit.csail.sdg.alloy4graph.DotColor;
 import edu.mit.csail.sdg.alloy4graph.DotPalette;
 import edu.mit.csail.sdg.alloy4graph.DotShape;
 import edu.mit.csail.sdg.alloy4graph.DotStyle;
-import javafx.util.Callback;
 
 import edu.mit.csail.sdg.alloy4graph.GraphPort;
 import edu.mit.csail.sdg.alloy4graph.Graph;

@@ -222,13 +222,6 @@ public strictfp class GraphNode extends AbstractGraphNode {
     private Shape poly3 = null;
     
     /**
-     * [N7] @Louis Fauvarque
-     * Indicates if this node needs to be highlighted (for comparative views 
-     * only)
-     */
-    private boolean needHighlight;
-    
-    /**
      * [N7-M.Quentin] This field is here to ensure we only layout the subgraph one time.
      */
     private boolean layout = false;
@@ -548,7 +541,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
                 transY = ygn;
             }              
             gr.setColor(COLOR_CHOSENNODE);
-        } else if (this.needHighlight) {
+        } else if (this.getNeedHighlight()) {
             gr.setColor(COLOR_DIFFNODE);
         } else {
             gr.setColor(this.getColor());
@@ -581,7 +574,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             }
         } else {
             gr.draw(poly, true);
-            if(needHighlight){
+            if(getNeedHighlight()){
                 gr.setColor(Color.RED);
             } else {
                 gr.setColor(Color.BLACK);
@@ -1505,18 +1498,5 @@ public strictfp class GraphNode extends AbstractGraphNode {
         for (GraphPort p : this.ports) {
             p.setHighlight(h);
         }
-    }
-    
-    /**
-     * [N7] @Louis Fauvarque
-     * Getter and Setter for needHighlight
-     */
-    
-    public void setNeedHighlight(boolean newval){
-        needHighlight = newval;
-    }
-    
-    public boolean getNeedHighlight(){
-        return needHighlight;
     }
 }

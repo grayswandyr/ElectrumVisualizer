@@ -47,6 +47,13 @@ public abstract class AbstractGraphElement {
     boolean highlight = false;
     
     /**
+     * [N7] @Louis Fauvarque
+     * Indicates if this node needs to be highlighted (for comparative views 
+     * only)
+     */
+    private boolean needHighlight;
+    
+    /**
      * Cstr. Create an AbstractGraphElement from its uuid.
      * @param u uuid of the object
      */
@@ -118,5 +125,18 @@ public abstract class AbstractGraphElement {
     
     public void setHighlight(boolean h) {
         this.highlight = h;
+    }
+    
+    /**
+     * [N7] @Louis Fauvarque
+     * Getter and Setter for needHighlight
+     */
+    
+    public void setNeedHighlight(boolean newval){
+        needHighlight = newval;
+    }
+    
+    public boolean getNeedHighlight(){
+        return needHighlight;
     }
 }
