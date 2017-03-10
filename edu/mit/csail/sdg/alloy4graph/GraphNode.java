@@ -500,7 +500,7 @@ public strictfp class GraphNode extends AbstractGraphNode {
             return;
         }
         
-        calcBounds();
+        //calcBounds();
         
         final int top = graph.getTop(), left = graph.getLeft();
         final int subTop  = (subGraph == null ? 0 : subGraph.getTop()),
