@@ -387,6 +387,24 @@ public class GraphPort extends AbstractGraphNode {
     }
     
     /**
+     * Duplicates the given graphport.
+     * @param port the port being duplicated.
+     * @param node the new port it is connected to.
+     */
+    public GraphPort(GraphPort port, GraphNode node){
+        super(node.graph, port.uuid, node.getFather());
+        this.node = node;
+        this.label = port.label;
+        this.orientation = port.orientation;
+        this.node.ports.add(this);
+        
+        this.order = this.node.incNumPorts(port.orientation);
+        
+        this.setFontSize(8);
+        recalc();
+    }
+    
+    /**
      * Determines if coordinates are inside the port
      * @param x x coordinate
      * @param y y coordinate

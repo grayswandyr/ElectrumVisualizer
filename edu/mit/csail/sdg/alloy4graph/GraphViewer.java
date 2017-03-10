@@ -672,6 +672,11 @@ public final strictfp class GraphViewer extends JPanel {
                     }
                     map.putAll(m);
                 }
+                if (n.ports != null){
+                    for (GraphPort p : n.ports){
+                        new GraphPort(p, d);
+                    }
+                }
             }
         }
         return map;
