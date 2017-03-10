@@ -1713,6 +1713,14 @@ public final strictfp class Graph {
         if (highFirstEdge != null) {
             highFirstEdge.drawLabel(gr, highFirstEdge.getColor(), new Color(255, 255, 255, 160));
         }
+        
+        // [N7-G.Dupont] Draw tooltips
+        gr.setTransform(at); // Reset transformation
+        for (AbstractGraphNode gn : this.nodelist) {
+            if (gn instanceof GraphNode)
+                ((GraphNode)gn).drawTooltips(gr);
+        }
+        
         // show legends?
         if (!showLegends || legends.size() == 0) {
             return;
@@ -1749,12 +1757,7 @@ public final strictfp class Graph {
             y = y + ad;
         }
         
-        // [N7-G.Dupont] Draw tooltips
-        gr.setTransform(at); // Reset transformation
-        for (AbstractGraphNode gn : this.nodelist) {
-            if (gn instanceof GraphNode)
-                ((GraphNode)gn).drawTooltips(gr);
-        }
+
     }
 
     //============================================================================================================================//
