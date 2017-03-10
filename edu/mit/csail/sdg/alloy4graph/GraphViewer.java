@@ -258,7 +258,6 @@ public final strictfp class GraphViewer extends JPanel {
         for (AlloyRelation rel : relations){
             if(view.isPort.resolve(rel)){
                 portRelations.add(rel);
-                System.out.println(rel);
             }
         }
         

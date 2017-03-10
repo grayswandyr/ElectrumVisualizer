@@ -317,6 +317,9 @@ public final class StaticGraphMaker {
         
         Set<AlloyTuple> tupleSet = null;
         
+        // Set used for the legend
+        HashMap<AlloyRelation,Integer> relationsWithPorts = new HashMap<AlloyRelation,Integer>();
+        
         for(AlloyRelation rel : portRelations){
             Color magicol = magicPortColor.get(rel);
             tupleSet = instance.relation2tuples(rel);
@@ -338,6 +341,11 @@ public final class StaticGraphMaker {
                             Orientation defaultOri = GraphPort.AvailableOrientations.get(n.shape())[0];
                             GraphPort port = createPort(ts, (GraphNode)n, rel, ts.toString(), defaultOri);
                             setPortColor(port,rel,magicol);
+                            if(relationsWithPorts.containsKey(rel)){
+                                relationsWithPorts.replace(rel, relationsWithPorts.get(rel) +1);
+                            } else {
+                                relationsWithPorts.put(rel, 1);
+                            }
                         }
                     }
                 }
@@ -351,6 +359,11 @@ public final class StaticGraphMaker {
                             Orientation defaultOri = GraphPort.AvailableOrientations.get(n.shape())[0];
                             GraphPort port = createPort(te, (GraphNode)n, rel, te.toString(), defaultOri);
                             setPortColor(port,rel,magicol);
+                            if(relationsWithPorts.containsKey(rel)){
+                                relationsWithPorts.replace(rel, relationsWithPorts.get(rel) +1);
+                            } else {
+                                relationsWithPorts.put(rel, 1);
+                            }
                         }
                     }
                 }
@@ -432,6 +445,11 @@ public final class StaticGraphMaker {
                                         couple.add(startPort);
                                         couple.add(endPort);
                                         new GraphEdge(start, end, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                        if(relationsWithPorts.containsKey(rel)){
+                                            relationsWithPorts.replace(rel, relationsWithPorts.get(rel) +1);
+                                        } else {
+                                            relationsWithPorts.put(rel, 1);
+                                        }
                                     }
                                 }
                             }
@@ -495,6 +513,11 @@ public final class StaticGraphMaker {
                                             couple.add(start);
                                             couple.add(endPort);
                                             new GraphEdge(start, end, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                            if(relationsWithPorts.containsKey(rel)){
+                                                relationsWithPorts.replace(rel, relationsWithPorts.get(rel) +1);
+                                            } else {
+                                                relationsWithPorts.put(rel, 1);
+                                            }
                                         }
                                     }
                                 }
@@ -554,6 +577,11 @@ public final class StaticGraphMaker {
                                         couple.add(startPort);
                                         couple.add(end);
                                         new GraphEdge(start, end, graph, null, "Blank" + atomStart.toString() + atomEnd.toString(), couple).setStyle(DotStyle.BLANK);
+                                        if(relationsWithPorts.containsKey(rel)){
+                                            relationsWithPorts.replace(rel, relationsWithPorts.get(rel) +1);
+                                        } else {
+                                            relationsWithPorts.put(rel, 1);
+                                        }
                                     }
                                 }
                             }
@@ -680,6 +708,11 @@ public final class StaticGraphMaker {
             } else {
                 graph.addLegend(e.getKey(), e.getKey().getName(), null);
             }
+        }
+        
+        // Adds the relations with ports to the legend
+        for(AlloyRelation rel : relationsWithPorts.keySet()){
+            graph.addLegend(rel,rel.getName() + ": "+ relationsWithPorts.get(rel),Color.BLACK);
         }
     }
 
