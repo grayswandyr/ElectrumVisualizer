@@ -986,11 +986,12 @@ public final class StaticGraphMaker {
             }
 
             // Make the port
-            port = new GraphPort(node, null, label, ori);
+            port = new GraphPort(node, label + "(" + rel.getName() + ")", label, ori);
 
             // Add it to the maps
             ports.put(port, atom);
-            lports = new ArrayList<AbstractGraphNode>();
+            if (lports == null)
+                lports = new ArrayList<AbstractGraphNode>();
             lports.add(port);
             atom2port.put(atom, lports);
             
@@ -1025,16 +1026,11 @@ public final class StaticGraphMaker {
 
                 // Set the label visibility
                 port.setHideLabel(view.portHideLabel.resolve(rel));
-System.out.println("port.getNode() = " + port.getNode() + " father " + port.getNode().getFather() + 
-                   "          node = " + node + " father " + node.getFather() +
-                   "Oui ?" + (port.getNode() == node));
                 if (port.getNode() == node){
                     result = port;
-                    System.out.println("OUI");
                 }
             }
         }
-System.out.println("Result : " + result);      
         return result;
     }
     
