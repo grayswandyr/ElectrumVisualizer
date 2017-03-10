@@ -601,7 +601,7 @@ public final strictfp class GraphViewer extends JPanel {
         Graph toBeShownGraph = new Graph(node.getSubGraph().defaultScale, graph.sgm, graph.instance);
 
         //A mapping between original nodes and copies.
-        HashMap<GraphNode, GraphNode> dupl = duplicateSubnodes(toBeShownGraph, node);
+        HashMap<GraphNode, GraphNode> dupl = duplicateSubnodes(toBeShownGraph, node, true);
         //We also have to 'duplicate' the edges of every subnodes.
         for (GraphNode n : dupl.keySet()){
             // For each child-node, we check every edge from this node.
@@ -650,28 +650,31 @@ public final strictfp class GraphViewer extends JPanel {
      * This method duplicates all subnodes of the given node, recursively to get greatchild.
      * @return a map mapping old nodes to new ones. 
      */
-    private HashMap<GraphNode, GraphNode> duplicateSubnodes(Graph toBeShownGraph, GraphNode node){
-      HashMap<GraphNode, GraphNode> map = new HashMap<GraphNode, GraphNode>();
-      if (node.getChildren().isEmpty()) return map; //If the given node has no children, we return an empty list (this should never happen).
-      for (AbstractGraphNode an : node.getChildren()){ //We duplicate each node and add them to the map.
-        if (an instanceof GraphNode){
-            GraphNode n = (GraphNode)an;
-            GraphNode d = new GraphNode(n, toBeShownGraph);
-            map.put(n, d);
-            if (!(n.getChildren().isEmpty())){ //If the node we are duplicating have children, we dupliacte them too and add them to map.
-              HashMap<GraphNode, GraphNode> m = duplicateSubnodes(d.getSubGraph(), n);
-              for (AbstractGraphNode child : n.getChildren()){ //We have to have to precise the father of these duplicated child.
-                GraphNode duplicatedChild = m.get(child);
-                if (!(duplicatedChild == null)) {
-                  duplicatedChild.setFather(d);
-                  d.addChild(duplicatedChild);
+    private HashMap<GraphNode, GraphNode> duplicateSubnodes(Graph toBeShownGraph, GraphNode node, boolean obliterateFather){
+        HashMap<GraphNode, GraphNode> map = new HashMap<GraphNode, GraphNode>();
+        if (node.getChildren().isEmpty()) return map; //If the given node has no children, we return an empty list (this should never happen).
+        for (AbstractGraphNode an : node.getChildren()){ //We duplicate each node and add them to the map.
+            if (obliterateFather) // The first level should not have fathers
+                an.setFather(null);
+            
+            if (an instanceof GraphNode){
+                GraphNode n = (GraphNode)an;
+                GraphNode d = new GraphNode(n, toBeShownGraph);
+                map.put(n, d);
+                if (!(n.getChildren().isEmpty())){ //If the node we are duplicating have children, we dupliacte them too and add them to map.
+                    HashMap<GraphNode, GraphNode> m = duplicateSubnodes(d.getSubGraph(), n, false);
+                    for (AbstractGraphNode child : n.getChildren()){ //We have to have to precise the father of these duplicated child.
+                        GraphNode duplicatedChild = m.get(child);
+                        if (!(duplicatedChild == null)) {
+                            duplicatedChild.setFather(d);
+                            d.addChild(duplicatedChild);
+                        }
+                    }
+                    map.putAll(m);
                 }
-              }
-              map.putAll(m);
             }
         }
-      }
-      return map;
+        return map;
     }
 
     /**
