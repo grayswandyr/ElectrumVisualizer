@@ -374,7 +374,7 @@ public class GraphPort extends AbstractGraphNode {
      * @param or side of the node on which the port will be
      */
     public GraphPort(GraphNode node, Object uuid, String label, Orientation or) {
-        super(node.graph, (uuid == null) ? label : uuid, node.getFather());
+        super(node.graph, uuid, node.getFather());
         this.node = node;
         this.label = label;
         this.orientation = or;
