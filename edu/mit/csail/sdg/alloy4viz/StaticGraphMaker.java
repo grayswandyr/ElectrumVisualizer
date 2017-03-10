@@ -945,14 +945,22 @@ public final class StaticGraphMaker {
      * Color has to be set with the following setPortColor method
      */
     private GraphPort createPort(AlloyAtom atom, GraphNode node, AlloyRelation rel, String label, GraphPort.Orientation ori) {
-
         if (node == null) {
             return null;
         }
         
         GraphPort port = null;
         List<AbstractGraphNode> lports = atom2port.get(atom);
-        if (lports == null){
+        boolean create = true;
+        if (lports != null){
+            for(AbstractGraphNode n : lports){
+                if (n instanceof GraphPort && ((GraphPort)n).getNode() == node){
+                    create = false;
+                    break;
+                }
+            }
+        }
+        if (lports == null || create){
             // Get the label based on the sets and relations
             String setsLabel = "";
             boolean showLabelByDefault = view.showAsLabel.get(null);
@@ -1014,10 +1022,16 @@ public final class StaticGraphMaker {
 
                 // Set the label visibility
                 port.setHideLabel(view.portHideLabel.resolve(rel));
-                if (port.getNode() == node)
+System.out.println("port.getNode() = " + port.getNode() + " father " + port.getNode().getFather() + 
+                   "          node = " + node + " father " + node.getFather() +
+                   "Oui ?" + (port.getNode() == node));
+                if (port.getNode() == node){
                     result = port;
+                    System.out.println("OUI");
+                }
             }
         }
+System.out.println("Result : " + result);      
         return result;
     }
     
