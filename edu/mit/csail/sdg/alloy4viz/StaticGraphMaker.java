@@ -218,7 +218,13 @@ public final class StaticGraphMaker {
          * Create blank arrows to link the nodes that are connected through ports
          */
         
-        ArrayList<AlloyRelation> portRelations = view.isPort.getKeysFromValue(true);
+        ArrayList<AlloyRelation> portRelations = new ArrayList<AlloyRelation>();
+        Set<AlloyRelation> relations = instance.model.getRelations();
+        for (AlloyRelation rel : relations){
+            if(view.isPort.resolve(rel)){
+                portRelations.add(rel);
+            }
+        }
         ArrayList<AlloyAtom> portList = getPorts(portRelations, instance);
         
         for (AlloyAtom port : portList) {
@@ -309,7 +315,6 @@ public final class StaticGraphMaker {
         // (relation,port,node)
         List<GraphRelation> relList = new ArrayList<GraphRelation>();
         
-        Set<AlloyRelation> relations = view.getCurrentModel().getRelations();
         Set<AlloyTuple> tupleSet = null;
         
         for(AlloyRelation rel : portRelations){
@@ -1243,8 +1248,17 @@ public final class StaticGraphMaker {
         for (AlloyRelation eltA : portRelations) {
             if (eltA != null) {
                 List<AlloyType> lst = eltA.getTypes();
-                if (lst.contains(atom.getType()) && lst.indexOf(atom.getType()) == lst.lastIndexOf(atom.getType()) && lst.indexOf(atom.getType()) != 0) {
-                    return true;
+                ArrayList<AlloyType> inheritTypes = new ArrayList<AlloyType>();
+                inheritTypes.add(atom.getType());
+                AlloyType tp = model.getSuperType(atom.getType());
+                while(tp != null){
+                    inheritTypes.add(tp);
+                    tp = model.getSuperType(tp);
+                }
+                for(AlloyType type : inheritTypes){
+                    if (lst.contains(type) && lst.indexOf(type) == lst.lastIndexOf(type) && lst.indexOf(type) != 0) {
+                        return true;
+                    }
                 }
             }
         }
