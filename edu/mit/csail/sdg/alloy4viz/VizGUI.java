@@ -351,6 +351,11 @@ public final class VizGUI implements ComponentListener {
         timeBackwardButton.setEnabled(timeProjected && !graphcNull && graphc.timeLinked && graphc.curIndex > 0);
         timeForwardButton.setEnabled(timeProjected && !graphcNull && graphc.timeLinked && graphc.curIndex < graphc.maxIndex-1);
         linkTimeButton.setEnabled(timeProjected && !graphcNull);
+        if(graphcNull){
+            splitButton.setText("Split");
+        } else {
+            splitButton.setText("Unsplit");
+        }
     }
 
     // ======== The Preferences
