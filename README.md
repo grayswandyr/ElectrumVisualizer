@@ -1,4 +1,4 @@
-# ElectrumVisualizer
+# ElectrumVisualizer - OUTDATED STUDENT PROJECT
 
 This is a fork of the [Electrum](https://github.com/nmacedo/Electrum) project, which is itself an extension of the Alloy Analyzer project.
 
